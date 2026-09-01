@@ -1,4 +1,4 @@
-## 👤Kyush  — Computer Vision & Dataset Research
+## 👤Divyanshu  — Computer Vision & Dataset Research
 
 ### Files
 
@@ -21,7 +21,7 @@
 
 ---
 
-## 👤 Divyanshu — MATLAB, Simulink & System Research
+## 👤 Kyush — MATLAB, Simulink & System Research
 
 ### Files
 

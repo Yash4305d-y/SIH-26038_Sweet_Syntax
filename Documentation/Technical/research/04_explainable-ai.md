@@ -1,57 +1,54 @@
- 07. Explainable AI (XAI) & Lesion-Evidence Correlation
+# 07. Explainable AI (XAI) & Attribution Analysis
 
-## 1. Why Explainability Matters
-In medical screening, a standalone prediction like *"Grade 2: Moderate DR (91% confidence)"* is not enough. Clinicians need to see:
-1. **Where** the model is looking (to ensure it is not focusing on camera artifacts or dust).
-2. **What** anatomical features caused the decision (microaneurysms, hemorrhages, or exudates).
-
----
-
-## 2. Core Explainability Methods
-
-### 2.1 Grad-CAM (Visual Attribution)
-- **What it does:** Computes gradients at the final convolutional layer of ResNet-50 (`activation_49_relu`) to produce a visual heatmap showing where the model focused.
-- **MATLAB API:** `gradCAM(net, preprocessedImage, predictedClass, 'FeatureLayer', 'activation_49_relu')`.
-
-### 2.2 Lesion-Evidence Correlation (Key Differentiator)
-Most standard projects stop at displaying a colorful Grad-CAM heatmap. Our pipeline connects the heatmap directly to classical morphological lesion detection:
-
-Preprocessed Fundus Image│┌─────┴────────────────────────┐▼                              ▼ResNet-50 Grad-CAM          Morphological Filter(Heatmap $H$)               (Lesion Candidate Mask $M$)│                              │└──────────────┬───────────────┘▼Overlap / Coherence Check▼Final Evidence Summary in Report
-- **Saliency Coherence Score:**
-  $$\text{Coherence} = \frac{\text{Heatmap Active Region} \cap \text{Detected Lesion Mask}}{\text{Total Detected Lesion Mask}}$$
-- If the heatmap strongly aligns with detected microaneurysms or hemorrhages, the report confirms high diagnostic coherence.
+## 1. Scope & Clinical Rationale
+Automated screening predictions must be interpretable by human reviewers. The objective of this module is not to assert why a model is objectively "right," but to:
+1. Identify regions in the fundus photograph that drove the convolutional activations.
+2. Determine whether those activation patterns spatially agree with independently detected retinal abnormalities or known anatomical structures.
+3. Suppress spurious predictions caused by camera artifacts, over-illumination, or border ring noise.
 
 ---
 
-## 3. Calibrated Confidence (Knowing When to Flag for Human Review)
-Instead of relying on raw Softmax scores (which can be overconfident), we combine two checks:
-- **Softmax Probability Margin:** Is top-1 probability $\ge 0.75$?
-- **Prediction Entropy:** Is uncertainty across all 5 classes low?
+## 2. Visual Attribution (Grad-CAM)
+* **Backbone Independence:** Attribution maps are generated from the final suitable convolutional feature layer of the selected backbone (e.g., verifying the specific layer identifier in the MATLAB Network Analyzer rather than assuming a hard-coded name).
+* **Layer Extraction (MATLAB API):**
+  ```matlab
+  % Dynamically identify final conv layer or use confirmed target layer
+  targetFeatureLayer = "activation_49_relu"; % Verified on model instantiation
+  heatmap = gradCAM(net, preprocessedImg, predictedClass, 'FeatureLayer', targetFeatureLayer);
+3. Spatial Association & Attribution MetricsInstead of claiming that Grad-CAM "proves" diagnosis, the pipeline evaluates the spatial agreement between the saliency map and detected lesion candidates.3.1 Spatial Overlap AssessmentLet $H_{\text{binary}}$ represent the binarized Grad-CAM attribution map ($H \ge 0.5 \cdot \max(H)$) and $M_{\text{abnormal}}$ represent the binary mask of candidate abnormalities (microaneurysms, hemorrhages, or exudates) extracted via morphological processing:Lesion-Attribution Overlap:$$\text{Overlap Ratio} = \frac{\sum (H_{\text{binary}} \cap M_{\text{abnormal}})}{\sum M_{\text{abnormal}} + \epsilon}$$Interpretation: Indicates whether regions identified by the feature extractor align with independently detected retinal abnormalities.Background Attention Fraction:$$\text{Background Ratio} = \frac{\sum (H_{\text{binary}} \cap \neg M_{\text{retina}})}{\sum H_{\text{binary}} + \epsilon}$$Interpretation: Flags edge artifacts, camera borders, or non-retinal illumination noise. If high, confidence is penalized.4. Calibrated Confidence & Triage GateA prediction is only routed to the screening report if it passes an explicit calibration and uncertainty check.       Model Output Scores
+               │
+               ▼
+   Validation-Tuned Calibration
+  (Platt Scaling / Isotonic Reg)
+               │
+               ▼
+     Calibrated Probabilities
+               │
+      ┌────────┴────────┐
+      ▼                 ▼
+Calibrated Margin    Prediction Entropy
+  $P_{\max}$         $\mathcal{H}(p)$
+      │                 │
+      └────────┬────────┘
+               ▼
+      Confidence Categorization
+High Confidence: Calibrated $P_{\max} \ge 0.80$ AND low prediction entropy ($\mathcal{H} \le 0.8$) AND Background Attention Fraction $\le 5\%$.Moderate Confidence: Probability mass split across adjacent grades (e.g., Grade 1 vs. Grade 2 boundary).Low / Uncertainty Flag: High entropy, low calibrated score, or high background attention. System suppresses automated severity and flags: "Indeterminate - Requires Manual Ophthalmologist Review".5. Screening Report Interface (Illustrative Specimen)Note: Output below is an illustrative formatting example. Numerical values demonstrate structure and do not reflect finalized benchmark results.Plaintext======================================================================
+DIABETIC RETINOPATHY SCREENING SUMMARY REPORT
+======================================================================
+Image Identifier      : IDRiD_Sample_042.jpg
+Image Quality Check   : PASS (Illumination: Uniform, Sharpness: Adequate)
 
-### Confidence Levels:
-- **HIGH:** High probability, low entropy, clear image quality.
-- **MEDIUM:** Probabilities split between two adjacent classes (e.g., Grade 1 vs. Grade 2).
-- **LOW / REVIEW REQUIRED:** High entropy or poor image quality $\rightarrow$ Direct referral to ophthalmologist without an automated final grade.
+PREDICTION SUMMARY:
+- Screening Result    : Referable DR Detected (Grade 2 - Moderate NPDR)
+- System Confidence   : HIGH (Calibrated Probability: 0.84, Low Entropy)
+- Referral Status     : Specialist Evaluation Recommended
 
----
+EXPLAINABILITY & SPATIAL FINDINGS:
+- Attention Profile   : Concentrated focal regions detected within retinal field
+- Associated Findings : 11 candidate microaneurysms / focal blot areas detected
+- Attribution Match   : 78% spatial agreement with detected abnormal foci
+- Background Leakage  : Low (< 2% border artifact attention)
 
-## 4. Final Output: Structured Clinical Report
-Instead of raw numbers or chatbot text, generate a clean summary:
-
-```text
-============================================================
-DIABETIC RETINOPATHY SCREENING REPORT
-============================================================
-Image Quality Status  : PASS (Clear focus, uniform lighting)
-
-FINDINGS:
-- Predicted DR Grade  : Grade 2 (Moderate NPDR)
-- Referral Required   : YES (Referable DR)
-- System Confidence   : HIGH (0.84)
-
-EVIDENCE & EXPLAINABILITY:
-- Attention Region    : Temporal quadrant focus
-- Morphological Match : Microaneurysm cluster detected
-- Coherence Score     : 81% overlap between Grad-CAM & lesions
-- Recommended Action  : Routine ophthalmology consult (30 days)
-============================================================
+RECOMMENDED ACTION:
+- Refer for specialist evaluation.
+======================================================================

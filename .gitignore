@@ -1,31 +1,41 @@
 # ============================================================
-# Python cache / notebooks
+# SIH-26038 — Explainable AI for Diabetic Retinopathy
 # ============================================================
 
+# -------------------------
+# OS / Editor
+# -------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+.vscode/
+.idea/
+
+# MATLAB
+*.asv
+*.autosave
+*.bak
+*.mex*
+*.slxc
+*.slx.autosave
+
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
+.pytest_cache/
 .ipynb_checkpoints/
 
-# ============================================================
-# Virtual environments / local environment
-# ============================================================
+# -------------------------
+# MATLAB generated / temporary
+# -------------------------
+*.fig
+*.matlab
+*.tmp
 
-venv/
-env/
-.venv/
-.env
-
-# ============================================================
-# Large datasets & raw images
-# ============================================================
-
-data/raw/
-**/train_images/
-**/val_images/
-**/test_images/
-
-# Ignore image files everywhere
+# -------------------------
+# Large image files
+# -------------------------
 *.jpg
 *.jpeg
 *.png
@@ -35,45 +45,56 @@ data/raw/
 *.tiff
 *.webp
 
-# ============================================================
-# Large model weights / binaries
-# ============================================================
+# -------------------------
+# Datasets
+# -------------------------
+data/
+dataset/
+datasets/
+raw_data/
+processed_data/
 
-models/checkpoints/
-models/*.mat
-models/**/*.mat
-
-*.pth
+# -------------------------
+# Model weights / checkpoints
+# -------------------------
 *.pt
-*.h5
+*.pth
+*.ckpt
 *.onnx
-*.pkl
-*.bin
 
-# ============================================================
-# Heavy evaluation arrays / caches
-# ============================================================
+# MATLAB model files
+models/*.mat
 
-results/**/*.npy
-results/**/*.npz
+# -------------------------
+# Generated model outputs
+# -------------------------
+outputs/gradcam/
+outputs/predictions/
+outputs/checkpoints/
 
-# ============================================================
-# MATLAB temporary files
-# ============================================================
+# -------------------------
+# Generated evaluation artifacts
+# -------------------------
+outputs/evaluation/
 
-*.asv
-*.m~
+# -------------------------
+# Logs / temporary results
+# -------------------------
+logs/
+*.log
 
-# ============================================================
-# OS metadata
-# ============================================================
+# -------------------------
+# Local environment / secrets
+# -------------------------
+.env
+.env.*
+!.env.example
 
-Thumbs.db
-.DS_Store
-
-# ============================================================
-# MATLAB generated / temporary files
-# ============================================================
-
-*.fig
-*.mat
+# -------------------------
+# Large archives
+# -------------------------
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz

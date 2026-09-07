@@ -11,15 +11,18 @@ function prepareAPTOS()
     projectDir = fileparts(srcDir);
     
     dataDir = fullfile(projectDir, 'data');
-    aptosDir = fullfile(dataDir, 'APTOS');
-    imgDir = fullfile(aptosDir, 'train_images');
+    rawDir = fullfile(dataDir, 'raw');
     splitsDir = fullfile(dataDir, 'splits');
+    
+    imgDirTrain = fullfile(rawDir, 'train_images');
+    imgDirVal = fullfile(rawDir, 'val_images');
+    imgDirTest = fullfile(rawDir, 'test_images');
     
     if ~exist(splitsDir, 'dir')
         mkdir(splitsDir);
     end
     
-    csvFile = fullfile(aptosDir, 'train.csv');
+    csvFile = fullfile(splitsDir, 'train.csv');
     
     % 1. Read the dataset metadata
     if ~exist(csvFile, 'file')
@@ -51,11 +54,19 @@ function prepareAPTOS()
             imgName = imgId;
         end
         
-        fullPath = fullfile(imgDir, imgName);
+        fullPathTrain = fullfile(imgDirTrain, imgName);
+        fullPathVal = fullfile(imgDirVal, imgName);
+        fullPathTest = fullfile(imgDirTest, imgName);
         
         % 3. Verify that every referenced image actually exists
-        if ~exist(fullPath, 'file')
-            error('Image missing! Could not find: %s', fullPath);
+        if exist(fullPathTrain, 'file')
+            fullPath = fullPathTrain;
+        elseif exist(fullPathVal, 'file')
+            fullPath = fullPathVal;
+        elseif exist(fullPathTest, 'file')
+            fullPath = fullPathTest;
+        else
+            error('Image missing! Could not find: %s', imgName);
         end
         
         imagePaths(i) = fullPath;
@@ -105,9 +116,9 @@ function prepareAPTOS()
     valOut = valData(:, {'id_code', 'diagnosis'});
     testOut = testData(:, {'id_code', 'diagnosis'});
     
-    trainCsvOut = fullfile(splitsDir, 'aptos_train.csv');
-    valCsvOut = fullfile(splitsDir, 'aptos_val.csv');
-    testCsvOut = fullfile(splitsDir, 'aptos_test.csv');
+    trainCsvOut = fullfile(splitsDir, 'train_split.csv');
+    valCsvOut = fullfile(splitsDir, 'val_split.csv');
+    testCsvOut = fullfile(splitsDir, 'test_split.csv');
     
     % Delete existing files to ensure we overwrite malformed ones cleanly
     if exist(trainCsvOut, 'file'), delete(trainCsvOut); end

@@ -10,11 +10,15 @@ function [imdsTrain, imdsVal, imdsTest] = createAPTOSDatastores()
     
     dataDir = fullfile(projectDir, 'data');
     splitsDir = fullfile(dataDir, 'splits');
-    imgDir = fullfile(dataDir, 'APTOS', 'train_images');
+    rawDir = fullfile(dataDir, 'raw');
     
-    trainCsvFile = fullfile(splitsDir, 'aptos_train.csv');
-    valCsvFile = fullfile(splitsDir, 'aptos_val.csv');
-    testCsvFile = fullfile(splitsDir, 'aptos_test.csv');
+    trainImgDir = fullfile(rawDir, 'train_images');
+    valImgDir = fullfile(rawDir, 'val_images');
+    testImgDir = fullfile(rawDir, 'test_images');
+    
+    trainCsvFile = fullfile(splitsDir, 'train_split.csv');
+    valCsvFile = fullfile(splitsDir, 'val_split.csv');
+    testCsvFile = fullfile(splitsDir, 'test_split.csv');
     
     if ~exist(trainCsvFile, 'file') || ~exist(valCsvFile, 'file') || ~exist(testCsvFile, 'file')
         error('Split CSV files not found. Please run prepareAPTOS.m first.');
@@ -63,9 +67,9 @@ function [imdsTrain, imdsVal, imdsTest] = createAPTOSDatastores()
         labels = categorical(dataTbl.diagnosis);
     end
     
-    [trainPaths, trainLabels] = processData(trainData, imgDir, 'Train');
-    [valPaths, valLabels] = processData(valData, imgDir, 'Validation');
-    [testPaths, testLabels] = processData(testData, imgDir, 'Test');
+    [trainPaths, trainLabels] = processData(trainData, trainImgDir, 'Train');
+    [valPaths, valLabels] = processData(valData, valImgDir, 'Validation');
+    [testPaths, testLabels] = processData(testData, testImgDir, 'Test');
     
     % Sanity check: confirm all 5 classes exist in the training labels
     uniqueTrainClasses = unique(trainLabels);

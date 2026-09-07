@@ -25,8 +25,8 @@ function evaluateBaselineResNet50()
     disp('Loading fixed APTOS test split...');
     dataDir = fullfile(projectDir, 'data');
     splitsDir = fullfile(dataDir, 'splits');
-    imgDir = fullfile(dataDir, 'APTOS', 'train_images');
-    testCsvFile = fullfile(splitsDir, 'aptos_test.csv');
+    imgDir = fullfile(dataDir, 'raw', 'test_images');
+    testCsvFile = fullfile(splitsDir, 'test_split.csv');
     
     if ~exist(testCsvFile, 'file')
         error('Test split CSV not found.');

@@ -1,27 +1,30 @@
-# Byte-compiled / optimized files
-__pycache__/
+# Python cache
+
+**pycache**/
 *.py[cod]
 *$py.class
 .ipynb_checkpoints/
 
-# Virtual environments
+# Virtual environments / local environment
+
 venv/
 env/
 .env
 
-# Large datasets & images
+# Large datasets & raw images
+
 data/raw/
 **/train_images/
 **/val_images/
 **/test_images/
-*.png
-*.jpg
-*.jpeg
 *.tif
 *.tiff
 
-# Model weights & large binaries (keep folder structure via README)
+# Large model weights / binaries
+
 models/checkpoints/
+models/*.mat
+models/**/*.mat
 *.pth
 *.pt
 *.h5
@@ -29,17 +32,17 @@ models/checkpoints/
 *.pkl
 *.bin
 
-# Heavy evaluation logs / cache
+# Heavy evaluation arrays / caches
+
 results/**/*.npy
 results/**/*.npz
 
 # OS metadata
+
 Thumbs.db
 .DS_Store
 
-*.mat
-*.fig
-*.slx
-*.mat.mat
-**/models/*/
-**/results/*/
+# MATLAB temporary files
+
+*.asv
+*.m~

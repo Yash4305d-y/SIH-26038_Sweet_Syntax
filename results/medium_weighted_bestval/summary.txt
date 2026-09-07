@@ -1,0 +1,25 @@
+Evaluation Summary
+Date/Time: 07-Sep-2026 22:28:24
+
+Model Name: Medium Weighted Best-Validation ResNet-50
+Dataset Name: APTOS
+Number of evaluated test images: 439
+
+Test Accuracy:        0.7745
+Macro F1 Score:       0.6019
+Weighted F1 Score:    0.7688
+QWK:                  0.8220
+
+Class | Precision | Recall | F1 Score
+No DR                | 0.9409    | 0.9628 | 0.9517
+Mild                 | 0.5417    | 0.5778 | 0.5591
+Moderate             | 0.7203    | 0.7025 | 0.7113
+Severe               | 0.4118    | 0.6087 | 0.4912
+Proliferative DR     | 0.4211    | 0.2286 | 0.2963
+
+Confusion Matrix (Rows=True, Cols=Predicted):
+207 6 1 0 1 
+5 26 11 1 2 
+7 14 85 9 6 
+0 1 6 14 2 
+1 1 15 10 8 

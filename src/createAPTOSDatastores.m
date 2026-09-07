@@ -30,11 +30,15 @@ function [imdsTrain, imdsVal, imdsTest] = createAPTOSDatastores()
     valData = readtable(valCsvFile, 'PreserveVariableNames', true);
     testData = readtable(testCsvFile, 'PreserveVariableNames', true);
     
-    % Helper function to build paths, verify existence, and extract labels
+    % Helper function to build paths, verify existence, extract labels, and check integrity
     function [paths, labels] = processData(dataTbl, imgDirName, datasetName)
         disp(['Verifying images for ', datasetName, ' dataset...']);
         numSamples = height(dataTbl);
-        paths = strings(numSamples, 1);
+        
+        % Initialize as empty string array, NOT <missing> to avoid bad allocation later
+        paths = repmat("", numSamples, 1);
+        missingCount = 0;
+        corruptCount = 0;
         
         for i = 1:numSamples
             % Determine image identifier column
@@ -52,19 +56,49 @@ function [imdsTrain, imdsVal, imdsTest] = createAPTOSDatastores()
                 ext = '.png';
             end
             
-            % 3. Build full image paths
-            fullPath = fullfile(imgDirName, [char(name), char(ext)]);
+            imgName = [char(name), char(ext)];
+            fullPathTrain = fullfile(trainImgDir, imgName);
+            fullPathVal = fullfile(valImgDir, imgName);
+            fullPathTest = fullfile(testImgDir, imgName);
             
-            % 6. Verify that every image exists
-            if ~exist(fullPath, 'file')
-                error('Missing image in %s dataset: %s', datasetName, fullPath);
+            % 3. Build full image paths by checking all three directories
+            if exist(fullPathTrain, 'file')
+                fullPath = fullPathTrain;
+            elseif exist(fullPathVal, 'file')
+                fullPath = fullPathVal;
+            elseif exist(fullPathTest, 'file')
+                fullPath = fullPathTest;
+            else
+                warning('Missing image in %s dataset: %s. Skipping.', datasetName, imgName);
+                missingCount = missingCount + 1;
+                continue;
+            end
+            
+            % Check if file is readable
+            try
+                imfinfo(fullPath);
+            catch
+                warning('Unreadable/corrupt image in %s dataset: %s. Skipping.', datasetName, imgName);
+                corruptCount = corruptCount + 1;
+                continue;
             end
             
             paths(i) = fullPath;
         end
         
-        % 5. Labels must be categorical with the five DR classes: 0, 1, 2, 3, 4
-        labels = categorical(dataTbl.diagnosis);
+        % Safely remove skipped paths by checking string length (filters out "" and <missing>)
+        validIdx = strlength(paths) > 0;
+        paths = paths(validIdx);
+        labels = categorical(dataTbl.diagnosis(validIdx));
+        
+        % Print integrity summary
+        validCount = numel(paths);
+        fprintf('\n--- %s Dataset Integrity Summary ---\n', datasetName);
+        fprintf('Original CSV rows: %d\n', numSamples);
+        fprintf('Missing files    : %d\n', missingCount);
+        fprintf('Unreadable files : %d\n', corruptCount);
+        fprintf('Valid files      : %d\n', validCount);
+        fprintf('----------------------------------------\n\n');
     end
     
     [trainPaths, trainLabels] = processData(trainData, trainImgDir, 'Train');

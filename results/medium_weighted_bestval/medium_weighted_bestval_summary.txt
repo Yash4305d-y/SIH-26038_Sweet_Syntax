@@ -1,0 +1,22 @@
+Evaluation Summary
+
+Test Accuracy:        0.7745
+Balanced Accuracy:    0.6161
+Macro Precision:      0.6071
+Macro Recall:         0.6161
+Macro F1 Score:       0.6019
+QWK:                  0.8220
+
+Class | Precision | Recall | F1 Score
+0     | 0.9409    | 0.9628 | 0.9517
+1     | 0.5417    | 0.5778 | 0.5591
+2     | 0.7203    | 0.7025 | 0.7113
+3     | 0.4118    | 0.6087 | 0.4912
+4     | 0.4211    | 0.2286 | 0.2963
+
+Confusion Matrix:
+207 6 1 0 1 
+5 26 11 1 2 
+7 14 85 9 6 
+0 1 6 14 2 
+1 1 15 10 8 

@@ -16,7 +16,12 @@ function trainMediumWeightedBestValResNet50()
     
     % 1. Load Datastores via our standard datastore creation script
     disp('Loading image datastores...');
-    [imdsTrain, imdsVal, ~] = createAPTOSDatastores();
+    [imdsTrain, imdsVal, imdsTest] = createAPTOSDatastores();
+    
+    % Force serial reading of 1 image at a time to prevent RAM exhaustion
+    imdsTrain.ReadSize = 1;
+    imdsVal.ReadSize = 1;
+    imdsTest.ReadSize = 1;
     
     % Verify categories map correctly
     classes = string(categories(imdsTrain.Labels));
@@ -25,17 +30,15 @@ function trainMediumWeightedBestValResNet50()
     end
     
     % Calculate Medium (Power 0.50) Class Weights
-    disp('Calculating medium class weights from training set ONLY...');
+    disp('Calculating medium class weights using fixed original counts...');
     countsTbl = countEachLabel(imdsTrain);
-    classCounts = countsTbl.Count;
+    classCounts = [1004; 209; 566; 108; 164];
     N = sum(classCounts);
     K = length(classes);
     
     % Formula exactly as requested:
-    rawWeight = (N ./ classCounts) .^ 0.50;
-    
-    % Normalize so mean is 1
-    classWeights = rawWeight / mean(rawWeight);
+    rawWeights = (N ./ classCounts).^0.50;
+    classWeights = rawWeights / mean(rawWeights);
     
     % Print the calculated weights clearly
     disp(' ');
@@ -51,9 +54,25 @@ function trainMediumWeightedBestValResNet50()
     augimdsTrain = augmentedImageDatastore(inputSize(1:2), imdsTrain);
     augimdsVal = augmentedImageDatastore(inputSize(1:2), imdsVal);
     
+    disp('--- Pre-testing Validation Datastore for Corrupt Files ---');
+    badFiles = 0;
+    for vIdx = 1:numel(imdsVal.Files)
+        fileToTest = imdsVal.Files{vIdx};
+        try
+            imfinfo(fileToTest);
+        catch ME
+            warning('Validation pre-test failed on image: %s. Error: %s', fileToTest, ME.message);
+            badFiles = badFiles + 1;
+        end
+    end
+    reset(imdsVal);
+    reset(augimdsVal);
+    fprintf('Validation pre-test complete. Bad files found: %d\n', badFiles);
+    disp('--------------------------------------------------------');
+    
     % Ensure validation happens exactly once per epoch for clean tracking
     numTrainImages = numel(imdsTrain.Files);
-    batchSize = 16;
+    batchSize = 4;
     itersPerEpoch = floor(numTrainImages / batchSize);
     
     % Load configured 5-class ResNet-50
@@ -76,6 +95,7 @@ function trainMediumWeightedBestValResNet50()
         "ValidationFrequency", itersPerEpoch, ... % Validate exactly once per epoch
         "OutputNetwork", "best-validation", ...   % Return best validation loss model!
         "ExecutionEnvironment", "auto", ... 
+        "DispatchInBackground", false, ...
         "Plots", "training-progress", ...
         "Verbose", true);
         

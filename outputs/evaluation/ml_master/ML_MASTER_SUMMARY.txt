@@ -1,0 +1,53 @@
+=== ML MASTER VERIFICATION ===
+
+Final model:
+Baseline ResNet-50
+
+APTOS test:
+N = 439
+
+Accuracy:
+82.92%
+
+Macro-F1:
+0.6358
+
+QWK:
+0.8713
+
+Referable-DR:
+Sensitivity:
+96.09%
+
+Specificity:
+92.31%
+
+ROC-AUC:
+0.9816
+
+Calibrated threshold:
+0.22
+
+Grad-CAM:
+439/439 verified
+Prediction mismatches:
+0
+
+Messidor-2:
+N = 1744
+
+5-class accuracy:
+59.98%
+
+5-class Macro-F1:
+0.2581
+
+5-class QWK:
+0.3231
+
+Binary ROC-AUC:
+0.7669
+
+Final model decision:
+BASELINE RESNET-50 LOCKED
+

@@ -1,0 +1,117 @@
+# ============================================================
+# SIH-26038 — Explainable AI for Diabetic Retinopathy
+# ============================================================
+
+# -------------------------
+# OS / Editor
+# -------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+.vscode/
+.idea/
+
+# -------------------------
+# MATLAB
+# -------------------------
+*.asv
+*.autosave
+*.bak
+*.mex*
+*.slxc
+*.slx.autosave
+
+# -------------------------
+# Python
+# -------------------------
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# -------------------------
+# MATLAB generated / temporary
+# -------------------------
+*.fig
+*.matlab
+*.tmp
+
+# -------------------------
+# Large image files
+# -------------------------
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.gif
+*.tif
+*.tiff
+*.webp
+
+# -------------------------
+# Datasets
+# -------------------------
+data/
+dataset/
+datasets/
+raw_data/
+processed_data/
+
+# -------------------------
+# Model weights / checkpoints
+# -------------------------
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# MATLAB model files
+models/*.mat
+
+# LOCKED FINAL ML MODEL
+!models/baseline_resnet50_smoketest.mat
+
+# -------------------------
+# Generated model outputs
+# -------------------------
+outputs/gradcam/
+outputs/predictions/
+outputs/checkpoints/
+
+# -------------------------
+# Generated evaluation artifacts
+# -------------------------
+outputs/evaluation/
+
+# LOCKED REQUIRED CALIBRATION ARTIFACT
+!outputs/evaluation/referable_dr/
+outputs/evaluation/referable_dr/*
+!outputs/evaluation/referable_dr/calibration/
+outputs/evaluation/referable_dr/calibration/*
+!outputs/evaluation/referable_dr/calibration/calibration_parameters.mat
+
+# MACHINE-READABLE CONTRACT RESULTS
+!outputs/evaluation/ml_master/
+
+# -------------------------
+# Logs / temporary results
+# -------------------------
+logs/
+*.log
+
+# -------------------------
+# Local environment / secrets
+# -------------------------
+.env
+.env.*
+!.env.example
+
+# -------------------------
+# Large archives
+# -------------------------
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz

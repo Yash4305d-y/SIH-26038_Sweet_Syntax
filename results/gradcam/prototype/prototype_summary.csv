@@ -1,0 +1,9 @@
+ImageFilename,GroundTruth,Prediction,IsCorrect,Confidence,TargetLayer
+1ae8c165fd53.png,2,2,1,0.788947284221649,res5c_branch2c
+1b398c0494d1.png,0,0,1,0.976427733898163,res5c_branch2c
+1c4f3aa4df06.png,4,2,0,0.509051263332367,res5c_branch2c
+1d674e2e32e0.png,1,2,0,0.730995357036591,res5c_branch2c
+1e8a1fdee5b9.png,1,1,1,0.847332835197449,res5c_branch2c
+222f3ee3a1e8.png,4,4,1,0.481998860836029,res5c_branch2c
+253e96488cfb.png,0,1,0,0.684018492698669,res5c_branch2c
+2665f72e2dd3.png,3,3,1,0.463686794042587,res5c_branch2c

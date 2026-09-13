@@ -115,3 +115,9 @@ logs/
 *.7z
 *.tar
 *.gz
+# Dashboard
+dashboard/venv/
+dashboard/__pycache__/
+dashboard/uploads/
+dashboard/gradcam_output/
+

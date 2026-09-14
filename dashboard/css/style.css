@@ -1,5 +1,5 @@
 /* ===================================================================
-   RETINA-AI Dashboard — Clinical Design System
+   OculaAI Dashboard — Clinical Design System
    SIH-26038 Diabetic Retinopathy Screening
    =================================================================== */
 
@@ -1524,6 +1524,9 @@ body {
   margin-bottom: 30px;
   page-break-inside: avoid;
   break-inside: avoid;
+  height: auto !important;
+  min-height: 0 !important;
+  display: block !important;
 }
 
 .report-section h2 {
@@ -1614,32 +1617,47 @@ p.caption {
   page-break-inside: avoid;
   break-inside: avoid;
 }
-.prob-bar-container {
+.distribution-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  margin-bottom: 6px;
 }
-.prob-bar-label {
-  font-weight: bold;
-  width: 20px;
+.distribution-row .label {
+  width: 70px;
+  min-width: 70px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.distribution-row .bar-track {
+  flex-grow: 1;
+  height: 14px;
+  background-color: #f1f5f9;
+  border-radius: 4px;
+  margin: 0 10px;
+}
+.distribution-row .percentage {
+  width: 45px;
+  min-width: 45px;
+  text-align: right;
+  font-size: 13px;
 }
 .prob-bar-fill {
-  height: 16px;
+  height: 100%;
   background: #0284c7;
   border-radius: 4px;
   min-width: 4px;
 }
-.prob-bar-val {
-  font-size: 12px;
-  color: #475569;
-}
 
 /* Print Specific */
 @media print {
-  .pdf-report {
+  .pdf-report, .report-section {
     padding: 0;
     box-shadow: none;
     max-width: 100%;
+    height: auto !important;
+    min-height: 0 !important;
+    display: block !important;
+    margin: 0 !important;
   }
   .report-section {
     page-break-inside: avoid;

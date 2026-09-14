@@ -1,5 +1,5 @@
 /* ===================================================================
-   RETINA-AI Dashboard — Application Logic
+   OculaAI Dashboard — Application Logic
    SIH-26038 Diabetic Retinopathy Screening
    
    Handles: File upload, API communication, result rendering
@@ -93,17 +93,17 @@ dropzoneArea.addEventListener('drop', (e) => {
   }
 });
 
-fileInput.addEventListener('change', (e) => {
+fileInput?.addEventListener('change', (e) => {
   if (e.target.files.length > 0) {
     handleFileSelect(e.target.files[0]);
   }
 });
 
-btnReupload.addEventListener('click', () => {
-  fileInput.click();
+btnReupload?.addEventListener('click', () => {
+  fileInput?.click();
 });
 
-btnAnalyze.addEventListener('click', () => {
+btnAnalyze?.addEventListener('click', () => {
   if (selectedFile) {
     runAnalysis(selectedFile);
   }
@@ -498,44 +498,77 @@ const handleDownloadReport = async (e) => {
   }
 
   try {
-    const element = document.getElementById('pdf-report');
+    const { jsPDF } = window.jspdf;
     
     const modal = document.getElementById('report-modal');
     const wasHidden = modal.classList.contains('hidden');
     
     if (wasHidden) {
-      // Unhide but keep offscreen
       modal.style.opacity = '0.01';
       modal.style.position = 'absolute';
       modal.style.top = '-9999px';
-      modal.style.display = 'block'; // force display
+      modal.style.display = 'block'; 
       modal.classList.remove('hidden');
-      await new Promise(r => setTimeout(r, 100)); // allow DOM to render
+      await new Promise(r => setTimeout(r, 150)); 
+    }
+    
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = 210;
+    const pdfHeight = 297;
+    const margin = 15; 
+    const usableWidth = pdfWidth - margin * 2;
+    const usableHeight = pdfHeight - margin * 2 - 12; // 12mm reserved for footer
+    
+    let currentY = margin;
+    const sections = document.querySelectorAll('#pdf-report .report-section');
+    
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i];
+      
+      const canvas = await html2canvas(section, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      
+      const imgWidth = usableWidth;
+      let imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      if (currentY + imgHeight > usableHeight && currentY > margin + 5) {
+        pdf.addPage();
+        currentY = margin;
+      }
+      
+      if (imgHeight > usableHeight) {
+        const scaleFactor = usableHeight / imgHeight;
+        const scaledWidth = imgWidth * scaleFactor;
+        const scaledHeight = usableHeight;
+        
+        const xOffset = margin + (usableWidth - scaledWidth) / 2;
+        pdf.addImage(imgData, 'JPEG', xOffset, currentY, scaledWidth, scaledHeight);
+        currentY += scaledHeight + 8;
+      } else {
+        pdf.addImage(imgData, 'JPEG', margin, currentY, imgWidth, imgHeight);
+        currentY += imgHeight + 8; 
+      }
+      
+      if (section.classList.contains('cover-section') && i < sections.length - 1) {
+        pdf.addPage();
+        currentY = margin;
+      }
+    }
+    
+    const totalPages = pdf.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(9);
+      pdf.setTextColor(100);
+      pdf.text('SIH-26038 | Diabetic Retinopathy Screening Report', margin, pdfHeight - 10);
+      pdf.text(`Page ${i} of ${totalPages}`, pdfWidth - margin - 20, pdfHeight - 10);
     }
     
     const patientId = document.getElementById('sec2-patient').textContent || 'Unknown';
     const safeId = patientId.replace(/[^a-z0-9]/gi, '_');
     const filename = `DR_Screening_Report_${safeId}.pdf`;
-
-    const opt = {
-      margin:       10,
-      filename:     filename,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, logging: false },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak:    { mode: ['css', 'legacy'] }
-    };
     
-    await html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
-      const totalPages = pdf.internal.getNumberOfPages();
-      for (let i = 1; i <= totalPages; i++) {
-        pdf.setPage(i);
-        pdf.setFontSize(9);
-        pdf.setTextColor(100);
-        pdf.text('SIH-26038 | Diabetic Retinopathy Screening Report', 10, pdf.internal.pageSize.getHeight() - 8);
-        pdf.text(`Page ${i} of ${totalPages}`, pdf.internal.pageSize.getWidth() - 25, pdf.internal.pageSize.getHeight() - 8);
-      }
-    }).save();
+    pdf.save(filename);
     
     if (wasHidden) {
       modal.classList.add('hidden');
@@ -563,7 +596,7 @@ document.getElementById('btn-share-report')?.addEventListener('click', async () 
     try {
       await navigator.share({
         title: 'DR Screening Report',
-        text: 'Screening Result generated by Retina-AI',
+        text: 'Screening Result generated by OculaAI',
         url: window.location.href,
       });
     } catch (err) {

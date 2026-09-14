@@ -1,5 +1,5 @@
 /* ===================================================================
-   RETINA-AI Dashboard — Clinical Design System
+   OculaAI Dashboard — Clinical Design System
    SIH-26038 Diabetic Retinopathy Screening
    =================================================================== */
 
@@ -1421,6 +1421,7 @@ body {
 }
 
 /* --- Responsive --- */
+/* --- Responsive --- */
 @media (max-width: 640px) {
   .header-inner {
     padding: 0 var(--space-md);
@@ -1441,5 +1442,232 @@ body {
   
   .gauge-container {
     flex-direction: column;
+  }
+}
+
+/* ==========================================================================
+   Report Modal & PDF Styles
+   ========================================================================== */
+
+/* Modal Base */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  position: relative;
+  background: var(--surface-card);
+  width: 90%;
+  max-width: 900px;
+  height: 90vh;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--surface-muted);
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  background: #e2e8f0; /* Darker background to make A4 paper pop */
+}
+
+/* PDF Report Paper Layout */
+.pdf-report {
+  background: #ffffff;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  color: #1e293b;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Report Sections */
+.report-section {
+  margin-bottom: 30px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  height: auto !important;
+  min-height: 0 !important;
+  display: block !important;
+}
+
+.report-section h2 {
+  font-size: 16px;
+  color: #0f172a;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+  margin-top: 24px;
+}
+
+.report-section p {
+  margin-bottom: 8px;
+}
+
+.report-section ul, .report-section ol {
+  margin-left: 20px;
+  margin-bottom: 12px;
+}
+
+/* Cover Section */
+.cover-section h1 {
+  font-size: 24px;
+  color: #0284c7;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.cover-section h3 {
+  font-size: 16px;
+  color: #64748b;
+  text-align: center;
+  margin-bottom: 32px;
+  font-weight: normal;
+}
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+}
+.disclaimer {
+  font-size: 11px;
+  color: #94a3b8;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Tables */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  page-break-inside: auto;
+}
+.report-table tr {
+  page-break-inside: avoid;
+  page-break-after: auto;
+}
+.report-table th, .report-table td {
+  border: 1px solid #cbd5e1;
+  padding: 8px 12px;
+  text-align: left;
+}
+.report-table th {
+  background: #f1f5f9;
+  font-weight: 600;
+  color: #334155;
+  width: 40%;
+}
+
+/* Captions */
+p.caption {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Probability Chart */
+.prob-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.distribution-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.distribution-row .label {
+  width: 70px;
+  min-width: 70px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.distribution-row .bar-track {
+  flex-grow: 1;
+  height: 14px;
+  background-color: #f1f5f9;
+  border-radius: 4px;
+  margin: 0 10px;
+}
+.distribution-row .percentage {
+  width: 45px;
+  min-width: 45px;
+  text-align: right;
+  font-size: 13px;
+}
+.prob-bar-fill {
+  height: 100%;
+  background: #0284c7;
+  border-radius: 4px;
+  min-width: 4px;
+}
+
+/* Print Specific */
+@media print {
+  .pdf-report, .report-section {
+    padding: 0;
+    box-shadow: none;
+    max-width: 100%;
+    height: auto !important;
+    min-height: 0 !important;
+    display: block !important;
+    margin: 0 !important;
+  }
+  .report-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .report-section img {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .html2pdf__page-break {
+    page-break-before: always;
   }
 }

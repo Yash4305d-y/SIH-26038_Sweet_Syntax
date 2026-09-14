@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RETINA AI — Diabetic Retinopathy Screening Dashboard</title>
+  <title>OculaAI — Diabetic Retinopathy Screening Dashboard</title>
   <meta name="description" content="Explainable AI-powered Diabetic Retinopathy screening system with Grad-CAM visualization, 5-class DR grading, and referable DR detection.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,18 +18,9 @@
     <div class="header-inner">
       <div class="header-left">
         <a class="logo" href="#">
-          <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="20" cy="20" r="14" fill="#0284c7" fill-opacity="0.12" stroke="#0284c7" stroke-width="2.5"/>
-            <circle cx="20" cy="20" r="7" stroke="#0284c7" stroke-width="2" fill="none"/>
-            <circle cx="20" cy="20" r="2.5" fill="#0284c7"/>
-            <path d="M7 20C11 13 29 13 33 20C29 27 11 27 7 20Z" fill="none" stroke="#0284c7" stroke-width="1.8"/>
-          </svg>
-          <div class="logo-text">RETINA<span>AI</span></div>
+          <img class="logo-icon" src="data:image/png;base64,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" alt="OculaAI Icon" style="border-radius: 50%;">
+          <div class="logo-text">Ocula<span>AI</span></div>
         </a>
-        <div class="model-badge">
-          <span class="pulse-dot"></span>
-          <span>Baseline ResNet-50 • LOCKED</span>
-        </div>
       </div>
       <div class="header-right">
         <div class="header-badge">
@@ -112,221 +103,390 @@
         <!-- SECTION 2: Referable DR Alert Banner -->
         <div id="alert-banner"></div>
 
-        <!-- SECTION 3: Diagnostic Core Metrics -->
-        <div class="metrics-grid">
-          <!-- DR Grade Card -->
-          <div class="card metric-card" id="grade-card">
-            <div class="card-header">
-              <span class="card-label">Primary Classification</span>
-              <span class="status-badge status-badge-info">ICDR / ETDRS</span>
+        <!-- SECTION 2.5: Image Quality Assessment -->
+        <div class="card" id="iqa-card" style="margin-bottom: var(--space-md); display: none; text-align: center; padding: var(--space-2xl);">
+          <div style="color: var(--color-warning-text); margin-bottom: 16px;">
+            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--color-warning);">warning</span>
+          </div>
+          <h2 style="font-size: 24px; color: var(--text-primary); margin-bottom: 8px;">Image quality needs improvement</h2>
+          <p style="font-size: 16px; color: var(--text-secondary); margin-bottom: 24px;">We couldn't get a clear enough view of the retina to provide a reliable screening result.</p>
+          
+          <div style="background: var(--surface-muted); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-lg); text-align: left; display: inline-block; min-width: 300px; margin-bottom: 24px;">
+            <h3 style="font-size: 14px; color: var(--text-primary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">What to do:</h3>
+            <ul id="iqa-action-list" style="list-style-type: none; padding: 0; margin: 0; font-size: 15px; color: var(--text-body);">
+              <!-- Populated by JS -->
+            </ul>
+          </div>
+          
+          <div>
+            <button class="btn btn-primary" id="btn-retake-image" style="font-size: 16px; padding: 12px 24px;">
+              <span class="material-symbols-outlined">add_a_photo</span>
+              Retake Image
+            </button>
+          </div>
+        </div>
+
+        <!-- SECTION 3: Main Screening Result -->
+        <div class="metrics-grid" id="metrics-grid-container" style="display:flex; flex-direction:column; gap: var(--space-xl); align-items: center; max-width: 900px; margin: 0 auto;">
+          
+          <!-- Grade and Referable Status Box (Moved to top) -->
+          <div class="card metric-card" id="grade-card" style="width: 100%; text-align: center; padding: var(--space-xl);">
+            <div class="card-header" style="justify-content: center; border-bottom: none;">
+              <span class="card-label" style="font-size: 1.1rem;">Diagnostic Screening Result</span>
             </div>
+            
+            <div style="margin: 20px 0;">
+              <div class="model-info-label" style="text-align: center; font-size:14px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Patient ID / Image</div>
+              <div class="model-info-value" id="main-patient-id" style="text-align: center; font-size:18px; color: var(--text-primary); font-weight: 500;">—</div>
+            </div>
+
             <div class="grade-display">
               <div class="grade-sublabel" id="grade-sublabel">—</div>
-              <h1 class="grade-title" id="grade-title">—</h1>
-              <p class="grade-description" id="grade-description">—</p>
+              <h1 class="grade-title" id="grade-title" style="font-size: 2.5rem; margin-bottom: 0.5rem;">—</h1>
             </div>
-            <div class="metric-footer">
-              <span>Calibration:</span>
-              <span class="metric-footer-value" id="calibration-method">—</span>
+            
+            <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+              <div class="model-info-label" style="text-align: center; font-size:14px; margin-bottom: 8px;">Referral Decision</div>
+              <div id="main-ref-decision" style="font-size: 22px; font-weight: 700;">—</div>
+            </div>
+
+            <div style="margin-top: 16px;">
+              <span style="font-size: 16px; color: var(--text-muted);">Referable Probability: </span>
+              <strong id="calib-ref-prob" style="font-size: 20px;">—</strong>
             </div>
           </div>
 
-          <!-- Confidence Gauge Card -->
-          <div class="card metric-card" id="confidence-card">
-            <div class="card-header">
-              <span class="card-label">Model Certainty</span>
-              <span class="label-md" id="raw-prob-label" style="color: var(--primary); font-weight:600;">—</span>
-            </div>
-            <div class="gauge-container">
-              <div class="gauge-svg-wrapper">
-                <svg viewBox="0 0 100 100">
-                  <circle class="track" cx="50" cy="50" r="42"/>
-                  <circle class="fill" cx="50" cy="50" r="42" stroke-dasharray="263.89" stroke-dashoffset="263.89" id="gauge-fill"/>
-                </svg>
-                <div class="gauge-center">
-                  <span class="gauge-value" id="gauge-value">—<span class="unit">%</span></span>
-                  <span class="gauge-label">Confidence</span>
-                </div>
+          <!-- Image Viewport (Moved below) -->
+          <div class="card" id="main-image-viewport" style="width: 100%; padding: var(--space-lg);">
+            <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; justify-content: center;">
+              <!-- Original Image -->
+              <div style="flex: 1; min-width: 350px; text-align: center;">
+                <div class="model-info-label" style="font-size: 14px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px;">Original Image</div>
+                <img id="main-viewport-orig" src="" style="width: 100%; aspect-ratio: 1; object-fit: contain; background: #000; border-radius: var(--radius-md); border: 1px solid var(--border-default);">
               </div>
-              <div class="gauge-details">
-                <div class="gauge-detail-item">
-                  <span class="gauge-detail-label">Calibrated Referable Prob</span>
-                  <span class="gauge-detail-value" id="calib-ref-prob" style="color: var(--text-primary);">—</span>
-                </div>
-                <div class="gauge-detail-item">
-                  <span class="gauge-detail-label">Referable Threshold</span>
-                  <span class="gauge-detail-value" id="ref-threshold" style="color: var(--color-warning);">—</span>
-                </div>
-              </div>
-            </div>
-            <div class="metric-footer">
-              <span>Referable Probability:</span>
-              <span class="metric-footer-value" id="raw-ref-prob">—</span>
-            </div>
-          </div>
-
-          <!-- Model Info Card -->
-          <div class="card metric-card" id="model-card">
-            <div class="card-header">
-              <span class="card-label">Model Information</span>
-              <span class="status-badge status-badge-success" id="model-status-badge">—</span>
-            </div>
-            <div class="model-info-grid">
-              <div class="model-info-row">
-                <span class="model-info-label">Model</span>
-                <span class="model-info-value" id="info-model-name">—</span>
-              </div>
-              <div class="model-info-row">
-                <span class="model-info-label">Version</span>
-                <span class="model-info-value" id="info-model-version">—</span>
-              </div>
-              <div class="model-info-row">
-                <span class="model-info-label">Status</span>
-                <span class="model-info-value" id="info-model-status">—</span>
-              </div>
-              <div class="model-info-row">
-                <span class="model-info-label">Calibration</span>
-                <span class="model-info-value" id="info-calibration">—</span>
-              </div>
-              <div class="model-info-row">
-                <span class="model-info-label">Threshold</span>
-                <span class="model-info-value" id="info-threshold">—</span>
-              </div>
-            </div>
-            <div class="metric-footer">
-              <span>Uncertainty:</span>
-              <span class="metric-footer-value" id="info-uncertainty" style="color: var(--text-muted); font-weight:400; font-size:10px;">—</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 4: Explainable AI Viewport -->
-        <div class="card" id="xai-card">
-          <div class="xai-header">
-            <div>
-              <div class="xai-title-group">
-                <span class="material-symbols-outlined">layers</span>
-                <span class="headline-sm">Explainable AI (XAI) Viewport</span>
-              </div>
-              <div class="xai-subtitle" style="margin-top:2px;">Dual Synchronized Modality — Fundus Raw • Grad-CAM Heatmap Layer</div>
-            </div>
-            <div class="xai-controls">
-              <div class="opacity-control">
-                <label for="opacity-slider">Grad-CAM Opacity</label>
-                <input type="range" class="opacity-slider" id="opacity-slider" min="0" max="100" value="85">
-                <span class="opacity-value" id="opacity-value">85%</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="xai-viewport-grid">
-            <!-- Left: Original Fundus -->
-            <div class="viewport-panel">
-              <div class="viewport-label">
-                <span class="viewport-label-left">VIEW A • ORIGINAL FUNDUS</span>
-                <span class="viewport-label-sub">Uploaded Image</span>
-              </div>
-              <div class="viewport-frame" id="viewport-original">
-                <div class="viewport-placeholder" id="viewport-original-placeholder">
-                  <span class="material-symbols-outlined">visibility</span>
-                  <span>Upload an image to view</span>
-                </div>
-                <img id="viewport-original-img" class="hidden" alt="Original retinal fundus image" src="">
-              </div>
-            </div>
-
-            <!-- Right: Grad-CAM -->
-            <div class="viewport-panel">
-              <div class="viewport-label">
-                <span class="viewport-label-right">VIEW B • GRAD-CAM SALIENCY MAP</span>
-                <span class="viewport-label-sub">ResNet-50 Layer: res5c_branch2c</span>
-              </div>
-              <div class="viewport-frame" id="viewport-gradcam">
-                <div class="viewport-placeholder" id="viewport-gradcam-placeholder">
-                  <span class="material-symbols-outlined">gradient</span>
-                  <span>Run analysis to generate heatmap</span>
-                </div>
-                <img id="viewport-gradcam-img" class="hidden" alt="Grad-CAM saliency heatmap visualization" src="">
-                <div class="viewport-overlay hidden" id="gradcam-overlay-tags">
-                  <div style="display:flex; justify-content:space-between;">
-                    <div class="viewport-tag">
-                      <span class="viewport-tag-dot" style="background:#f87171;"></span>
-                      <span>Primary Attention Region</span>
-                    </div>
-                  </div>
-                  <div style="display:flex; justify-content:center;">
-                    <div class="viewport-tag" id="gradcam-attribution-tag">GRAD-CAM • —% ATTRIBUTION</div>
-                  </div>
-                  <div style="display:flex; justify-content:space-between;">
-                    <div class="viewport-tag" id="gradcam-target-tag">Target Class: —</div>
+              <!-- Grad-CAM Image -->
+              <div style="flex: 1; min-width: 350px; text-align: center;">
+                <div class="model-info-label" style="font-size: 14px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px;">Grad-CAM Heatmap</div>
+                <div id="main-viewport-gradcam-container" style="position: relative; width: 100%; aspect-ratio: 1; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-default);">
+                  <img id="main-viewport-gradcam" src="" style="width: 100%; height: 100%; object-fit: contain; background: #000; display: none;">
+                  <div id="main-viewport-gradcam-placeholder" style="width: 100%; height: 100%; background: var(--surface-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-faint);">
+                    <span class="material-symbols-outlined" style="font-size: 40px; margin-bottom: 12px;">gradient</span>
+                    <span style="font-size: 14px;">Not available</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Heatmap Scale -->
-          <div class="heatmap-scale">
-            <div class="heatmap-scale-label">
-              <span class="material-symbols-outlined">palette</span>
-              <span>Saliency Index Heatmap Scale:</span>
-            </div>
-            <div class="heatmap-gradient">
-              <div class="heatmap-gradient-bar"></div>
-              <div class="heatmap-gradient-labels">
-                <span>Low Activation (0.00 • Blue)</span>
-                <span>Median (0.50)</span>
-                <span class="high">High Activation (1.00 • Red)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 5: 5-Class Probability Distribution -->
-        <div class="card" id="prob-card">
-          <div class="prob-section-header">
-            <div>
-              <h2 class="headline-sm">Comprehensive 5-Class Probability Distribution</h2>
-              <p class="body-sm" style="margin-top:2px;">Calibrated posterior distribution using Platt scaling on validated ophthalmology benchmarks.</p>
-            </div>
-            <div class="status-badge status-badge-info" id="prob-calibration-badge">
-              <span class="material-symbols-outlined" style="font-size:14px;">check_circle</span>
-              Platt Scaling Applied
-            </div>
-          </div>
-          <div class="prob-rows" id="prob-rows">
-            <!-- Populated by JS -->
-          </div>
-        </div>
-
-        <!-- SECTION 6: Footer Actions -->
-        <div class="card footer-actions" id="footer-card">
-          <div class="footer-actions-left">
-            <div class="footer-model-info">
-              <div class="footer-avatar">AI</div>
-              <div class="footer-model-text">
-                <span class="footer-model-name" id="footer-model-name">—</span>
-                <span class="footer-model-sub">SIH-26038 Research Prototype • Not for clinical use</span>
-              </div>
-            </div>
-          </div>
-          <div class="footer-actions-right">
-            <button class="btn btn-secondary" id="btn-download-json">
+          <!-- Report Actions -->
+          <div class="report-actions" style="display: flex; gap: 12px; margin-top: 24px;">
+            <button class="btn btn-primary" id="btn-show-report">
+              <span class="material-symbols-outlined">visibility</span>
+              Show Details
+            </button>
+            <button class="btn btn-secondary" id="btn-download-report">
               <span class="material-symbols-outlined">download</span>
-              Download JSON Report
+              Download Report
             </button>
-            <button class="btn btn-success" id="btn-new-analysis">
-              <span class="material-symbols-outlined">restart_alt</span>
-              New Analysis
+            <button class="btn btn-secondary" id="btn-share-report">
+              <span class="material-symbols-outlined">share</span>
+              Share Report
             </button>
+          </div>
+          
+          <div style="margin-top: 24px;">
+             <button class="btn btn-secondary" id="btn-new-analysis">
+               <span class="material-symbols-outlined">restart_alt</span>
+               New Analysis
+             </button>
           </div>
         </div>
 
       </div><!-- /results-container -->
 
+      <!-- REPORT MODAL (Hidden by default) -->
+      <div id="report-modal" class="modal hidden">
+        <div class="modal-backdrop" id="report-modal-backdrop"></div>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Detailed Diagnostic Report</h2>
+            <button class="btn-icon" id="btn-close-report" style="background:transparent; border:none; cursor:pointer;"><span class="material-symbols-outlined">close</span></button>
+          </div>
+          <div class="modal-body">
+            
+            <!-- REPORT CONTENT FOR PDF -->
+            <div class="pdf-report" id="pdf-report">
+              
+              <!-- 1. Report Cover / Screening Summary -->
+              <div class="report-section cover-section">
+                <h1>Explainable AI for Diabetic Retinopathy Screening</h1>
+                <h3>SIH 26038</h3>
+                <div class="summary-grid">
+                  <div><strong>Patient/Screening ID:</strong> <span id="report-patient-id"></span></div>
+                  <div><strong>Date:</strong> <span id="report-date"></span></div>
+                  <div><strong>Model:</strong> <span id="report-model-name"></span></div>
+                  <div><strong>Predicted DR Grade:</strong> <span id="report-grade"></span></div>
+                  <div><strong>Referable Status:</strong> <span id="report-ref-status"></span></div>
+                  <div><strong>Referable Probability:</strong> <span id="report-ref-prob"></span></div>
+                </div>
+                <div class="disclaimer">
+                  "AI-generated screening result for decision support. This prototype is not a substitute for clinical diagnosis."
+                </div>
+              </div>
+
+              <div class="html2pdf__page-break"></div>
+
+              <!-- 2. Patient & Screening Information -->
+              <div class="report-section">
+                <h2>2. Patient & Screening Information</h2>
+                <table class="report-table">
+                  <tr><th>Patient ID</th><td id="sec2-patient"></td></tr>
+                  <tr><th>Screening Date</th><td id="sec2-date"></td></tr>
+                  <tr><th>System Status</th><td>Operational</td></tr>
+                </table>
+              </div>
+
+              <!-- 3. Image Quality Assessment -->
+              <div class="report-section">
+                <h2>3. Image Quality Assessment</h2>
+                <table class="report-table">
+                  <tr><th>IQA Status</th><td id="sec3-iqa-status">PASS</td></tr>
+                </table>
+                <p id="sec3-iqa-msg">Image quality passed all automated thresholds for focus, illumination, and field-of-view.</p>
+              </div>
+
+              <!-- 4. Screening Result -->
+              <div class="report-section">
+                <h2>4. Final Screening Result</h2>
+                <table class="report-table">
+                  <tr><th>Predicted DR Grade</th><td id="sec4-grade"></td></tr>
+                  <tr><th>Classification</th><td id="sec4-class"></td></tr>
+                  <tr><th>Referable Status</th><td id="sec4-ref-status"></td></tr>
+                  <tr><th>Referable Probability</th><td id="sec4-ref-prob"></td></tr>
+                  <tr><th>Model Confidence</th><td id="sec4-confidence"></td></tr>
+                </table>
+              </div>
+
+              <!-- 5. Retinal Image -->
+              <div class="report-section">
+                <h2>5. Retinal Image</h2>
+                <img id="report-original-img" src="" style="max-height: 250px;">
+              </div>
+
+              <!-- 6. Grad-CAM Explanation -->
+              <div class="report-section">
+                <h2>6. Grad-CAM Explanation</h2>
+                <div id="report-gradcam-container">
+                  <img id="report-gradcam-img" src="" style="max-height: 250px;">
+                </div>
+                <p class="caption">"Highlighted regions show areas that influenced the model's prediction. This visualization explains model attention and is not a clinical proof of lesion location."</p>
+              </div>
+
+
+
+              <!-- 7. Probability Distribution -->
+              <div class="report-section">
+                <h2>7. Probability Distribution</h2>
+                <div class="prob-chart">
+                  <div class="distribution-row"><div class="label">Grade 0</div><div class="bar-track"><div class="prob-bar-fill" id="prob-bar-0"></div></div><div class="percentage" id="prob-val-0"></div></div>
+                  <div class="distribution-row"><div class="label">Grade 1</div><div class="bar-track"><div class="prob-bar-fill" id="prob-bar-1"></div></div><div class="percentage" id="prob-val-1"></div></div>
+                  <div class="distribution-row"><div class="label">Grade 2</div><div class="bar-track"><div class="prob-bar-fill" id="prob-bar-2"></div></div><div class="percentage" id="prob-val-2"></div></div>
+                  <div class="distribution-row"><div class="label">Grade 3</div><div class="bar-track"><div class="prob-bar-fill" id="prob-bar-3"></div></div><div class="percentage" id="prob-val-3"></div></div>
+                  <div class="distribution-row"><div class="label">Grade 4</div><div class="bar-track"><div class="prob-bar-fill" id="prob-bar-4"></div></div><div class="percentage" id="prob-val-4"></div></div>
+                </div>
+              </div>
+
+              <!-- 8. Referable-DR Assessment -->
+              <div class="report-section">
+                <h2>8. Referable-DR Assessment</h2>
+                <p>Non-referable: Grades 0–1<br>
+                Referable: Grades 2–4</p>
+                <p><code>P(Referable) = P2 + P3 + P4</code></p>
+                <p>Current frozen threshold: <strong>0.22</strong></p>
+                <p><em>Note: This is the screening operating point, not a clinical diagnosis.</em></p>
+              </div>
+
+              <!-- 9. Model Information -->
+              <div class="report-section">
+                <h2>9. Model Information</h2>
+                <table class="report-table">
+                  <tr><th>Architecture</th><td>ResNet-50</td></tr>
+                  <tr><th>Input Size</th><td>224×224×3</td></tr>
+                  <tr><th>Training Strategy</th><td>Transfer Learning (ImageNet)</td></tr>
+                  <tr><th>Model Version</th><td id="sec9-model-version">1.0</td></tr>
+                </table>
+              </div>
+
+              <!-- 10. Model Performance -->
+              <div class="report-section">
+                <h2>10. Model Performance (APTOS 5-Class)</h2>
+                <ul>
+                  <li>Accuracy: 82.92%</li>
+                  <li>Macro-F1: 0.6358</li>
+                  <li>QWK: 0.8713</li>
+                </ul>
+                <table class="report-table">
+                  <tr><th>Grade</th><th>Precision</th><th>Recall</th><th>F1</th></tr>
+                  <tr><td>Grade 0</td><td>0.9635</td><td>0.9814</td><td>0.9724</td></tr>
+                  <tr><td>Grade 1</td><td>0.7857</td><td>0.4889</td><td>0.6027</td></tr>
+                  <tr><td>Grade 2</td><td>0.6786</td><td>0.9421</td><td>0.7889</td></tr>
+                  <tr><td>Grade 3</td><td>0.6667</td><td>0.2609</td><td>0.3750</td></tr>
+                  <tr><td>Grade 4</td><td>0.7333</td><td>0.3143</td><td>0.4400</td></tr>
+                </table>
+              </div>
+
+
+
+              <!-- 11. Confusion Matrix -->
+              <div class="report-section">
+                <h2>11. Confusion Matrix</h2>
+                <img src="/results/baseline_confusion_matrix.png" style="max-width:100%; max-height:350px; object-fit:contain;" alt="APTOS Confusion Matrix">
+              </div>
+
+              <!-- 12. Referable-DR Evaluation -->
+              <div class="report-section">
+                <h2>12. Referable-DR Evaluation</h2>
+                <ul>
+                  <li>Accuracy: 93.85%</li>
+                  <li>Sensitivity: 96.09%</li>
+                  <li>Specificity: 92.31%</li>
+                  <li>Precision: 89.58%</li>
+                  <li>F1: 92.72%</li>
+                  <li>ROC-AUC: 0.9816</li>
+                </ul>
+              </div>
+
+              <!-- 13. ROC Curve -->
+              <div class="report-section">
+                <h2>13. ROC Curve</h2>
+                <img src="/outputs/evaluation/referable_dr/referable_dr_roc_curve.png" style="width:48%; object-fit:contain;" alt="ROC Curve">
+              </div>
+
+              <!-- 14. Calibration -->
+              <div class="report-section">
+                <h2>14. Calibration</h2>
+                <p><strong>Calibration Method:</strong> Platt Scaling<br>
+                <strong>Frozen Threshold:</strong> 0.22<br>
+                <strong>Threshold Selection:</strong> Maximize F1 subject to sensitivity >= 0.95 on the validation process.</p>
+                <table class="report-table">
+                  <tr><th>Metric</th><th>Raw</th><th>Calibrated</th></tr>
+                  <tr><td>Test Brier Score</td><td>0.049931</td><td>0.048506</td></tr>
+                  <tr><td>Test ECE</td><td>0.036375</td><td>0.030670</td></tr>
+                </table>
+                <p class="caption">Calibration improves probability behavior/operating point and does NOT mean the underlying classifier became more accurate.</p>
+                <img src="/outputs/evaluation/referable_dr/calibration/test_reliability_curve.png" style="max-width:100%; max-height:250px; object-fit:contain;" alt="Reliability Curve">
+              </div>
+              
+
+
+              <!-- 15. Model Comparison -->
+              <div class="report-section">
+                <h2>15. Model Comparison</h2>
+                <p><strong>Baseline ResNet-50:</strong> Accuracy 82.92%, Macro-F1 0.6358, QWK 0.8713<br>
+                <strong>Offline augmentation:</strong> Accuracy 81.36%, Macro-F1 0.6367, QWK 0.8581<br>
+                <strong>Geometry-normalized:</strong> Accuracy 80.68%, Macro-F1 0.5976, QWK 0.8546</p>
+                <p>The baseline ResNet-50 was selected based on the overall evaluated trade-off, particularly accuracy and QWK.</p>
+              </div>
+
+              <!-- 16. Messidor-2 External Evaluation -->
+              <div class="report-section">
+                <h2>16. External Evaluation — Messidor-2</h2>
+                <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                  <div style="width:48%">
+                    <h4>Five-Class</h4>
+                    <ul>
+                      <li>Accuracy: 59.98%</li>
+                      <li>Macro-F1: 0.2581</li>
+                      <li>QWK: 0.3231</li>
+                    </ul>
+                  </div>
+                  <div style="width:48%">
+                    <h4>Binary referable</h4>
+                    <ul>
+                      <li>Accuracy: 79.30%</li>
+                      <li>Sensitivity: 29.32%</li>
+                      <li>Specificity: 97.05%</li>
+                      <li>Precision: 77.91%</li>
+                      <li>F1: 42.61%</li>
+                      <li>ROC-AUC: 0.7669</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 17. Domain-Shift / Generalization Analysis -->
+              <div class="report-section">
+                <h2>17. Domain-Shift / Generalization Analysis</h2>
+                <p>The reduction in performance demonstrates a domain-generalization limitation when moving from APTOS to an independent retinal-image distribution.<br>
+                <strong>Future enhancement: Domain-Shift-Aware Confidence</strong></p>
+              </div>
+
+              <!-- 18. Grad-CAM Pipeline Validation -->
+              <div class="report-section">
+                <h2>18. Pipeline Integrity Verification</h2>
+                <ul>
+                  <li>APTOS test images: 439</li>
+                  <li>Grad-CAM outputs: 439</li>
+                  <li>Prediction mismatches: 0</li>
+                  <li>Missing outputs: 0</li>
+                </ul>
+              </div>
+              
+
+
+              <!-- 19. Limitations & Responsible Use -->
+              <div class="report-section">
+                <h2>19. Limitations & Responsible Use</h2>
+                <ul>
+                  <li>APTOS-trained performance does not guarantee performance on every real-world retinal camera/domain.</li>
+                  <li>Messidor-2 demonstrated domain-generalization limitations.</li>
+                  <li>Grade 3 and Grade 4 recall are weaker than Grade 0/2.</li>
+                  <li>Grad-CAM demonstrates model attention, not clinical proof.</li>
+                  <li>The system is a screening/decision-support prototype, not an autonomous diagnosis system.</li>
+                  <li>Uncertain or unsuitable images should be reviewed/re-captured according to the workflow.</li>
+                  <li>Broader multi-dataset clinical validation is required before real clinical deployment.</li>
+                </ul>
+              </div>
+
+              <!-- 20. Technical Architecture -->
+              <div class="report-section">
+                <h2>20. Technical Architecture</h2>
+                <pre class="architecture-diagram" style="background:#f1f5f9; padding:15px; border-radius:6px; font-family: monospace; font-size:12px;">
+Fundus Image → Role 2 Image Quality / CV → Role 1 Frozen ML → ResNet-50 → 
+5-Class DR Prediction → Referable Probability → Platt Calibration → 
+Frozen Threshold → Referable Decision → Confidence + Grad-CAM → 
+Integration Layer → UI / Simulink Workflow
+                </pre>
+              </div>
+
+              <!-- 21. Final Screening Summary -->
+              <div class="report-section">
+                <h2>21. Final Screening Summary</h2>
+                <table class="report-table summary-table">
+                  <tr><th>Patient/Case ID</th><td id="sec21-id"></td></tr>
+                  <tr><th>DR Grade</th><td id="sec21-grade"></td></tr>
+                  <tr><th>Referable Status</th><td id="sec21-ref-status"></td></tr>
+                  <tr><th>Referable Probability</th><td id="sec21-ref-prob"></td></tr>
+                  <tr><th>Confidence</th><td id="sec21-confidence"></td></tr>
+                  <tr><th>Date</th><td id="sec21-date"></td></tr>
+                </table>
+              </div>
+
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 16px; border-top: 1px solid var(--border-color); display:flex; justify-content:flex-end;">
+            <button class="btn btn-primary" id="btn-modal-download">
+              <span class="material-symbols-outlined">download</span> Download PDF
+            </button>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
-  <script src="js/app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="js/app.js" defer></script>
 </body>
 </html>

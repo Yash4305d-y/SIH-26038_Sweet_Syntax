@@ -26,6 +26,8 @@ DASHBOARD_DIR = Path(__file__).parent.resolve()
 PROJECT_DIR = DASHBOARD_DIR.parent.resolve()
 UPLOAD_DIR = DASHBOARD_DIR / 'uploads'
 GRADCAM_DIR = DASHBOARD_DIR / 'gradcam_output'
+RESULTS_DIR = PROJECT_DIR / 'results'
+OUTPUTS_DIR = PROJECT_DIR / 'outputs'
 
 UPLOAD_DIR.mkdir(exist_ok=True)
 GRADCAM_DIR.mkdir(exist_ok=True)
@@ -69,6 +71,16 @@ def serve_gradcam(filename):
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
     return send_from_directory(str(UPLOAD_DIR), filename)
+
+
+@app.route('/results/<path:filename>')
+def serve_results(filename):
+    return send_from_directory(str(RESULTS_DIR), filename)
+
+
+@app.route('/outputs/<path:filename>')
+def serve_outputs(filename):
+    return send_from_directory(str(OUTPUTS_DIR), filename)
 
 
 # ── API Endpoint ──
@@ -135,15 +147,15 @@ def run_matlab_engine(image_path):
         eng = matlab.engine.start_matlab()
         eng.addpath(str(PROJECT_DIR / 'src'), nargout=0)
 
-        result_struct = eng.runDRInference(image_path, True)
-        json_str = eng.exportDRInferenceContractJSON(result_struct)
+        json_str = eng.runUnifiedPipeline(image_path, True)
         eng.quit()
 
         result = json.loads(json_str)
 
         # Save Grad-CAM if available
-        if hasattr(result_struct, 'gradCAM') and result_struct.gradCAM is not None:
-            save_gradcam_from_matlab(result_struct.gradCAM, image_path)
+        if 'gradCAM' in result and isinstance(result['gradCAM'], list) and len(result['gradCAM']) > 0:
+            save_gradcam_from_matlab(result['gradCAM'], image_path)
+            del result['gradCAM']
 
         return result
     except Exception as e:
@@ -157,8 +169,7 @@ def run_matlab_subprocess(image_path):
         # Build the MATLAB command
         matlab_cmd = (
             f"addpath('{PROJECT_DIR / 'src'}'); "
-            f"result = runDRInference('{image_path}', true); "
-            f"disp(exportDRInferenceContractJSON(result)); "
+            f"disp(runUnifiedPipeline('{image_path}', true)); "
             f"exit;"
         )
 
@@ -186,6 +197,12 @@ def run_matlab_subprocess(image_path):
 
         json_str = output[json_start:json_end]
         result = json.loads(json_str)
+        
+        # Save Grad-CAM if available
+        if 'gradCAM' in result and isinstance(result['gradCAM'], list) and len(result['gradCAM']) > 0:
+            save_gradcam_from_matlab(result['gradCAM'], image_path)
+            del result['gradCAM']
+            
         return result
 
     except subprocess.TimeoutExpired:
@@ -247,6 +264,23 @@ def generate_mock_result(image_path):
         'gradcam_url': None,
         'success': True,
         'errorMessage': '',
+        'iqa': {
+            'focusScore': 0.00005,
+            'illumination': {
+                'meanIntensity': 0.45,
+                'darkPixelRatio': 0.10,
+                'brightPixelRatio': 0.05
+            },
+            'fov': {
+                'areaRatio': 0.35,
+                'circularity': 0.85
+            },
+            'focusPass': True,
+            'illuminationPass': True,
+            'fovPass': True,
+            'pass': True,
+            'reason': 'PASS'
+        },
         '_mock': True,
         '_mockNote': 'MATLAB not available. This is simulated data for UI development.'
     }
@@ -259,14 +293,26 @@ def save_gradcam_from_matlab(gradcam_data, image_path):
     try:
         import numpy as np
         from PIL import Image
+        import matplotlib.pyplot as plt
+
+        # Load and resize original image
+        orig_img = Image.open(image_path).convert('RGB')
+        orig_img = orig_img.resize((224, 224))
+        orig_arr = np.array(orig_img).astype(np.float32) / 255.0
 
         heatmap = np.array(gradcam_data)
         heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-8)
-        heatmap = (heatmap * 255).astype(np.uint8)
+        
+        # Apply colormap (jet)
+        cmap = plt.get_cmap('jet')
+        heatmap_colored = cmap(heatmap)
+        heatmap_rgb = heatmap_colored[:, :, :3]
+        
+        # Blend 50% original image and 50% heatmap
+        overlay = 0.5 * orig_arr + 0.5 * heatmap_rgb
+        overlay_uint8 = (overlay * 255).astype(np.uint8)
 
-        # Apply colormap (jet-like)
-        img = Image.fromarray(heatmap)
-        img = img.resize((224, 224))
+        img = Image.fromarray(overlay_uint8)
 
         image_id = Path(image_path).stem
         output_path = GRADCAM_DIR / f'{image_id}_gradcam.png'

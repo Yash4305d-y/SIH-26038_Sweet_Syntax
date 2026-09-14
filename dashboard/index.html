@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RETINA AI — Diabetic Retinopathy Screening Dashboard</title>
+  <meta name="description" content="Explainable AI-powered Diabetic Retinopathy screening system with Grad-CAM visualization, 5-class DR grading, and referable DR detection.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a class="logo" href="#">
+          <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="14" fill="#0284c7" fill-opacity="0.12" stroke="#0284c7" stroke-width="2.5"/>
+            <circle cx="20" cy="20" r="7" stroke="#0284c7" stroke-width="2" fill="none"/>
+            <circle cx="20" cy="20" r="2.5" fill="#0284c7"/>
+            <path d="M7 20C11 13 29 13 33 20C29 27 11 27 7 20Z" fill="none" stroke="#0284c7" stroke-width="1.8"/>
+          </svg>
+          <div class="logo-text">RETINA<span>AI</span></div>
+        </a>
+        <div class="model-badge">
+          <span class="pulse-dot"></span>
+          <span>Baseline ResNet-50 • LOCKED</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="header-badge">
+          <span class="material-symbols-outlined" style="font-size:12px;">science</span>
+          MATLAB Pipeline
+        </div>
+        <a href="#" title="Help & Documentation" style="color: var(--text-faint); text-decoration:none;">
+          <span class="material-symbols-outlined" style="font-size:20px;">help</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <div class="app-container">
+    <main class="main-content">
+
+      <!-- SECTION 1: Upload Zone -->
+      <div class="upload-section">
+        <!-- Dropzone Card -->
+        <div class="card dropzone" id="dropzone-card">
+          <div class="dropzone-area" id="dropzone-area">
+            <div class="dropzone-icon">
+              <span class="material-symbols-outlined">cloud_upload</span>
+            </div>
+            <div class="dropzone-text">
+              <h2>Drag & drop retinal fundus image or click to browse</h2>
+              <p>Supported formats: .jpg, .png — Color Fundus Photography (CFP), macula-centered field.</p>
+            </div>
+          </div>
+          <input type="file" id="file-input" accept=".jpg,.jpeg,.png" style="display:none;">
+          <div class="dropzone-footer">
+            <div class="pipeline-note">
+              <span class="material-symbols-outlined">verified</span>
+              <span>Pre-processing: Resize 224×224, RGB normalization</span>
+            </div>
+            <div class="dropzone-actions">
+              <button class="btn btn-secondary" id="btn-reupload" disabled>
+                <span class="material-symbols-outlined">file_upload</span>
+                Re-upload
+              </button>
+              <button class="btn btn-primary" id="btn-analyze" disabled>
+                <span class="material-symbols-outlined">play_arrow</span>
+                Run AI Analysis (MATLAB)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview Card -->
+        <div class="card" id="preview-card">
+          <div id="preview-empty" class="empty-state" style="padding: var(--space-xl);">
+            <span class="material-symbols-outlined">image</span>
+            <h3>No Image Uploaded</h3>
+            <p>Upload a retinal fundus image to begin AI-powered DR screening analysis.</p>
+          </div>
+          <div id="preview-content" class="preview-card hidden">
+            <div class="preview-thumb-container">
+              <img id="preview-thumb" alt="Uploaded retinal fundus image preview" src="">
+            </div>
+            <div class="preview-info">
+              <div class="card-label">Uploaded Image</div>
+              <div class="preview-filename" id="preview-filename">—</div>
+              <div class="preview-meta" id="preview-meta">
+                <span>File size: <strong id="meta-size">—</strong></span>
+                <span>Type: <strong id="meta-type">—</strong></span>
+              </div>
+              <div class="progress-bar-container" id="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+              </div>
+              <div id="analysis-status" class="label-sm" style="margin-top:4px; color: var(--text-faint);">Ready for analysis</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2+: Results (hidden until analysis completes) -->
+      <div id="results-container" class="results-container hidden">
+
+        <!-- SECTION 2: Referable DR Alert Banner -->
+        <div id="alert-banner"></div>
+
+        <!-- SECTION 3: Diagnostic Core Metrics -->
+        <div class="metrics-grid">
+          <!-- DR Grade Card -->
+          <div class="card metric-card" id="grade-card">
+            <div class="card-header">
+              <span class="card-label">Primary Classification</span>
+              <span class="status-badge status-badge-info">ICDR / ETDRS</span>
+            </div>
+            <div class="grade-display">
+              <div class="grade-sublabel" id="grade-sublabel">—</div>
+              <h1 class="grade-title" id="grade-title">—</h1>
+              <p class="grade-description" id="grade-description">—</p>
+            </div>
+            <div class="metric-footer">
+              <span>Calibration:</span>
+              <span class="metric-footer-value" id="calibration-method">—</span>
+            </div>
+          </div>
+
+          <!-- Confidence Gauge Card -->
+          <div class="card metric-card" id="confidence-card">
+            <div class="card-header">
+              <span class="card-label">Model Certainty</span>
+              <span class="label-md" id="raw-prob-label" style="color: var(--primary); font-weight:600;">—</span>
+            </div>
+            <div class="gauge-container">
+              <div class="gauge-svg-wrapper">
+                <svg viewBox="0 0 100 100">
+                  <circle class="track" cx="50" cy="50" r="42"/>
+                  <circle class="fill" cx="50" cy="50" r="42" stroke-dasharray="263.89" stroke-dashoffset="263.89" id="gauge-fill"/>
+                </svg>
+                <div class="gauge-center">
+                  <span class="gauge-value" id="gauge-value">—<span class="unit">%</span></span>
+                  <span class="gauge-label">Confidence</span>
+                </div>
+              </div>
+              <div class="gauge-details">
+                <div class="gauge-detail-item">
+                  <span class="gauge-detail-label">Calibrated Referable Prob</span>
+                  <span class="gauge-detail-value" id="calib-ref-prob" style="color: var(--text-primary);">—</span>
+                </div>
+                <div class="gauge-detail-item">
+                  <span class="gauge-detail-label">Referable Threshold</span>
+                  <span class="gauge-detail-value" id="ref-threshold" style="color: var(--color-warning);">—</span>
+                </div>
+              </div>
+            </div>
+            <div class="metric-footer">
+              <span>Referable Probability:</span>
+              <span class="metric-footer-value" id="raw-ref-prob">—</span>
+            </div>
+          </div>
+
+          <!-- Model Info Card -->
+          <div class="card metric-card" id="model-card">
+            <div class="card-header">
+              <span class="card-label">Model Information</span>
+              <span class="status-badge status-badge-success" id="model-status-badge">—</span>
+            </div>
+            <div class="model-info-grid">
+              <div class="model-info-row">
+                <span class="model-info-label">Model</span>
+                <span class="model-info-value" id="info-model-name">—</span>
+              </div>
+              <div class="model-info-row">
+                <span class="model-info-label">Version</span>
+                <span class="model-info-value" id="info-model-version">—</span>
+              </div>
+              <div class="model-info-row">
+                <span class="model-info-label">Status</span>
+                <span class="model-info-value" id="info-model-status">—</span>
+              </div>
+              <div class="model-info-row">
+                <span class="model-info-label">Calibration</span>
+                <span class="model-info-value" id="info-calibration">—</span>
+              </div>
+              <div class="model-info-row">
+                <span class="model-info-label">Threshold</span>
+                <span class="model-info-value" id="info-threshold">—</span>
+              </div>
+            </div>
+            <div class="metric-footer">
+              <span>Uncertainty:</span>
+              <span class="metric-footer-value" id="info-uncertainty" style="color: var(--text-muted); font-weight:400; font-size:10px;">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: Explainable AI Viewport -->
+        <div class="card" id="xai-card">
+          <div class="xai-header">
+            <div>
+              <div class="xai-title-group">
+                <span class="material-symbols-outlined">layers</span>
+                <span class="headline-sm">Explainable AI (XAI) Viewport</span>
+              </div>
+              <div class="xai-subtitle" style="margin-top:2px;">Dual Synchronized Modality — Fundus Raw • Grad-CAM Heatmap Layer</div>
+            </div>
+            <div class="xai-controls">
+              <div class="opacity-control">
+                <label for="opacity-slider">Grad-CAM Opacity</label>
+                <input type="range" class="opacity-slider" id="opacity-slider" min="0" max="100" value="85">
+                <span class="opacity-value" id="opacity-value">85%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="xai-viewport-grid">
+            <!-- Left: Original Fundus -->
+            <div class="viewport-panel">
+              <div class="viewport-label">
+                <span class="viewport-label-left">VIEW A • ORIGINAL FUNDUS</span>
+                <span class="viewport-label-sub">Uploaded Image</span>
+              </div>
+              <div class="viewport-frame" id="viewport-original">
+                <div class="viewport-placeholder" id="viewport-original-placeholder">
+                  <span class="material-symbols-outlined">visibility</span>
+                  <span>Upload an image to view</span>
+                </div>
+                <img id="viewport-original-img" class="hidden" alt="Original retinal fundus image" src="">
+              </div>
+            </div>
+
+            <!-- Right: Grad-CAM -->
+            <div class="viewport-panel">
+              <div class="viewport-label">
+                <span class="viewport-label-right">VIEW B • GRAD-CAM SALIENCY MAP</span>
+                <span class="viewport-label-sub">ResNet-50 Layer: res5c_branch2c</span>
+              </div>
+              <div class="viewport-frame" id="viewport-gradcam">
+                <div class="viewport-placeholder" id="viewport-gradcam-placeholder">
+                  <span class="material-symbols-outlined">gradient</span>
+                  <span>Run analysis to generate heatmap</span>
+                </div>
+                <img id="viewport-gradcam-img" class="hidden" alt="Grad-CAM saliency heatmap visualization" src="">
+                <div class="viewport-overlay hidden" id="gradcam-overlay-tags">
+                  <div style="display:flex; justify-content:space-between;">
+                    <div class="viewport-tag">
+                      <span class="viewport-tag-dot" style="background:#f87171;"></span>
+                      <span>Primary Attention Region</span>
+                    </div>
+                  </div>
+                  <div style="display:flex; justify-content:center;">
+                    <div class="viewport-tag" id="gradcam-attribution-tag">GRAD-CAM • —% ATTRIBUTION</div>
+                  </div>
+                  <div style="display:flex; justify-content:space-between;">
+                    <div class="viewport-tag" id="gradcam-target-tag">Target Class: —</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Heatmap Scale -->
+          <div class="heatmap-scale">
+            <div class="heatmap-scale-label">
+              <span class="material-symbols-outlined">palette</span>
+              <span>Saliency Index Heatmap Scale:</span>
+            </div>
+            <div class="heatmap-gradient">
+              <div class="heatmap-gradient-bar"></div>
+              <div class="heatmap-gradient-labels">
+                <span>Low Activation (0.00 • Blue)</span>
+                <span>Median (0.50)</span>
+                <span class="high">High Activation (1.00 • Red)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 5: 5-Class Probability Distribution -->
+        <div class="card" id="prob-card">
+          <div class="prob-section-header">
+            <div>
+              <h2 class="headline-sm">Comprehensive 5-Class Probability Distribution</h2>
+              <p class="body-sm" style="margin-top:2px;">Calibrated posterior distribution using Platt scaling on validated ophthalmology benchmarks.</p>
+            </div>
+            <div class="status-badge status-badge-info" id="prob-calibration-badge">
+              <span class="material-symbols-outlined" style="font-size:14px;">check_circle</span>
+              Platt Scaling Applied
+            </div>
+          </div>
+          <div class="prob-rows" id="prob-rows">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- SECTION 6: Footer Actions -->
+        <div class="card footer-actions" id="footer-card">
+          <div class="footer-actions-left">
+            <div class="footer-model-info">
+              <div class="footer-avatar">AI</div>
+              <div class="footer-model-text">
+                <span class="footer-model-name" id="footer-model-name">—</span>
+                <span class="footer-model-sub">SIH-26038 Research Prototype • Not for clinical use</span>
+              </div>
+            </div>
+          </div>
+          <div class="footer-actions-right">
+            <button class="btn btn-secondary" id="btn-download-json">
+              <span class="material-symbols-outlined">download</span>
+              Download JSON Report
+            </button>
+            <button class="btn btn-success" id="btn-new-analysis">
+              <span class="material-symbols-outlined">restart_alt</span>
+              New Analysis
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /results-container -->
+
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

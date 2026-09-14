@@ -109,13 +109,13 @@ btnAnalyze.addEventListener('click', () => {
   }
 });
 
-btnDownloadJson.addEventListener('click', () => {
+btnDownloadJson?.addEventListener('click', () => {
   if (currentResult) {
     downloadJSON(currentResult);
   }
 });
 
-btnNewAnalysis.addEventListener('click', () => {
+btnNewAnalysis?.addEventListener('click', () => {
   resetDashboard();
 });
 
@@ -213,29 +213,92 @@ async function runAnalysis(file) {
 
 // ── Result Rendering ──
 
+// ── Result Rendering ──
+
 function renderResults(result) {
   resultsContainer.classList.remove('hidden');
   resultsContainer.classList.add('fade-in');
 
-  renderAlertBanner(result);
-  renderGradeCard(result);
-  renderConfidenceGauge(result);
-  renderModelInfo(result);
-  renderGradCAM(result);
-  renderProbabilities(result);
-  renderFooter(result);
+  const iqaPassed = renderIQA(result);
+  
+  if (iqaPassed) {
+    document.getElementById('metrics-grid-container').classList.remove('hidden');
+    
+    renderAlertBanner(result);
+    renderMainScreen(result);
+    populateReport(result);
+  } else {
+    document.getElementById('metrics-grid-container').classList.add('hidden');
+    document.getElementById('alert-banner').innerHTML = '';
+  }
 
-  // Scroll to results
   setTimeout(() => {
     resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 200);
 }
 
+function renderIQA(result) {
+  const iqaCard = document.getElementById('iqa-card');
+  const actionList = document.getElementById('iqa-action-list');
+
+  if (!result.iqa) {
+    iqaCard.style.display = 'none';
+    return true;
+  }
+  
+  const iqa = result.iqa;
+  if (iqa.pass) {
+    iqaCard.style.display = 'none';
+    return true;
+  } else {
+    iqaCard.style.display = 'block';
+    
+    // Map IQA reason to actionable feedback
+    const reason = iqa.reason || '';
+    let actions = [];
+    
+    if (reason === "Focus failure") {
+      actions = [
+        "Hold the camera steady.",
+        "Make sure the camera is focused on the retina.",
+        "Retake the image."
+      ];
+    } else if (reason === "Illumination failure") {
+      actions = [
+        "Improve the lighting.",
+        "Avoid very dark images or severe glare.",
+        "Retake the image with even lighting."
+      ];
+    } else if (reason === "FOV failure") {
+      actions = [
+        "Center the patient's eye.",
+        "Make sure the retinal area is clearly visible.",
+        "Retake the image."
+      ];
+    } else {
+      actions = [
+        "Check the camera and lighting.",
+        "Make sure the retina is clearly visible.",
+        "Retake the image."
+      ];
+    }
+    
+    if (actionList) {
+      actionList.innerHTML = actions.map(action => 
+        `<li style="margin-bottom: 8px; display: flex; align-items: start; gap: 8px;">
+           <span class="material-symbols-outlined" style="color: var(--color-success); font-size: 20px;">check</span>
+           <span>${action}</span>
+         </li>`
+      ).join('');
+    }
+    
+    return false;
+  }
+}
+
 function renderAlertBanner(result) {
   const banner = document.getElementById('alert-banner');
   const isReferable = result.referableStatus === 'Referable';
-  const calibProb = (result.calibratedReferableProbability * 100).toFixed(1);
-  const threshold = result.referableThreshold;
 
   if (isReferable) {
     banner.innerHTML = `
@@ -246,12 +309,7 @@ function renderAlertBanner(result) {
         <div class="alert-content">
           <div class="alert-title">
             <span style="color: var(--color-danger);">REFERABLE DR DETECTED</span>
-            <span class="badge">Priority Escalation</span>
           </div>
-          <p class="alert-description">
-            Specialist Retina Consultation Recommended. Calibrated referable probability 
-            <strong>${calibProb}%</strong> exceeds threshold (P ≥ ${threshold}).
-          </p>
         </div>
       </div>
     `;
@@ -264,169 +322,120 @@ function renderAlertBanner(result) {
         <div class="alert-content">
           <div class="alert-title">
             <span style="color: var(--color-success-text);">NON-REFERABLE</span>
-            <span class="badge">Routine Screening</span>
           </div>
-          <p class="alert-description">
-            No immediate specialist referral required. Calibrated referable probability 
-            <strong>${calibProb}%</strong> is below threshold (P < ${threshold}).
-          </p>
         </div>
       </div>
     `;
   }
 }
 
-function renderGradeCard(result) {
+function renderMainScreen(result) {
   const grade = result.predictedGrade;
   const color = GRADE_COLORS[grade] || 'var(--text-primary)';
-  const isUrgent = grade >= 3;
+  
+  // Patient ID (Using filename if available, else generated)
+  const patientId = selectedFile ? selectedFile.name : 'Unknown Patient';
+  document.getElementById('main-patient-id').textContent = patientId;
+
+  // Viewports
+  if (previewDataUrl) {
+    document.getElementById('main-viewport-orig').src = previewDataUrl;
+  }
+  
+  const gradcamImg = document.getElementById('main-viewport-gradcam');
+  const gradcamPlaceholder = document.getElementById('main-viewport-gradcam-placeholder');
+  
+  if (result.gradcam_url) {
+    gradcamImg.src = result.gradcam_url;
+    gradcamImg.style.display = 'block';
+    gradcamPlaceholder.style.display = 'none';
+  } else {
+    gradcamImg.style.display = 'none';
+    gradcamPlaceholder.style.display = 'flex';
+  }
 
   const sublabel = document.getElementById('grade-sublabel');
   const title = document.getElementById('grade-title');
-  const desc = document.getElementById('grade-description');
-  const calibMethod = document.getElementById('calibration-method');
+  const refDecision = document.getElementById('main-ref-decision');
+  const calibRefProb = document.getElementById('calib-ref-prob');
 
-  sublabel.textContent = isUrgent ? 'Urgent Clinical Finding' : 'Clinical Finding';
-  sublabel.style.color = color;
-
-  title.textContent = `Grade ${grade}: ${GRADE_NAMES[grade]}`;
+  sublabel.textContent = 'Diagnostic DR Grade';
+  title.textContent = `Grade ${grade}`;
   title.style.color = color;
 
-  desc.textContent = GRADE_DESCRIPTIONS[grade];
-  calibMethod.textContent = result.calibrationMethod || 'Platt scaling';
+  const isReferable = result.referableStatus === 'Referable';
+  refDecision.textContent = isReferable ? 'Refer to Ophthalmologist' : 'No Ophthalmologist Referral Required';
+  refDecision.style.color = isReferable ? 'var(--color-danger)' : 'var(--color-success)';
+
+  const probPercent = (result.calibratedReferableProbability * 100).toFixed(1);
+  calibRefProb.textContent = `${probPercent}%`;
 }
 
-function renderConfidenceGauge(result) {
-  const confidence = result.confidence;
-  const confPercent = (confidence * 100).toFixed(1);
-  const circumference = 2 * Math.PI * 42; // ~263.89
-  const offset = circumference - (confidence * circumference);
-
-  // Gauge fill
-  const gaugeFill = document.getElementById('gauge-fill');
-  // Use setTimeout for animation
-  setTimeout(() => {
-    gaugeFill.setAttribute('stroke-dashoffset', offset.toFixed(2));
-  }, 100);
-
-  // Color the gauge based on confidence level
+function populateReport(result) {
+  const patientId = selectedFile ? selectedFile.name : 'Unknown Patient';
+  const dateStr = new Date().toLocaleString();
+  const modelName = `${result.modelName || 'Baseline ResNet-50'}`;
+  const modelVersion = `${result.modelVersion || '1.0'} (${result.modelStatus || 'LOCKED'})`;
   const grade = result.predictedGrade;
-  gaugeFill.style.stroke = GRADE_COLORS[grade] || 'var(--primary)';
+  const gradeName = GRADE_NAMES[grade] || 'Unknown';
+  const confPercent = result.confidence ? (result.confidence * 100).toFixed(2) + '%' : 'N/A';
+  const refProbPercent = result.calibratedReferableProbability ? (result.calibratedReferableProbability * 100).toFixed(2) + '%' : 'N/A';
+  const isReferable = result.referableStatus === 'Referable';
 
-  // Gauge value
-  document.getElementById('gauge-value').innerHTML = `${confPercent}<span class="unit">%</span>`;
+  // COVER
+  document.getElementById('report-patient-id').textContent = patientId;
+  document.getElementById('report-date').textContent = dateStr;
+  document.getElementById('report-model-name').textContent = modelName;
+  document.getElementById('report-grade').textContent = `Grade ${grade} (${gradeName})`;
+  document.getElementById('report-ref-status').textContent = isReferable ? 'Referable' : 'Non-referable';
+  document.getElementById('report-ref-prob').textContent = refProbPercent;
 
-  // Raw probability label
-  document.getElementById('raw-prob-label').textContent = `p = ${confidence.toFixed(4)}`;
+  // SEC 2
+  document.getElementById('sec2-patient').textContent = patientId;
+  document.getElementById('sec2-date').textContent = dateStr;
 
-  // Calibrated referable probability
-  const calibRefProb = result.calibratedReferableProbability;
-  const calibEl = document.getElementById('calib-ref-prob');
-  calibEl.textContent = (calibRefProb * 100).toFixed(2) + '%';
-  calibEl.style.color = calibRefProb >= result.referableThreshold ? 'var(--color-danger)' : 'var(--color-success)';
+  // SEC 4
+  document.getElementById('sec4-grade').textContent = `Grade ${grade}`;
+  document.getElementById('sec4-class').textContent = gradeName;
+  document.getElementById('sec4-ref-status').textContent = isReferable ? 'Referable' : 'Non-referable';
+  document.getElementById('sec4-ref-prob').textContent = refProbPercent;
+  document.getElementById('sec4-confidence').textContent = confPercent;
 
-  // Threshold
-  document.getElementById('ref-threshold').textContent = result.referableThreshold.toFixed(2);
+  // SEC 5
+  if (previewDataUrl) {
+    document.getElementById('report-original-img').src = previewDataUrl;
+  }
 
-  // Raw referable probability
-  document.getElementById('raw-ref-prob').textContent = (result.referableProbability * 100).toFixed(2) + '%';
-}
-
-function renderModelInfo(result) {
-  document.getElementById('info-model-name').textContent = result.modelName || 'Baseline ResNet-50';
-  document.getElementById('info-model-version').textContent = result.modelVersion || '1.0';
-  document.getElementById('info-model-status').textContent = result.modelStatus || 'LOCKED';
-  document.getElementById('info-calibration').textContent = result.calibrationMethod || 'Platt scaling';
-  document.getElementById('info-threshold').textContent = result.referableThreshold ? result.referableThreshold.toFixed(2) : '0.22';
-  document.getElementById('info-uncertainty').textContent = result.uncertaintyStatus || 'Not implemented';
-
-  const statusBadge = document.getElementById('model-status-badge');
-  statusBadge.textContent = result.modelStatus || 'LOCKED';
-}
-
-function renderGradCAM(result) {
-  const gradcamImg = document.getElementById('viewport-gradcam-img');
-  const gradcamPlaceholder = document.getElementById('viewport-gradcam-placeholder');
-  const overlayTags = document.getElementById('gradcam-overlay-tags');
-
+  // SEC 6
   if (result.gradcam_url) {
-    gradcamImg.src = result.gradcam_url;
-    gradcamImg.classList.remove('hidden');
-    gradcamPlaceholder.classList.add('hidden');
-    overlayTags.classList.remove('hidden');
-
-    // Set opacity from slider
-    const opacitySlider = document.getElementById('opacity-slider');
-    gradcamImg.style.opacity = (opacitySlider.value / 100).toFixed(2);
-
-    // Update tags
-    const confidence = (result.confidence * 100).toFixed(1);
-    const grade = result.predictedGrade;
-    document.getElementById('gradcam-attribution-tag').textContent = `GRAD-CAM • ${confidence}% Grade-${grade} Attribution`;
-    document.getElementById('gradcam-target-tag').textContent = `Target Class: ${GRADE_NAMES[grade]}`;
+    document.getElementById('report-gradcam-img').src = result.gradcam_url;
   } else {
-    gradcamPlaceholder.innerHTML = `
-      <span class="material-symbols-outlined">gradient</span>
-      <span>Grad-CAM not available for this analysis</span>
-    `;
+    document.getElementById('report-gradcam-container').innerHTML = '<p><em>Grad-CAM visualization not available.</em></p>';
   }
+
+  // SEC 7
+  const probs = result.probabilities || [0,0,0,0,0];
+  for(let i=0; i<5; i++) {
+    const val = (probs[i] * 100).toFixed(1);
+    document.getElementById(`prob-bar-${i}`).style.width = `${val}%`;
+    document.getElementById(`prob-bar-${i}`).style.background = BAR_COLORS[i];
+    document.getElementById(`prob-val-${i}`).textContent = `${val}%`;
+  }
+
+  // SEC 9
+  document.getElementById('sec9-model-version').textContent = modelVersion;
+
+  // SEC 21
+  document.getElementById('sec21-id').textContent = patientId;
+  document.getElementById('sec21-grade').textContent = `Grade ${grade} (${gradeName})`;
+  document.getElementById('sec21-ref-status').textContent = isReferable ? 'Referable' : 'Non-referable';
+  document.getElementById('sec21-ref-prob').textContent = refProbPercent;
+  document.getElementById('sec21-confidence').textContent = confPercent;
+  document.getElementById('sec21-date').textContent = dateStr;
 }
 
-function renderProbabilities(result) {
-  const container = document.getElementById('prob-rows');
-  const probs = result.probabilities;
-  const predictedGrade = result.predictedGrade;
 
-  let html = '';
-  for (let i = 0; i < 5; i++) {
-    const prob = probs[i];
-    const percent = (prob * 100).toFixed(1);
-    const isActive = i === predictedGrade;
-    const barColor = BAR_COLORS[i];
-
-    html += `
-      <div class="prob-row ${isActive ? 'active' : ''}" style="${isActive ? `--accent: ${barColor};` : ''}">
-        ${isActive ? `<div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:${barColor};"></div>` : ''}
-        <div class="prob-row-info">
-          <span class="prob-grade-badge" style="${isActive ? `background:${barColor};` : ''}">G${i}</span>
-          <div>
-            <div class="prob-row-name" style="${isActive ? `color:${barColor};` : ''}">
-              Grade ${i}: ${GRADE_NAMES[i]}
-              ${isActive ? '<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">priority_high</span>' : ''}
-            </div>
-            <div class="prob-row-desc">${isActive ? 'Primary Diagnosed Class' : GRADE_DESCRIPTIONS[i].split('.')[0]}</div>
-          </div>
-        </div>
-        <div class="prob-row-bar-area">
-          <div class="prob-bar-track">
-            <div class="prob-bar-fill" style="width: ${Math.max(percent, 0.5)}%; background: ${barColor};"></div>
-          </div>
-          <span class="prob-row-value" style="${isActive ? `color:${barColor};` : ''}">${percent}%</span>
-        </div>
-      </div>
-    `;
-  }
-  container.innerHTML = html;
-}
-
-function renderFooter(result) {
-  document.getElementById('footer-model-name').textContent = `${result.modelName || 'Baseline ResNet-50'} v${result.modelVersion || '1.0'}`;
-}
-
-// ── Opacity Slider ──
-const opacitySlider = document.getElementById('opacity-slider');
-const opacityValue = document.getElementById('opacity-value');
-
-opacitySlider.addEventListener('input', (e) => {
-  const val = e.target.value;
-  opacityValue.textContent = val + '%';
-  const gradcamImg = document.getElementById('viewport-gradcam-img');
-  if (gradcamImg && !gradcamImg.classList.contains('hidden')) {
-    gradcamImg.style.opacity = (val / 100).toFixed(2);
-  }
-});
-
-// ── Utilities ──
+// ── Utilities & Event Listeners ──
 
 function formatFileSize(bytes) {
   if (bytes === 0) return '0 B';
@@ -436,27 +445,12 @@ function formatFileSize(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
-function downloadJSON(result) {
-  const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `dr_inference_result_${Date.now()}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
 function resetDashboard() {
   selectedFile = null;
   currentResult = null;
   previewDataUrl = null;
 
-  // Reset file input
   fileInput.value = '';
-
-  // Reset preview
   previewEmpty.classList.remove('hidden');
   previewContent.classList.add('hidden');
   previewThumb.src = '';
@@ -468,31 +462,109 @@ function resetDashboard() {
   analysisStatus.textContent = 'Ready for analysis';
   analysisStatus.style.color = 'var(--text-faint)';
 
-  // Reset viewport
-  const viewportOrigImg = document.getElementById('viewport-original-img');
-  const viewportOrigPlaceholder = document.getElementById('viewport-original-placeholder');
-  viewportOrigImg.classList.add('hidden');
-  viewportOrigImg.src = '';
-  viewportOrigPlaceholder.classList.remove('hidden');
+  // Reset main viewports
+  document.getElementById('main-viewport-orig').src = '';
+  document.getElementById('main-viewport-gradcam').src = '';
+  document.getElementById('main-viewport-gradcam').style.display = 'none';
+  document.getElementById('main-viewport-gradcam-placeholder').style.display = 'flex';
 
-  const gradcamImg = document.getElementById('viewport-gradcam-img');
-  const gradcamPlaceholder = document.getElementById('viewport-gradcam-placeholder');
-  gradcamImg.classList.add('hidden');
-  gradcamImg.src = '';
-  gradcamPlaceholder.classList.remove('hidden');
-  gradcamPlaceholder.innerHTML = `
-    <span class="material-symbols-outlined">gradient</span>
-    <span>Run analysis to generate heatmap</span>
-  `;
-  document.getElementById('gradcam-overlay-tags').classList.add('hidden');
-
-  // Reset gauge
-  document.getElementById('gauge-fill').setAttribute('stroke-dashoffset', '263.89');
-
-  // Hide results
   resultsContainer.classList.add('hidden');
-
-  // Disable buttons
+  document.getElementById('iqa-card').style.display = 'none';
+  
   btnReupload.disabled = true;
   btnAnalyze.disabled = true;
 }
+
+// ── Report Actions ──
+
+document.getElementById('btn-show-report')?.addEventListener('click', () => {
+  document.getElementById('report-modal').classList.remove('hidden');
+});
+
+document.getElementById('btn-close-report')?.addEventListener('click', () => {
+  document.getElementById('report-modal').classList.add('hidden');
+});
+
+document.getElementById('report-modal-backdrop')?.addEventListener('click', () => {
+  document.getElementById('report-modal').classList.add('hidden');
+});
+
+const handleDownloadReport = async (e) => {
+  const btn = e ? e.currentTarget : document.getElementById('btn-download-report');
+  const originalText = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">hourglass_empty</span> Generating PDF...';
+    btn.disabled = true;
+  }
+
+  try {
+    const element = document.getElementById('pdf-report');
+    
+    const modal = document.getElementById('report-modal');
+    const wasHidden = modal.classList.contains('hidden');
+    
+    if (wasHidden) {
+      // Unhide but keep offscreen
+      modal.style.opacity = '0.01';
+      modal.style.position = 'absolute';
+      modal.style.top = '-9999px';
+      modal.style.display = 'block'; // force display
+      modal.classList.remove('hidden');
+      await new Promise(r => setTimeout(r, 100)); // allow DOM to render
+    }
+    
+    const patientId = document.getElementById('sec2-patient').textContent || 'Unknown';
+    const safeId = patientId.replace(/[^a-z0-9]/gi, '_');
+    const filename = `DR_Screening_Report_${safeId}.pdf`;
+
+    const opt = {
+      margin:       10,
+      filename:     filename,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, logging: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    await html2pdf().set(opt).from(element).save();
+    
+    if (wasHidden) {
+      modal.classList.add('hidden');
+      modal.style.opacity = '';
+      modal.style.position = '';
+      modal.style.top = '';
+      modal.style.display = '';
+    }
+  } catch (error) {
+    console.error("PDF generation failed:", error);
+    alert("Unable to generate the report. Please try again.");
+  } finally {
+    if (btn) {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  }
+};
+
+document.getElementById('btn-download-report')?.addEventListener('click', handleDownloadReport);
+document.getElementById('btn-modal-download')?.addEventListener('click', handleDownloadReport);
+
+document.getElementById('btn-share-report')?.addEventListener('click', async () => {
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'DR Screening Report',
+        text: 'Screening Result generated by Retina-AI',
+        url: window.location.href,
+      });
+    } catch (err) {
+      console.log('Share canceled or failed', err);
+    }
+  } else {
+    // Fallback if share is not supported
+    handleDownloadReport();
+  }
+});
+
+document.getElementById('btn-retake-image')?.addEventListener('click', () => {
+  fileInput.click();
+});

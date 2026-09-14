@@ -123,8 +123,8 @@ function result = runDRInference(inputImage, generateGradCAM)
             dlImg = dlarray(single(img224), 'SSC');
             try
                 % GradCAM generation
-                % We specify the reduction layer per requirement
-                heatMap = gradcam(net, dlImg, classIdx, 'ReductionLayer', 'res5c_branch2c');
+                % We specify the feature layer per requirement
+                heatMap = gradCAM(net, dlImg, classIdx, 'FeatureLayer', 'res5c_branch2c');
                 result.gradCAM = extractdata(heatMap);
             catch ME_GRADCAM
                 % If it fails (e.g. older MATLAB version or syntax difference), safely document it.

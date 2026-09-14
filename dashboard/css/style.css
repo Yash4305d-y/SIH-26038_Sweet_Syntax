@@ -1522,6 +1522,8 @@ body {
 /* Report Sections */
 .report-section {
   margin-bottom: 30px;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 .report-section h2 {
@@ -1578,6 +1580,11 @@ body {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 16px;
+  page-break-inside: auto;
+}
+.report-table tr {
+  page-break-inside: avoid;
+  page-break-after: auto;
 }
 .report-table th, .report-table td {
   border: 1px solid #cbd5e1;
@@ -1604,6 +1611,8 @@ p.caption {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 .prob-bar-container {
   display: flex;
@@ -1631,5 +1640,16 @@ p.caption {
     padding: 0;
     box-shadow: none;
     max-width: 100%;
+  }
+  .report-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .report-section img {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .html2pdf__page-break {
+    page-break-before: always;
   }
 }

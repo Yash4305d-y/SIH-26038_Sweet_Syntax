@@ -521,11 +521,21 @@ const handleDownloadReport = async (e) => {
       margin:       10,
       filename:     filename,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, logging: true },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['css', 'legacy'] }
     };
     
-    await html2pdf().set(opt).from(element).save();
+    await html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(9);
+        pdf.setTextColor(100);
+        pdf.text('SIH-26038 | Diabetic Retinopathy Screening Report', 10, pdf.internal.pageSize.getHeight() - 8);
+        pdf.text(`Page ${i} of ${totalPages}`, pdf.internal.pageSize.getWidth() - 25, pdf.internal.pageSize.getHeight() - 8);
+      }
+    }).save();
     
     if (wasHidden) {
       modal.classList.add('hidden');

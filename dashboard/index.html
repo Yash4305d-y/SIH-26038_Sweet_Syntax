@@ -126,6 +126,21 @@
           </div>
         </div>
 
+        <!-- SECTION 2.7: Non-Retinal Image Error -->
+        <div class="card" id="non-retinal-card" style="margin-bottom: var(--space-md); display: none; text-align: center; padding: var(--space-2xl);">
+          <div style="color: var(--color-danger-text); margin-bottom: 16px;">
+            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--color-danger);">block</span>
+          </div>
+          <h2 style="font-size: 24px; color: var(--text-primary); margin-bottom: 8px;">Image not recognized as a retinal/fundus photograph.</h2>
+          <p id="non-retinal-guidance" style="font-size: 16px; color: var(--text-secondary); margin-bottom: 24px;">Please upload or capture a clear retinal/fundus image for diabetic-retinopathy screening.</p>
+          <div>
+            <button class="btn btn-primary" id="btn-retake-invalid-image" style="font-size: 16px; padding: 12px 24px;">
+              <span class="material-symbols-outlined">add_a_photo</span>
+              Retake / Upload New Image
+            </button>
+          </div>
+        </div>
+
         <!-- SECTION 3: Main Screening Result -->
         <div class="metrics-grid" id="metrics-grid-container" style="display:flex; flex-direction:column; gap: var(--space-xl); align-items: center; max-width: 900px; margin: 0 auto;">
           
@@ -487,6 +502,6 @@ Integration Layer → UI / Simulink Workflow
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="js/app.js" defer></script>
+  <script src="js/app.js?v=2" defer></script>
 </body>
 </html>

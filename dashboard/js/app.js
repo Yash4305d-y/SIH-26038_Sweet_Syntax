@@ -159,6 +159,8 @@ function handleFileSelect(file) {
 
   // Hide previous results
   resultsContainer.classList.add('hidden');
+  document.getElementById('non-retinal-card').style.display = 'none';
+  document.getElementById('iqa-card').style.display = 'none';
 }
 
 // ── Analysis ──
@@ -191,6 +193,12 @@ async function runAnalysis(file) {
     progressBar.style.width = '100%';
 
     if (data.success === false || data.success === 0) {
+      if (data.errorType === 'NON_RETINAL') {
+        renderNonRetinalError(data);
+        analysisStatus.textContent = 'Validation failed';
+        analysisStatus.style.color = 'var(--color-danger)';
+        return; // Stop execution
+      }
       throw new Error(data.errorMessage || 'Inference failed');
     }
 
@@ -213,11 +221,12 @@ async function runAnalysis(file) {
 
 // ── Result Rendering ──
 
-// ── Result Rendering ──
-
 function renderResults(result) {
   resultsContainer.classList.remove('hidden');
   resultsContainer.classList.add('fade-in');
+
+  // CRITICAL FIX: Ensure error cards are hidden when displaying valid results
+  document.getElementById('non-retinal-card').style.display = 'none';
 
   const iqaPassed = renderIQA(result);
   
@@ -232,6 +241,39 @@ function renderResults(result) {
     document.getElementById('alert-banner').innerHTML = '';
   }
 
+  setTimeout(() => {
+    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 200);
+}
+
+function renderNonRetinalError(data) {
+  // Clear any existing metrics, reports, and Grad-CAM
+  document.getElementById('dr-grade-text').textContent = '-';
+  document.getElementById('referable-status-text').innerHTML = '-';
+  document.getElementById('gradcam-image').src = '';
+  document.getElementById('report-metrics-list').innerHTML = '';
+  document.getElementById('alert-banner').innerHTML = '';
+  
+  // Reset probability bars
+  const bars = document.querySelectorAll('.prob-fill');
+  bars.forEach(bar => {
+    bar.style.width = '0%';
+    bar.textContent = '';
+  });
+  
+  resultsContainer.classList.remove('hidden');
+  resultsContainer.classList.add('fade-in');
+  
+  // hide other cards
+  document.getElementById('iqa-card').style.display = 'none';
+  document.getElementById('metrics-grid-container').classList.add('hidden');
+  
+  // show non-retinal card
+  document.getElementById('non-retinal-card').style.display = 'block';
+  if (data.guidance) {
+    document.getElementById('non-retinal-guidance').textContent = data.guidance;
+  }
+  
   setTimeout(() => {
     resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 200);
@@ -470,6 +512,18 @@ function resetDashboard() {
 
   resultsContainer.classList.add('hidden');
   document.getElementById('iqa-card').style.display = 'none';
+  document.getElementById('non-retinal-card').style.display = 'none';
+  document.getElementById('alert-banner').innerHTML = '';
+  document.getElementById('dr-grade-text').textContent = '-';
+  document.getElementById('referable-status-text').innerHTML = '-';
+  document.getElementById('gradcam-image').src = '';
+  document.getElementById('report-metrics-list').innerHTML = '';
+  
+  const bars = document.querySelectorAll('.prob-fill');
+  bars.forEach(bar => {
+    bar.style.width = '0%';
+    bar.textContent = '';
+  });
   
   btnReupload.disabled = true;
   btnAnalyze.disabled = true;
@@ -609,5 +663,9 @@ document.getElementById('btn-share-report')?.addEventListener('click', async () 
 });
 
 document.getElementById('btn-retake-image')?.addEventListener('click', () => {
+  fileInput.click();
+});
+
+document.getElementById('btn-retake-invalid-image')?.addEventListener('click', () => {
   fileInput.click();
 });

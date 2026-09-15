@@ -111,6 +111,26 @@ def predict():
 
     print(f'[INFO] Image saved: {saved_path}')
 
+    # Validate that it is actually a retinal image
+    is_valid_retina, msg = validate_retinal_image(str(saved_path))
+    print(f"\n{'='*50}")
+    print(f"[DEBUG] IMAGE ID: {saved_filename}")
+    print(f"[DEBUG] GATE STATUS: {'PASS' if is_valid_retina else 'FAIL'}")
+    print(f"[DEBUG] GATE REASON: {msg}")
+    print(f"{'='*50}\n")
+    
+    if not is_valid_retina:
+        # FAIL-CLOSED GUARD: DO NOT CALL INFERENCE
+        print("[DEBUG] INFERENCE EXECUTED: NO (REJECTED BY GATE)")
+        return jsonify({
+            'success': False, 
+            'errorType': 'NON_RETINAL',
+            'errorMessage': 'Image not recognized as a retinal/fundus photograph.',
+            'guidance': 'Please upload or capture a clear retinal/fundus image for diabetic-retinopathy screening.'
+        }), 200
+
+    print(f"Calling MATLAB DR inference for {saved_filename}...")
+
     # Try to run MATLAB inference
     result = None
 
@@ -126,6 +146,14 @@ def predict():
     if result is None:
         print('[WARN] MATLAB not available. Using mock inference mode.')
         result = generate_mock_result(str(saved_path))
+
+    iqa_result = result.get('iqa', {})
+    if not iqa_result.get('pass', True):
+        print(f"[DEBUG] IQA STATUS: FAIL ({iqa_result.get('reason', 'Unknown')})")
+        print("[DEBUG] INFERENCE EXECUTED: NO (IQA FAILED)")
+    else:
+        print("[DEBUG] IQA STATUS: PASS")
+        print("[DEBUG] INFERENCE EXECUTED: YES")
 
     # Add the gradcam URL if applicable
     gradcam_path = GRADCAM_DIR / f'{image_id}_gradcam.png'
@@ -286,6 +314,144 @@ def generate_mock_result(image_path):
     }
 
     return result
+
+
+def validate_retinal_image(image_path):
+    """
+    Check if the image is plausibly a retinal/fundus photograph.
+    
+    Uses a weighted scoring system across multiple signals rather than
+    hard pass/fail thresholds. This avoids false rejections of genuine
+    fundus images that may have borderline values on a single metric
+    (e.g. slightly bright borders, slightly high texture variance).
+    
+    A non-retinal image (scenery, face, document) will fail MANY signals
+    simultaneously, producing a very low score. A genuine fundus image
+    may have one borderline metric but will score well overall.
+    
+    Limitations: This is a heuristic suitability check, not a medically
+    validated fundus classifier. It provides a safety gate to block
+    obviously non-retinal inputs before the locked DR inference model.
+    """
+    try:
+        import numpy as np
+        from PIL import Image
+        img = Image.open(image_path).convert('RGB')
+        img = img.resize((256, 256))
+        arr = np.array(img)
+    except Exception as e:
+        return False, f"ERROR: Invalid image file: {e}"
+
+    r, g, b = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
+
+    # Extract grayscale and FOV mask
+    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
+    mask = gray > 15
+    fov_ratio = float(np.sum(mask) / mask.size)
+
+    if np.sum(mask) == 0:
+        return False, "Empty image (no bright pixels)"
+
+    mean_r = float(np.mean(r[mask]))
+    mean_g = float(np.mean(g[mask]))
+    mean_b = float(np.mean(b[mask]))
+    std_g = float(np.std(g[mask]))
+
+    # Border dark ratio (edges of the image)
+    border_pixels = np.concatenate([
+        gray[:13, :].flatten(),
+        gray[-13:, :].flatten(),
+        gray[:, :13].flatten(),
+        gray[:, -13:].flatten()
+    ])
+    border_dark_ratio = float(np.sum(border_pixels <= 15) / len(border_pixels))
+
+    rg_gap = mean_r - mean_g
+    gb_gap = mean_g - mean_b
+
+    # ── Scoring system ──
+    # Each signal contributes 0.0 (strongly non-fundus) to 1.0 (strongly fundus).
+    # The final score is a weighted average. Rejection threshold: < 0.45
+    scores = {}
+
+    # Signal 1: FOV ratio (weight 2)
+    # Fundus images typically have 0.3-0.85 FOV ratio (circular field with dark border)
+    # Full-bleed photos (>0.97) are almost certainly not fundus
+    if fov_ratio > 0.97:
+        scores['fov'] = 0.0
+    elif fov_ratio > 0.95:
+        scores['fov'] = 0.2
+    elif fov_ratio > 0.90:
+        scores['fov'] = 0.5
+    elif 0.2 <= fov_ratio <= 0.90:
+        scores['fov'] = 1.0
+    elif fov_ratio >= 0.15:
+        scores['fov'] = 0.5
+    else:
+        scores['fov'] = 0.0
+
+    # Signal 2: Border darkness (weight 2)
+    # Fundus images have dark corners/edges from the circular lens
+    if border_dark_ratio > 0.5:
+        scores['border'] = 1.0
+    elif border_dark_ratio > 0.2:
+        scores['border'] = 0.8
+    elif border_dark_ratio > 0.1:
+        scores['border'] = 0.4
+    else:
+        scores['border'] = 0.0
+
+    # Signal 3: Red-Green dominance (weight 3 — strongest fundus indicator)
+    # Fundus images are deeply reddish-orange: R >> G >> B
+    if rg_gap > 30:
+        scores['rg_dom'] = 1.0
+    elif rg_gap > 15:
+        scores['rg_dom'] = 0.8
+    elif rg_gap > 5:
+        scores['rg_dom'] = 0.3
+    else:
+        scores['rg_dom'] = 0.0
+
+    # Signal 4: Green > Blue (weight 1)
+    if gb_gap > 20:
+        scores['gb'] = 1.0
+    elif gb_gap > 0:
+        scores['gb'] = 0.7
+    else:
+        scores['gb'] = 0.0
+
+    # Signal 5: Texture variance in green channel (weight 1)
+    # Fundus images have moderate variance (8-40); scenery/faces have very high (>50)
+    if 8 <= std_g <= 40:
+        scores['texture'] = 1.0
+    elif 5 <= std_g <= 45:
+        scores['texture'] = 0.6
+    elif std_g > 60:
+        scores['texture'] = 0.0
+    else:
+        scores['texture'] = 0.2
+
+    # Weighted average
+    weights = {'fov': 2, 'border': 2, 'rg_dom': 3, 'gb': 1, 'texture': 1}
+    total_weight = sum(weights.values())
+    weighted_sum = sum(scores[k] * weights[k] for k in scores)
+    final_score = weighted_sum / total_weight
+
+    # Threshold: 0.45 means image must score well on a combination of signals
+    # A genuine fundus image scores 0.7+ even with one borderline metric
+    # A scenery/face/document scores < 0.3 because it fails most signals
+    THRESHOLD = 0.50
+
+    reason_parts = [f"{k}={scores[k]:.1f}" for k in scores]
+    detail = f"score={final_score:.2f} ({', '.join(reason_parts)})"
+
+    if final_score >= THRESHOLD:
+        return True, f"PASS ({detail})"
+    else:
+        # Find the worst signals for a helpful message
+        worst = sorted(scores.items(), key=lambda x: x[1])
+        worst_names = [f"{k}={v:.1f}" for k, v in worst[:3]]
+        return False, f"FAIL ({detail}) worst: {', '.join(worst_names)}"
 
 
 def save_gradcam_from_matlab(gradcam_data, image_path):

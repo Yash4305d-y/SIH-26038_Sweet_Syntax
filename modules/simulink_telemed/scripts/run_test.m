@@ -4,8 +4,11 @@
 clear;
 clc;
 
-%% Load parameters
-run('../parameters/simulation_parameters.m');
+currentDir = fileparts(mfilename('fullpath'));
+rootDir = fullfile(currentDir, '..');
+addpath(fullfile(rootDir, 'parameters'));
+addpath(fullfile(rootDir, 'model'));
+run('simulation_parameters.m');
 
 %% Display test configuration
 
@@ -24,7 +27,7 @@ fprintf('Review time: %.2f s\n', review_processing_time);
 fprintf('Reviewer count: %d\n', reviewer_count);
 
 %% Open model
-model_path = fullfile('..', 'model', 'DR_DigitalTwin.slx');
+model_path = fullfile(rootDir, 'model', 'DR_DigitalTwin.slx');
 open_system(model_path);
 
 %% Run simulation

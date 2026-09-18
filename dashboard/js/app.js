@@ -142,11 +142,10 @@ function handleFileSelect(file) {
     previewContent.classList.remove('hidden');
 
     // Update viewport original image
-    const viewportOrigImg = document.getElementById('viewport-original-img');
-    const viewportOrigPlaceholder = document.getElementById('viewport-original-placeholder');
-    viewportOrigImg.src = previewDataUrl;
-    viewportOrigImg.classList.remove('hidden');
-    viewportOrigPlaceholder.classList.add('hidden');
+    const viewportOrigImg = document.getElementById('main-viewport-orig');
+    if (viewportOrigImg) {
+      viewportOrigImg.src = previewDataUrl;
+    }
   };
   reader.readAsDataURL(file);
 
@@ -248,11 +247,10 @@ function renderResults(result) {
 
 function renderNonRetinalError(data) {
   // Clear any existing metrics, reports, and Grad-CAM
-  document.getElementById('dr-grade-text').textContent = '-';
-  document.getElementById('referable-status-text').innerHTML = '-';
-  document.getElementById('gradcam-image').src = '';
-  document.getElementById('report-metrics-list').innerHTML = '';
-  document.getElementById('alert-banner').innerHTML = '';
+  if (document.getElementById('grade-title')) document.getElementById('grade-title').textContent = '-';
+  if (document.getElementById('main-ref-decision')) document.getElementById('main-ref-decision').textContent = '-';
+  if (document.getElementById('main-viewport-gradcam')) document.getElementById('main-viewport-gradcam').src = '';
+  if (document.getElementById('alert-banner')) document.getElementById('alert-banner').innerHTML = '';
   
   // Reset probability bars
   const bars = document.querySelectorAll('.prob-fill');
@@ -514,10 +512,10 @@ function resetDashboard() {
   document.getElementById('iqa-card').style.display = 'none';
   document.getElementById('non-retinal-card').style.display = 'none';
   document.getElementById('alert-banner').innerHTML = '';
-  document.getElementById('dr-grade-text').textContent = '-';
-  document.getElementById('referable-status-text').innerHTML = '-';
-  document.getElementById('gradcam-image').src = '';
-  document.getElementById('report-metrics-list').innerHTML = '';
+  if (document.getElementById('grade-title')) document.getElementById('grade-title').textContent = '-';
+  if (document.getElementById('main-ref-decision')) document.getElementById('main-ref-decision').textContent = '-';
+  if (document.getElementById('main-viewport-gradcam')) document.getElementById('main-viewport-gradcam').src = '';
+  if (document.getElementById('alert-banner')) document.getElementById('alert-banner').innerHTML = '';
   
   const bars = document.querySelectorAll('.prob-fill');
   bars.forEach(bar => {

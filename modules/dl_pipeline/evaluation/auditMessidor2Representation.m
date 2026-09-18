@@ -6,7 +6,7 @@ function auditMessidor2Representation()
     
     messidor2Dir = fullfile(projectDir, 'messidor-2');
     m2ImgDir = fullfile(messidor2Dir, 'preprocess');
-    m2CsvPath = fullfile(projectDir, 'messidor_data.csv');
+    m2CsvPath = fullfile(projectDir, 'data', 'metadata', 'messidor_data.csv');
     
     dataDir = fullfile(projectDir, 'data');
     aptosImgDir = fullfile(dataDir, 'raw', 'test_images');

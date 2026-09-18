@@ -31,14 +31,14 @@ __pycache__/
 .ipynb_checkpoints/
 
 # -------------------------
-# MATLAB generated / temporary
+# MATLAB Generated / Temporary
 # -------------------------
 *.fig
 *.matlab
 *.tmp
 
 # -------------------------
-# Large image files
+# Large Image Files
 # -------------------------
 *.jpg
 *.jpeg
@@ -50,7 +50,7 @@ __pycache__/
 *.webp
 
 # -------------------------
-# Datasets
+# Datasets & Local Data
 # -------------------------
 data/
 dataset/
@@ -59,28 +59,30 @@ raw_data/
 processed_data/
 
 # -------------------------
-# Model weights / checkpoints
+# Model Weights & Checkpoints
 # -------------------------
 *.pt
 *.pth
 *.ckpt
 *.onnx
 
-# MATLAB model files
+# Ignore all .mat models across root and nested modules
 models/*.mat
+modules/**/models/*.mat
+modules/**/model/*.mat
 
 # LOCKED FINAL ML MODEL
 !models/baseline_resnet50_smoketest.mat
 
 # -------------------------
-# Generated model outputs
+# Generated Model Outputs
 # -------------------------
 outputs/gradcam/
 outputs/predictions/
 outputs/checkpoints/
 
 # -------------------------
-# Generated evaluation artifacts
+# Generated Evaluation Artifacts
 # -------------------------
 outputs/evaluation/
 
@@ -95,29 +97,38 @@ outputs/evaluation/referable_dr/calibration/*
 !outputs/evaluation/ml_master/
 
 # -------------------------
-# Logs / temporary results
+# Dashboard Runtime & Temp
+# -------------------------
+dashboard/venv/
+dashboard/__pycache__/
+dashboard/uploads/*
+!dashboard/uploads/.gitkeep
+dashboard/gradcam_output/*
+!dashboard/gradcam_output/.gitkeep
+
+# -------------------------
+# Scratchpad / Local Sandbox
+# -------------------------
+scratch/
+
+# -------------------------
+# Logs & Secrets
 # -------------------------
 logs/
 *.log
-
-# -------------------------
-# Local environment / secrets
-# -------------------------
 .env
 .env.*
 !.env.example
 
 # -------------------------
-# Large archives
+# Large Archives
 # -------------------------
 *.zip
 *.rar
 *.7z
 *.tar
 *.gz
-# Dashboard
-dashboard/venv/
-dashboard/__pycache__/
-dashboard/uploads/
-dashboard/gradcam_output/
 
+# Ignore simulation output files
+modules/simulink_telemed/results/*.mat
+outputs/**/*.mat

@@ -128,3 +128,7 @@ logs/
 *.7z
 *.tar
 *.gz
+
+# Ignore simulation output files
+modules/simulink_telemed/results/*.mat
+outputs/**/*.mat

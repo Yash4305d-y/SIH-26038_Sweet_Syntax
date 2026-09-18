@@ -52,9 +52,7 @@ __pycache__/
 # -------------------------
 # Datasets & Local Data
 # -------------------------
-data/*
-!data/metadata/
-!data/sample/
+data/
 dataset/
 datasets/
 raw_data/
@@ -68,9 +66,10 @@ processed_data/
 *.ckpt
 *.onnx
 
-# MATLAB model files
+# Ignore all .mat models across root and nested modules
 models/*.mat
 modules/**/models/*.mat
+modules/**/model/*.mat
 
 # LOCKED FINAL ML MODEL
 !models/baseline_resnet50_smoketest.mat
@@ -108,12 +107,12 @@ dashboard/gradcam_output/*
 !dashboard/gradcam_output/.gitkeep
 
 # -------------------------
-# Scratchpad / Local Experiments
+# Scratchpad / Local Sandbox
 # -------------------------
 scratch/
 
 # -------------------------
-# Logs & Environment Secrets
+# Logs & Secrets
 # -------------------------
 logs/
 *.log
@@ -122,7 +121,7 @@ logs/
 !.env.example
 
 # -------------------------
-# Archives
+# Large Archives
 # -------------------------
 *.zip
 *.rar

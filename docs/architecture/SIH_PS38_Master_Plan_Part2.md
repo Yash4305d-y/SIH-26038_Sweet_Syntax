@@ -1,226 +1,629 @@
-SIH 2026 — Updated Technical Master Plan
-North Star
+# SIH 2026 — Technical Master Plan
 
-Closed-Loop, Deployment-Aware DR Screening
+## PS 26038 — Explainable AI for Diabetic Retinopathy Screening in Rural India
 
-Screen → Explain → Refer → Follow → Verify → Controlled Adaptation
+**Organization:** MathWorks
+**Environment:** MATLAB / Simulink
+**Primary Dataset:** APTOS 2019
+**External Validation:** Messidor-2
+**Adaptation Experiment:** IDRiD
+**North Star:** Closed-Loop, Deployment-Aware DR Screening
 
-The current ResNet-50 remains the official baseline. Any model-improvement work is experimental until independently evaluated.
+---
 
-👤 TECH MEMBER 1 
-System + Explainability + Care Loop Lead
-1. Retinal → AI → Decision Pipeline
+# 0. NORTH STAR
 
-Maintain the complete inference flow:
+## Screen → Explain → Refer → Follow → Verify → Controlled Adaptation
 
-Image → Retinal validation → IQA → DR inference → Referable assessment → Explanation → Report
+The system must not stop at:
 
-Ensure:
+> **Image → AI prediction**
 
-Invalid/non-retinal images never reach DR inference.
-IQA failures stop the pipeline.
-Old results are cleared when a new image is uploaded.
-Async requests cannot overwrite results for a newer image.
-Existing ML inference contract remains stable.
-2. Three-Layer Patient Report
-Layer 1 — Patient / Health-worker
+It should demonstrate a complete deployment-aware screening workflow:
 
-Simple, understandable information:
-
-DR result
-Referral recommendation
-What the result means
-What to do next
-Referral ID if applicable
-Follow-up status
-Simple confidence wording
-
-Avoid raw ML metrics.
-
-Layer 2 — Specialist Review
-
-Fast clinical-review information:
-
-AI DR grade
-Referable probability
-Confidence
-IQA status
-Original retinal image
-Grad-CAM overlay
-Per-class probabilities
-Specialist verified grade
-Specialist sign-off
-
-Grad-CAM wording:
-
-“Areas the AI focused on while making this prediction.”
-
-Not:
-
-“These areas prove the disease.”
-
-Layer 3 — Case Audit
-
-Keep this case-specific, not a giant ML report:
-
-Case ID
-Model/version
-Calibration version
-AI prediction
-probabilities
-IQA result
-explanation metadata
-timestamp
-referral information
-specialist verification
-follow-up status
-3. Standalone Model Evidence Package
-
-Do not put the entire evaluation suite inside every patient's PDF.
-
-Create one separate Model Evidence Package containing:
-
-Dataset and splits
-Model architecture/version
-Accuracy
-Macro-F1
-QWK
-Per-class performance
-Confusion matrix
-Referable-DR evaluation
-Calibration metrics
-Messidor-2 external validation
-IDRiD experiment, when completed
-Limitations
-Experimental model comparisons
-Final model selection rationale
-
-The individual patient report can reference the relevant model/version and evidence package.
-
-4. Unified Case + Referral Data Model
-
-This is the single source of truth shared by the report, referral tracker, specialist review, and AI adaptation system.
-
-Case ID
-Referral ID
-AI Grade
-AI Referable Probability
-Calibration Version
-Specialist Grade
-Agreement
-Follow-up Status
-Timestamp
-Important rules
-
-Case ID
-
-Exists for every screening case.
-Referral ID exists only when referral is generated.
-
-Calibration Version
-
-Records exactly which calibration version produced the probability/result.
-
-Specialist Grade
-
-Empty until specialist review.
-
-Agreement
-
-Computed automatically from AI grade vs specialist grade.
-Never manually entered.
-
-Follow-up Status
-
-Use explicit states such as:
-
-Not Referred
-Referred
-Seen
-Lost to Follow-up
-Completed
-
-Member 1 can refine the exact labels during implementation, but Lost to Follow-up must be an explicit state.
-
-5. Closed Referral / Care Loop
-
-For a referable case:
-
-Referable
-    ↓
-Case ID + Referral ID
-    ↓
-Patient guidance
-    ↓
+```text
+Acquire
+   ↓
+Validate retinal image
+   ↓
+Assess image quality
+   ↓
+Enhance / preprocess
+   ↓
+Extract retinal structures + lesion evidence
+   ↓
+DR severity grading (0–4)
+   ↓
+Referable DR decision
+   ↓
+Calibrated confidence
+   ↓
+Explain prediction
+   ↓
+Generate patient / specialist / audit report
+   ↓
+Referral when required
+   ↓
 Specialist review
+   ↓
+Verified clinical grade
+   ↓
+Follow-up tracking
+   ↓
+Controlled calibration update
+   ↓
+Held-out validation
+   ↓
+PROMOTE / ROLLBACK
+```
+
+The system must remain **safe-by-design**:
+
+* A poor-quality image must not silently receive a DR diagnosis.
+* A non-fundus image must not reach the DR model.
+* A new image must clear previous results.
+* A failed quality gate must stop downstream DR inference.
+* The CNN must not learn from its own predictions.
+* Calibration updates must use verified labels.
+* No update is promoted without held-out validation.
+* The locked baseline remains available for rollback.
+
+---
+
+# 1. OFFICIAL SIH REQUIREMENT COVERAGE
+
+This is the master checklist.
+
+Every requirement must eventually satisfy:
+
+> **Implementation + Demonstrable Output + Validation Evidence**
+
+| SIH requirement              | Owner               | Prototype location      | Required evidence                                         |
+| ---------------------------- | ------------------- | ----------------------- | --------------------------------------------------------- |
+| Image-quality assessment     | Member 3 / Role 2   | Preprocessing/IQA layer | IQA metrics + failure examples                            |
+| Focus assessment             | Role 2              | IQA                     | Focus score + threshold validation                        |
+| Illumination assessment      | Role 2              | IQA                     | Illumination metrics/examples                             |
+| FOV assessment               | Role 2              | IQA                     | FOV validity + failure examples                           |
+| Image enhancement            | Role 2              | Preprocessing           | CLAHE / normalization / denoising comparison              |
+| Ungradable rejection         | Role 2 + Member 1   | IQA gate                | FAIL state + reason + recapture                           |
+| Retinal structures           | Role 2              | Image-processing layer  | Vessel/disc/fovea outputs                                 |
+| Vessel segmentation          | Role 2              | Structure extraction    | Masks + validation                                        |
+| Optic-disc localization      | Role 2              | Structure extraction    | Localization output + validation                          |
+| Fovea localization           | Role 2              | Structure extraction    | Localization output + validation                          |
+| Microaneurysm candidates     | Role 2              | Lesion extraction       | Candidate maps + validation                               |
+| Exudate extraction           | Role 2              | Lesion extraction       | Candidate/segmentation output                             |
+| Hemorrhage detection         | Role 2              | Lesion extraction       | Candidate/classification output                           |
+| Neovascularization           | Role 2              | Lesion analysis         | Demonstrable method/output if supported by available data |
+| Structured retinal features  | Role 2              | Feature extraction      | Machine-readable feature output                           |
+| DR grade 0–4                 | Member 2 / ML       | DR inference            | Locked test metrics                                       |
+| Referable DR                 | Member 2 + Member 3 | Binary decision         | Sensitivity/specificity                                   |
+| Explainability               | Member 1            | Grad-CAM                | Verified Grad-CAM outputs                                 |
+| Lesion-level evidence        | Role 2 + Member 1   | Evidence layer          | Lesion/structure + model evidence                         |
+| Calibrated confidence        | Member 3            | Calibration             | Brier/ECE/calibration metrics                             |
+| Annotated reports            | Member 1            | Reporting               | Working 3-layer report                                    |
+| Human-in-loop                | Member 1            | Specialist review       | Timed review workflow                                     |
+| Simulink deployment model    | Simulink owner      | Simulink                | Throughput/capacity simulation                            |
+| 100k+ patients/year scenario | Simulink owner      | Simulink                | Capacity evidence                                         |
+| External validation          | Member 3            | Evaluation              | Frozen Messidor-2 results                                 |
+| Benchmark comparison         | Member 3            | Evidence package        | Reproducible comparison                                   |
+| Integrated pipeline          | All                 | End-to-end              | Full demonstration                                        |
+| Controlled adaptation        | Member 3 + Member 1 | Calibration dashboard   | Real before/after + PROMOTE/ROLLBACK                      |
+
+---
+
+# 2. EXISTING PROTOTYPE — DO NOT REBUILD IT
+
+The current prototype already contains major validated components.
+
+The strategy is:
+
+> **Extend the existing prototype around the locked ML inference contract instead of rewriting the working ML system.**
+
+Current important components:
+
+```text
+src/runDRInference.m
+src/runDRInferenceBatch.m
+src/testDRInference.m
+
+src/testMLIntegrationContract.m
+src/exportDRInferenceContractJSON.m
+
+docs/ml-inference-interface.md
+docs/ml-integration-contract.md
+docs/ml-handoff-contract.md
+docs/ml-simulink-handoff.md
+
+outputs/evaluation/ml_master/
+outputs/gradcam/final/
+outputs/gradcam/selected_cases/
+```
+
+The existing ResNet-50 remains:
+
+> **Official Baseline V1**
+
+Do not replace it merely because another experiment obtains a better single metric.
+
+---
+
+# 3. FINAL SYSTEM ARCHITECTURE
+
+```text
+                         FUNDUS IMAGE
+                              │
+                              ▼
+                  ┌──────────────────────┐
+                  │ RETINAL VALIDATION   │
+                  │ Is this a fundus?    │
+                  └──────────┬───────────┘
+                             │
+                   ┌─────────┴─────────┐
+                   │                   │
+                NOT FUNDUS            FUNDUS
+                   │                   │
+                   ▼                   ▼
+              REJECT + STOP           IQA
+                                       │
+                             ┌─────────┴─────────┐
+                             │                   │
+                           FAIL                 PASS
+                             │                   │
+                             ▼                   ▼
+                       RECAPTURE          PREPROCESSING
+                       GUIDANCE            CLAHE
+                                           Normalization
+                                           Denoising
+                                               │
+                                               ▼
+                                  ┌────────────────────────┐
+                                  │ ROLE 2 IMAGE ANALYSIS  │
+                                  │                        │
+                                  │ Structures:            │
+                                  │ • vessels              │
+                                  │ • optic disc           │
+                                  │ • fovea                │
+                                  │                        │
+                                  │ Lesions:               │
+                                  │ • MA                    │
+                                  │ • exudates             │
+                                  │ • hemorrhages          │
+                                  │ • NV where supported  │
+                                  └───────────┬────────────┘
+                                              │
+                                              ▼
+                                  STRUCTURED FEATURES
+                                              │
+                                              ▼
+                                  ┌──────────────────────┐
+                                  │    DR INFERENCE      │
+                                  │      ResNet-50        │
+                                  │       Grade 0–4       │
+                                  └───────────┬──────────┘
+                                              │
+                             ┌────────────────┴───────────────┐
+                             │                                │
+                             ▼                                ▼
+                     REFERABLE DR                       GRAD-CAM
+                     + Calibration                      + Evidence
+                             │                                │
+                             └────────────────┬───────────────┘
+                                              ▼
+                                   CONFIDENCE-AWARE RESULT
+                                              │
+                                              ▼
+                                      THREE-LAYER REPORT
+                                              │
+                    ┌─────────────────────────┼──────────────────────┐
+                    │                         │                      │
+                    ▼                         ▼                      ▼
+             PATIENT / HEALTH           SPECIALIST              CASE AUDIT
+                 WORKER                  REVIEW
+                    │                         │                      │
+                    └─────────────────────────┼──────────────────────┘
+                                              ▼
+                                      REFERRAL IF NEEDED
+                                              │
+                                              ▼
+                                      SPECIALIST GRADE
+                                              │
+                                              ▼
+                                          AGREEMENT
+                                              │
+                                              ▼
+                                      FOLLOW-UP STATUS
+                                              │
+                                              ▼
+                                    VERIFIED OUTCOMES
+                                              │
+                                              ▼
+                                  CONTROLLED CALIBRATION
+                                              │
+                                              ▼
+                                    HELD-OUT VALIDATION
+                                              │
+                                  ┌───────────┴───────────┐
+                                  ▼                       ▼
+                               PROMOTE                  ROLLBACK
+```
+
+---
+
+# 4. GATE 0 — RETINAL IMAGE VALIDATION
+
+## Purpose
+
+Before IQA or DR inference, determine whether the uploaded image is actually suitable for retinal screening.
+
+### Required states
+
+```text
+INPUT_RECEIVED
+      ↓
+RETINAL_GATE
+      ↓
+ ┌────┴─────┐
+ │          │
+PASS      NOT_FUNDUS
+ │          │
+ ▼          ▼
+IQA       REJECT
+```
+
+If `NOT_FUNDUS`:
+
+* show rejection
+* explain that a retinal/fundus image is required
+* provide upload/capture guidance
+* STOP
+* do not run DR inference
+* do not show a DR grade
+* do not show referable probability
+* do not show Grad-CAM
+* do not generate a normal DR report
+
+### Important implementation rule
+
+There must be **one authoritative gate immediately before actual DR inference**.
+
+Conceptually:
+
+```matlab
+if retinalStatus ~= "PASS"
+    % Do not call DR inference
+    return
+end
+
+result = runDRInference(...)
+```
+
+The gate must not be merely a UI decoration.
+
+---
+
+# 5. ROLE 2 — IMAGE QUALITY ASSESSMENT
+
+Role 2 owns the image-quality foundation.
+
+## Required checks
+
+### Focus
+
+Determine whether the image is sufficiently sharp for downstream analysis.
+
+### Illumination
+
+Detect severe brightness/non-uniform illumination problems.
+
+### Field of View
+
+Check whether enough retinal field is visible.
+
+### Other quality failure cases
+
+Examples:
+
+* severe blur
+* excessive darkness
+* excessive brightness
+* insufficient retinal area
+* strong artifacts
+* unusable acquisition
+
+---
+
+# 6. IQA FAILURE WORKFLOW
+
+When IQA fails:
+
+```text
+Image
+ ↓
+IQA
+ ↓
+FAIL
+ ↓
+Specific reason
+ ↓
+Actionable recapture guidance
+ ↓
+Retake / Upload New Image
+```
+
+Example:
+
+```text
+Image quality insufficient.
+
+Reason:
+Severe blur detected.
+
+Action:
+Please capture another retinal image with the camera
+held steady and the retina centered.
+```
+
+The UI must distinguish:
+
+### IQA failure
+
+Image is unusable.
+
+from:
+
+### System error
+
+File/model/integration problem.
+
+These are not the same state.
+
+---
+
+# 7. PREPROCESSING
+
+Role 2 owns:
+
+* CLAHE
+* illumination normalization
+* denoising
+* other validated preprocessing required by the image-processing pipeline
+
+Each preprocessing operation should have:
+
+```text
+Input
+ ↓
+Processing
+ ↓
+Output
+ ↓
+Validation
+```
+
+Do not claim:
+
+> "CLAHE improves the model"
+
+unless an experiment actually demonstrates that.
+
+Instead:
+
+> "CLAHE was evaluated as an image-enhancement operation."
+
+If it improves downstream performance, document the actual result.
+
+---
+
+# 8. RETINAL STRUCTURE EXTRACTION
+
+Role 2 provides structured retinal information.
+
+## Structures
+
+### Blood vessels
+
+Output:
+
+```text
+Fundus image
     ↓
-Specialist Grade
+Vessel extraction
     ↓
-Agreement automatically calculated
-    ↓
-Follow-up
-    ↓
-Outcome
+Vessel mask
+```
 
-The prototype may use synthetic/demo records.
+Validation should include available quantitative metrics and visual examples.
 
-Do not present demo records as real clinical outcomes.
+### Optic disc
 
-6. Controlled AI Adaptation Demo
+Output:
 
-Member 1 build the product/UI side.
+```text
+Fundus
+ ↓
+Optic disc localization
+ ↓
+Coordinates / region
+```
 
-Member 3 owns the statistical experiment.
+### Fovea
 
-Member 1 responsibility:
+Output:
 
-Display current calibration version
-Display verified-case count
-Display candidate calibration
-Display validation results
-Display PASS/FAIL
-Display Promote/Rollback result
-Integrate an accepted calibration version into the pipeline
-Maintain version history
+```text
+Fundus
+ ↓
+Fovea localization
+ ↓
+Coordinates / region
+```
 
-Member 1 do not decide whether the candidate is statistically good.
+The exact method used by Role 2 should be documented rather than inventing a method after the fact.
 
-👤 TECH MEMBER 2 — ML Lead
-Model Accuracy + Training
+---
 
-This member owns improving the model itself.
+# 9. LESION ANALYSIS
 
-1. Preserve Baseline
+Role 2 provides lesion candidates/evidence.
 
-Current:
+Required PS-aligned categories include:
 
-ResNet-50 — Baseline V1
+* microaneurysms
+* exudates
+* hemorrhages
+* neovascularization where the available data/method supports it
 
-Keep it untouched.
+Pipeline:
 
-Record its current official metrics:
+```text
+Fundus
+ ↓
+Candidate generation
+ ↓
+Candidate filtering
+ ↓
+Lesion regions/features
+ ↓
+Structured output
+```
 
-Accuracy: 82.92%
-Macro-F1: 0.6358
-QWK: 0.8713
-2. Model Experiments
+For each lesion module document:
 
-Investigate:
+1. Method
+2. Input
+3. Output
+4. Dataset/annotations used
+5. Metric if ground truth exists
+6. Representative examples
+7. Failure cases
+8. Limitations
 
-EfficientNet transfer learning
-Transfer-learning configurations
-Class-weighted loss
-Learning-rate tuning
-Batch-size experiments
-Controlled augmentation
-Resolution/preprocessing experiments
-Other justified architectures
+### Critical distinction
 
-Every experiment gets a version/ID.
+Do not call Grad-CAM a lesion detector.
 
-3. Model Evaluation
+There are two different evidence channels:
 
-Candidates should be evaluated on:
+```text
+ROLE 2
+Explicit image-processing evidence
+       ↓
+Lesion / structure candidates
+
+
+ROLE 1 / ML
+Model explanation
+       ↓
+Grad-CAM regions contributing to prediction
+```
+
+They can be shown together, but they must not be represented as the same thing.
+
+---
+
+# 10. STRUCTURED RETINAL FEATURE OUTPUT
+
+Role 2 should export machine-readable information rather than only images.
+
+Example conceptual structure:
+
+```text
+CaseID
+
+IQA
+ ├─ focus
+ ├─ illumination
+ ├─ FOV
+ └─ status
+
+Structures
+ ├─ vessel features
+ ├─ optic disc features
+ └─ fovea features
+
+Lesions
+ ├─ microaneurysm candidates
+ ├─ exudate candidates
+ ├─ hemorrhage candidates
+ └─ neovascularization evidence
+
+Preprocessing
+ ├─ CLAHE
+ ├─ normalization
+ └─ denoising
+```
+
+This creates a clean interface between Role 2 and the ML/system layers.
+
+---
+
+# 11. DR CLASSIFICATION — OFFICIAL BASELINE V1
+
+The current ResNet-50 remains the official baseline.
+
+### Task
+
+Five-class DR grading:
+
+```text
+0 = No DR
+1 = Mild
+2 = Moderate
+3 = Severe
+4 = Proliferative
+```
+
+### Locked APTOS split
+
+```text
+Train = 2051
+Validation = 440
+Test = 439
+```
+
+The test set remains locked.
+
+### Current baseline evidence
+
+```text
+Accuracy = 82.92%
+Macro-F1 = 0.6358
+QWK = 0.8713
+```
+
+These remain the official baseline values.
+
+The classifier should not be replaced simply because an experimental model wins one metric.
+
+---
+
+# 12. MODEL IMPROVEMENT TRACK
+
+Member 2 can independently experiment with:
+
+* EfficientNet transfer learning
+* alternative transfer-learning configurations
+* class-weighted loss
+* learning-rate changes
+* batch-size changes
+* controlled augmentation
+* preprocessing/resolution experiments
+* other justified architectures
+
+Every experiment gets:
+
+```text
+Experiment ID
+Dataset
+Split
+Architecture
+Preprocessing
+Augmentation
+Loss
+Optimizer
+Learning rate
+Epochs
+Batch size
 
 Accuracy
 Macro-F1
@@ -231,308 +634,1680 @@ Grade 4 recall
 Referable sensitivity
 Referable specificity
 
-The goal is not simply maximizing accuracy.
+Decision
+Reason
+```
 
-A model that goes from 83% → 85% while becoming worse at severe DR detection is not automatically an improvement.
+### Rule
 
-4. Final Model Decision
-Baseline V1
-     ↓
-Candidate experiment
-     ↓
-Validation
-     ↓
-Candidate shortlist
-     ↓
-Locked test evaluation
-     ↓
-Overall evidence
-     ↓
-Keep baseline OR promote candidate
+The baseline remains available as rollback.
 
-No model replacement based on a single metric.
+A candidate model only becomes the new official model after independent evaluation and integration testing.
 
-👤 TECH MEMBER 3 — ML Evaluation + Data/Calibration Lead
-Model Evaluation Scientist / Validation Owner
+---
 
-This member is responsible for determining whether experiments actually hold up.
+# 13. REFERABLE DR
 
-1. Dataset Analysis
-APTOS class distribution
-Minority-class analysis
-Split verification
-Preprocessing consistency
-Data-quality analysis
-Candidate failure patterns
-2. Error Analysis
+Define:
 
-For important models:
+```text
+Non-referable = Grade 0 + Grade 1
 
-Grade 0–4 confusion
-Grade 3/4 failures
-False positives
-False negatives
-Referable/non-referable errors
-Recurring failure patterns
+Referable = Grade 2 + Grade 3 + Grade 4
+```
 
-This feeds back to Member 2's model experiments.
+The SIH requirement is:
 
-3. External Validation
-Messidor-2
+```text
+Sensitivity > 90%
+Specificity > 85%
+```
 
-Keep completely untouched.
+Current calibrated APTOS test result:
 
-Use only for independent external evaluation.
+```text
+Sensitivity = 98.88%
+Specificity = 89.23%
+```
 
-No:
+This satisfies the numerical target **on the APTOS test set**.
 
-calibration fitting
-threshold tuning
-model selection
-adaptation fitting
+Do not describe this as clinical validation.
 
-This preserves the credibility of the existing external-validation result.
+Correct wording:
 
-IDRiD
+> "Our locked APTOS evaluation meets the numerical referable-DR sensitivity and specificity targets specified by the problem statement; this is dataset evaluation, not clinical validation."
 
-Use separately for the controlled adaptation experiment.
+---
 
-4. Controlled Calibration Experiment
+# 14. CALIBRATED CONFIDENCE
 
-Member 3 explicitly owns this entire statistical pipeline.
+Current calibration:
 
-Step 1 — Prepare IDRiD
+* Platt scaling
+* fitted using validation data
+* threshold selected using validation data
+* test remains untouched
 
-Create:
+Current evidence includes:
 
-IDRiD
- ├── Calibration/Fit subset
- └── Held-out evaluation subset
-
-Use a predefined minimum such as:
-
-N ≥ 50 verified cases for candidate fitting
-
-The exact final sample size should be documented before the experiment.
-
-Step 2 — Fit Candidate
-
-Member 3:
-
-Fits the candidate Platt calibration
-Keeps ResNet weights frozen
-Uses only the fit subset
-Produces a new calibration version
-
-Example:
-
-Calibration V1 → Calibration V2
-Step 3 — Evaluate
-
-Evaluate V1 vs V2 on the untouched held-out subset.
-
-Measure:
-
-Sensitivity
-Specificity
+```text
 Brier score
 ECE
+ROC-AUC
+Sensitivity
+Specificity
+Precision
+NPV
 F1
-Other predefined safety metrics
-Step 4 — Automatic Promotion Gate
+```
 
-Predefine the criteria before seeing the result.
+Calibration changes the probability behavior.
+
+It does not retrain the ResNet feature representation.
+
+---
+
+# 15. GRAD-CAM
+
+Current implementation:
+
+```text
+ResNet-50
+ ↓
+res5c_branch2c
+ ↓
+Grad-CAM
+```
+
+Input preprocessing was corrected to match the actual inference pipeline.
+
+Final verification:
+
+```text
+Test cases = 439
+Prediction mismatches = 0
+Missing outputs = 0
+```
+
+This is strong engineering evidence for preprocessing consistency.
+
+But:
+
+> Grad-CAM demonstrates where the model focused; it does not by itself prove that the highlighted region is a clinically correct lesion.
+
+Therefore combine:
+
+```text
+CNN prediction
++
+Grad-CAM
++
+Role 2 retinal/lesion evidence
++
+Specialist review
+```
+
+rather than claiming Grad-CAM alone validates clinical reasoning.
+
+---
+
+# 16. THREE-LAYER REPORT
+
+Do not put all ML metrics into the patient report.
+
+The report must have three audiences.
+
+## Layer 1 — Patient / Health Worker
+
+Show:
+
+* Case ID
+* screening result
+* simple DR interpretation
+* referral recommendation
+* basic confidence wording
+* what the patient should do next
+* Referral ID if applicable
+* follow-up status
+
+Avoid:
+
+* macro-F1
+* QWK
+* confusion matrix
+* raw calibration curves
+* technical model details
+
+---
+
+## Layer 2 — Specialist Review
+
+Show:
+
+* Case ID
+* AI DR grade 0–4
+* referable probability
+* calibrated confidence
+* IQA status
+* original fundus image
+* Grad-CAM
+* retinal structure/lesion evidence where available
+* per-class probabilities
+* specialist verified grade
+* agreement
+* specialist sign-off
+
+Grad-CAM caption:
+
+> "Areas the AI focused on while making this prediction."
+
+Do not write:
+
+> "This heatmap proves the disease is located here."
+
+---
+
+## Layer 3 — Case Audit
+
+Show:
+
+* Case ID
+* model version
+* calibration version
+* AI grade
+* AI probabilities
+* IQA result
+* explanation metadata
+* timestamp
+* referral information
+* specialist verification
+* agreement
+* follow-up status
+
+Do not put aggregate model evidence into every patient PDF.
+
+---
+
+# 17. MODEL EVIDENCE PACKAGE
+
+Create a separate technical evidence package for judges and auditors.
+
+Contents:
+
+```text
+1. Dataset
+2. Dataset split
+3. Preprocessing
+4. Model architecture
+5. Training configuration
+6. Baseline metrics
+7. Confusion matrix
+8. Per-class metrics
+9. Referable DR evaluation
+10. Calibration
+11. Grad-CAM verification
+12. Role 2 image-processing validation
+13. Error analysis
+14. Messidor-2 external validation
+15. Model comparison
+16. IDRiD adaptation experiment
+17. Limitations
+18. Final model selection
+19. Reproducibility information
+```
+
+This prevents the patient report from becoming a research paper.
+
+---
+
+# 18. HUMAN-IN-THE-LOOP
+
+The system must support:
+
+```text
+AI result
+   ↓
+Specialist review
+   ↓
+Specialist verified grade
+   ↓
+Agreement
+```
+
+Agreement must be calculated automatically:
+
+```text
+AI Grade == Specialist Grade
+```
+
+Do not allow a user to manually type "Agreement = Yes."
+
+The system calculates it.
+
+---
+
+# 19. THE <30 SECOND HUMAN-IN-LOOP REQUIREMENT
+
+The official PS specifically mentions ophthalmologist validation under 30 seconds.
+
+Therefore the final prototype needs a demonstrable workflow:
+
+```text
+Open case
+ ↓
+See original image
+ ↓
+See AI grade
+ ↓
+See referable probability
+ ↓
+See Grad-CAM
+ ↓
+See retinal/lesion evidence
+ ↓
+Enter specialist grade
+ ↓
+Submit
+```
+
+Measure the workflow time.
+
+Do not merely say:
+
+> "Our interface is fast."
+
+Produce evidence.
 
 Example:
 
-Promote only if held-out sensitivity remains ≥ 0.95 and Brier/ECE are maintained or improved.
+```text
+Specialist review workflow
+Target: <30 seconds
+Measured demo: ___ seconds
+Number of trials: ___
+```
 
-Otherwise:
+Only fill this with actual measurements.
 
-Rollback / retain current calibration.
+---
 
-Member 3 produces the actual:
+# 20. REFERRAL CARE LOOP
 
-PROMOTE / ROLLBACK verdict
+For referable cases:
 
-Member 1 only displays and integrates that verdict.
+```text
+AI identifies referable DR
+        ↓
+Referral ID generated
+        ↓
+Patient guidance
+        ↓
+Specialist review
+        ↓
+Specialist grade
+        ↓
+Agreement calculated
+        ↓
+Follow-up
+        ↓
+Outcome recorded
+```
 
-5. Important Learning Principle
+For non-referable cases:
 
-The system does not learn from its own predictions.
+```text
+AI identifies non-referable
+        ↓
+Result logged
+        ↓
+No referral generated
+        ↓
+Monitor / routine follow-up according to workflow
+```
 
-Instead:
+Do not imply that "non-referable" means "no risk."
 
+---
+
+# 21. UNIFIED CASE DATA MODEL
+
+Use one source of truth.
+
+```text
+Case ID
+Referral ID
+AI Grade
+AI Referable Probability
+Calibration Version
+Specialist Grade
+Agreement
+Follow-up Status
+Timestamp
+```
+
+Definitions:
+
+### Case ID
+
+Exists for every screening.
+
+### Referral ID
+
+Exists only when referral is generated.
+
+### Specialist Grade
+
+Blank until specialist review.
+
+### Agreement
+
+Automatically calculated.
+
+### Follow-up Status
+
+Explicit states:
+
+```text
+Not Referred
+Referred
+Seen
+Lost to Follow-up
+Completed
+```
+
+This same data model powers:
+
+* report
+* specialist review
+* referral tracker
+* adaptation
+* audit
+
+---
+
+# 22. CONTROLLED ADAPTATION
+
+This is NOT:
+
+> "The AI learns from its predictions."
+
+It is:
+
+> **The system can use specialist-verified outcomes to evaluate a candidate calibration update under a predefined validation gate.**
+
+Current CNN weights remain frozen.
+
+---
+
+# 23. IDRiD ADAPTATION EXPERIMENT
+
+Member 3 owns the statistical experiment.
+
+### Step 1
+
+Prepare an IDRiD subset.
+
+### Step 2
+
+Split into:
+
+```text
+Calibration-fit subset
+        +
+Held-out validation subset
+```
+
+The held-out subset must remain untouched during calibration fitting.
+
+### Step 3
+
+Take the current calibration.
+
+### Step 4
+
+Fit candidate Platt calibration using verified labels.
+
+### Step 5
+
+Evaluate both current and candidate calibration on held-out data.
+
+### Step 6
+
+Apply a pre-defined promotion rule.
+
+Conceptual example:
+
+```text
+Sensitivity >= 0.95
+AND
+Brier/ECE does not materially degrade
+```
+
+The exact rule must be fixed before examining the final result.
+
+### Step 7
+
+Return:
+
+```text
+PROMOTE
+```
+
+or:
+
+```text
+ROLLBACK
+```
+
+The UI must display the actual result.
+
+No fake/demo numbers.
+
+---
+
+# 24. ADAPTATION UI
+
+Member 1 owns the interface.
+
+Display:
+
+```text
+Current Calibration
+        ↓
+Verified Case Count
+        ↓
+Candidate Calibration
+        ↓
+Held-out Results
+        ↓
+Promotion Criteria
+        ↓
+PROMOTE / ROLLBACK
+        ↓
+Calibration Version History
+```
+
+Member 3 decides whether the candidate passes statistically.
+
+Member 1 visualizes and integrates the result.
+
+---
+
+# 25. IMPORTANT ADAPTATION SAFETY RULE
+
+Never do:
+
+```text
 AI prediction
-      ↓
-Specialist verification
-      ↓
-Verified outcome
-      ↓
-Enough verified cases
+ ↓
+AI prediction
+ ↓
+AI prediction
+ ↓
+AI learns from its own output
+```
+
+Do:
+
+```text
+AI prediction
+      +
+Specialist verified outcome
       ↓
 Candidate calibration
       ↓
 Held-out validation
       ↓
-Promote / Rollback
+PROMOTE / ROLLBACK
+```
 
-The ResNet itself remains frozen for this adaptation experiment.
+The ResNet weights remain frozen for this experiment.
 
-6. Experiment Record
+---
 
-Every ML experiment should record:
+# 26. FOLLOW-UP BIAS
 
-Experiment ID
-Dataset
-Data split
-Model version
-Calibration version
-Training configuration
-Validation metrics
-Test metrics
-External evaluation
-Decision
-Reason
+A real deployment may have:
 
-This prevents “which model produced this number?” problems during judging.
+```text
+Patients who return
++
+Patients who do not return
+```
 
-🔗 Three-Member Architecture
-                    OFFICIAL BASELINE
-                      ResNet-50 V1
-                           │
-             ┌─────────────┴─────────────┐
-             │                           │
-             ▼                           ▼
-      MEMBER 2                       MEMBER 3
-    MODEL TRAINING               EVALUATION / DATA
-             │                           │
-      Improve model              Prove/measure it
-      architectures              Error analysis
-      loss/augmentation           External validation
-             │                    Calibration
-             └──────────┬────────────────┘
-                        │
-                        ▼
-                 VALIDATED MODEL
-                        │
-                        ▼
-                   MEMBER 1
-               SYSTEM INTEGRATION
-                        │
-          ┌─────────────┼─────────────┐
-          ▼             ▼             ▼
-       REPORT       CARE LOOP    ADAPTATION UI
-          │             │             │
-          └─────────────┼─────────────┘
-                        ▼
-                    FINAL DEMO
-🗓️ Execution Plan
-Sprint 1 — Lock the foundation
-Member 1
-Finalize 3-layer report structure
-Finalize unified data model
-Case ID + Referral ID
-Define follow-up states
-Stabilize inference/gating
-Member 2
-Freeze ResNet-50 baseline
-Set up experiment framework
-Begin model experiments
-Member 3
-Validate dataset/splits
-Establish evaluation scripts
-Begin error analysis
-Prepare IDRiD fit/held-out split
-Sprint 2 — Parallel development
-Member 1
+If calibration uses only returning patients, the sample may not represent the entire screened population.
 
-Report + Care Loop
+Therefore document:
 
-Member 2
+> "Outcome-driven recalibration must account for follow-up selection bias before deployment."
 
-Model experiments
+Do not claim the current prototype has solved this statistically unless an actual method is implemented and validated.
 
-Member 3
+---
 
-Error analysis + candidate evaluation
+# 27. MESSIDOR-2 EXTERNAL VALIDATION
 
-Sprint 3 — Critical dependency sprint
-Member 1
-Specialist report layer
-Referral tracking
-Verified-grade workflow
-Member 2
-Shortlist promising model candidates
-Member 3
-Complete IDRiD fit/held-out split
-Run first candidate-calibration experiment
-Calculate before/after results
-Apply predefined promotion criteria
-Produce first PROMOTE/ROLLBACK verdict
+Messidor-2 remains:
 
-This is important: Sprint 3 must produce actual adaptation numbers.
+> **Frozen external validation**
 
-Sprint 4 — Integration
-Member 1
-Build adaptation dashboard/demo
-Integrate real calibration experiment results
-Finish PDF layout
-Connect report + referral + specialist record
-Member 2
-Finalize model candidate if one genuinely improves the evidence
-Member 3
-Finalize model comparison
-Finalize calibration evaluation
-Finalize external validation
-Produce Model Evidence Package
-Final System
-                    RETINAL IMAGE
-                         ↓
-                Retinal Validation
-                         ↓
-                        IQA
-                         ↓
-                  DR Assessment
-                         ↓
-          ┌──────────────┴──────────────┐
-          ↓                             ↓
-    Non-referable                    Referable
-          ↓                             ↓
-     Case recorded                Referral ID
-                                        ↓
-                                 Specialist Review
-                                        ↓
-                                Specialist Grade
-                                        ↓
-                               Agreement computed
-                                        ↓
-                              Follow-up / Outcome
-                                        ↓
-                              Verified outcomes
-                                        ↓
-                         Controlled calibration
-                                        ↓
-                              Held-out validation
-                                   ↙        ↘
-                              PROMOTE      ROLLBACK
-What We Are Not Claiming
-❌ AI learns from its own predictions
-❌ CNN automatically retrains after every patient
-❌ Messidor-2 is used for tuning
-❌ Synthetic referrals are real clinical evidence
-❌ Live ABHA integration
-❌ FDA compliance
-❌ Clinical validation
-❌ Autonomous diagnosis
-❌ Model replacement because of one improved metric
-❌ OOD/embedding monitoring as a currently validated feature
-The final USP
+Do not tune the model or calibration on Messidor-2 if it is being presented as external validation.
 
-“Our system doesn't stop at detecting diabetic retinopathy. It connects explainable AI screening to specialist referral and follow-up, records verified outcomes, and provides a controlled pathway for future calibration updates—validated on held-out data rather than allowing the AI to learn from its own predictions.”
+Current evidence demonstrates domain-shift limitations.
 
-This gives the three technical members very clean ownership:
+The correct interpretation is:
 
-Member 2 → make the model better.
-Member 3 → prove whether it's actually better and validate adaptation.
-Member → turn the validated AI into a complete screening-and-care system.
+> The APTOS-trained system does not necessarily generalize equally across datasets/acquisition domains.
+
+Do not claim resizing alone caused the performance drop.
+
+---
+
+# 28. DOMAIN-SHIFT EVIDENCE
+
+Document measurable representation differences such as:
+
+* image dimensions
+* aspect ratio
+* retinal fill
+* dark-border characteristics
+* RGB statistics
+
+Correct language:
+
+> "The observed acquisition and representation differences are consistent with domain shift; these measurements do not establish that any single factor caused the performance degradation."
+
+---
+
+# 29. SIMULINK / DISTRICT-SCALE DEPLOYMENT
+
+The system must not stop at a MATLAB classifier.
+
+Simulink should model:
+
+```text
+Patient acquisition
+      ↓
+Image arrival
+      ↓
+IQA / processing
+      ↓
+AI inference
+      ↓
+Referral decision
+      ↓
+Specialist review queue
+      ↓
+Review capacity
+      ↓
+Throughput
+```
+
+Parameters should include, where available:
+
+* acquisition rate
+* processing time
+* bandwidth
+* inference throughput
+* specialist review capacity
+* queue behavior
+* referral volume
+* operating hours
+* annual patient volume
+
+---
+
+# 30. 100,000+ PATIENTS/YEAR SCENARIO
+
+The final Simulink demonstration should show whether the proposed workflow can model a district-scale scenario involving:
+
+> **100,000+ patients/year**
+
+Do not simply display "100,000" on a slide.
+
+Show the relationship between:
+
+```text
+Patients/year
+↓
+Images/day
+↓
+Processing throughput
+↓
+Referral percentage
+↓
+Specialist workload
+↓
+Review capacity
+↓
+Queue / delay
+```
+
+Use realistic assumptions and clearly label them as assumptions.
+
+---
+
+# 31. OFFLINE / RURAL DEPLOYMENT
+
+Do not claim:
+
+> "Fully offline mobile deployment"
+
+unless actually demonstrated.
+
+Instead, architecture can be described as:
+
+> "Designed with deployment constraints relevant to rural screening, with the processing pipeline structured so that deployment components can be adapted to constrained environments."
+
+The current MATLAB/dlnetwork/web prototype is not automatically an Android/iOS offline medical application.
+
+---
+
+# 32. DATASET STRATEGY
+
+## APTOS
+
+Primary training/evaluation dataset.
+
+Used for:
+
+* model training
+* validation
+* locked test evaluation
+* referable DR
+* calibration evaluation
+
+---
+
+## IDRiD
+
+Used separately for:
+
+* retinal structure/lesion-related experiments where appropriate
+* controlled calibration adaptation experiment
+* verified-label simulation
+
+Do not mix its results into the APTOS test result.
+
+---
+
+## Messidor-2
+
+Used as:
+
+> **External frozen validation**
+
+Do not use it for tuning.
+
+---
+
+# 33. MODEL / DATA SPLIT RULES
+
+Never contaminate the locked test set.
+
+Correct:
+
+```text
+TRAIN
+  ↓
+MODEL FITTING
+
+VALIDATION
+  ↓
+Hyperparameter / threshold / calibration decisions
+
+TEST
+  ↓
+Final locked evaluation
+```
+
+External dataset:
+
+```text
+MESSIDOR-2
+  ↓
+Frozen external validation
+```
+
+Adaptation:
+
+```text
+IDRiD
+  ↓
+Fit subset
+  +
+Held-out subset
+```
+
+---
+
+# 34. ERROR ANALYSIS
+
+Member 3 should maintain an explicit error analysis.
+
+Analyze:
+
+### Grade 0
+
+False positives.
+
+### Grade 1
+
+Especially important because baseline recall is weaker.
+
+### Grade 2
+
+Referable boundary behavior.
+
+### Grade 3 / 4
+
+Low baseline recall requires investigation.
+
+### Binary referable errors
+
+```text
+False negative
+False positive
+```
+
+Look for recurring factors:
+
+* image quality
+* acquisition characteristics
+* class imbalance
+* lesion visibility
+* domain shift
+* preprocessing
+* model confusion
+
+Do not claim causation without evidence.
+
+---
+
+# 35. MODEL SELECTION RULE
+
+Never select a new model because:
+
+> "Accuracy increased."
+
+Use multiple dimensions:
+
+```text
+Five-class performance
++
+Macro-F1
++
+QWK
++
+Grade 1 recall
++
+Grade 3 recall
++
+Grade 4 recall
++
+Referable sensitivity
++
+Referable specificity
++
+Calibration
++
+External behavior
++
+Inference compatibility
+```
+
+The final decision must be documented.
+
+---
+
+# 36. SCIENTIFIC EVIDENCE VS DEMO EVIDENCE
+
+Keep these completely separate.
+
+## Scientific evidence
+
+* APTOS locked test
+* Messidor-2 external validation
+* IDRiD controlled experiment
+* Role 2 validation
+* model comparison
+* calibration metrics
+
+## Prototype workflow evidence
+
+* synthetic referral records
+* UI interaction
+* simulated specialist review
+* demonstration follow-up
+* adaptation dashboard
+
+A synthetic demo patient must never be presented as evidence that the model improved.
+
+---
+
+# 37. THREE TYPES OF "VALIDATION"
+
+Use precise language.
+
+### Engineering validation
+
+Does the software behave correctly?
+
+Examples:
+
+* zero stale prediction
+* correct gate behavior
+* correct model output
+* correct PDF
+* correct referral state
+
+### Dataset validation
+
+Does the method perform on a dataset?
+
+Examples:
+
+* accuracy
+* sensitivity
+* specificity
+* F1
+* QWK
+* Brier
+* ECE
+
+### Clinical validation
+
+Does the system demonstrate clinical usefulness with appropriate expert evaluation?
+
+This requires evidence beyond dataset metrics.
+
+Do not call APTOS test performance "clinical validation."
+
+---
+
+# 38. MASTER TEST SUITE
+
+Before final freeze, test:
+
+## Gate tests
+
+```text
+Valid fundus → continues
+Non-fundus → stops
+IQA fail → stops
+IQA pass → continues
+```
+
+## State tests
+
+```text
+New image clears old result
+Old async result cannot overwrite new image
+Failed case cannot produce DR result
+```
+
+## ML tests
+
+```text
+Inference contract
+Expected input
+Expected output
+Prediction consistency
+```
+
+## Explainability tests
+
+```text
+Grad-CAM generated
+Correct image/model preprocessing
+No prediction mismatch
+```
+
+## Report tests
+
+```text
+Patient layer
+Specialist layer
+Audit layer
+```
+
+## Referral tests
+
+```text
+Referable → Referral ID
+Non-referable → No referral
+Specialist grade → Agreement
+Follow-up status → correctly stored
+```
+
+## Adaptation tests
+
+```text
+Candidate calibration
+Held-out validation
+PROMOTE
+ROLLBACK
+Version history
+```
+
+## Simulink tests
+
+```text
+Input rate
+Processing
+Queue
+Review capacity
+Annual throughput
+```
+
+---
+
+# 39. REPORT GENERATION
+
+The PDF should be rebuilt only after the three-layer content is finalized.
+
+Required layout behavior:
+
+* natural A4 flow
+* consistent margins
+* headings stay with content
+* graphs do not split awkwardly
+* Grad-CAM/image pairs stay together
+* confusion matrices stay together
+* captions stay with figures
+* intelligent table breaks
+* page numbers
+* no artificial blank pages
+* no excessive whitespace
+* clean cover
+* readable specialist section
+
+Do not solve pagination by inserting arbitrary whitespace.
+
+---
+
+# 40. FINAL DOCUMENTATION PACKAGE
+
+The repository should contain:
+
+```text
+docs/
+├── sih-requirements-matrix.md
+├── system-architecture.md
+├── role2-image-processing.md
+├── iq-a-validation.md
+├── retinal-structures.md
+├── lesion-analysis.md
+├── ml-final-results.md
+├── referable-dr-evaluation.md
+├── referable-dr-calibration.md
+├── messidor2-representation-audit.md
+├── gradcam-validation.md
+├── specialist-review.md
+├── referral-care-loop.md
+├── controlled-adaptation.md
+├── ml-inference-interface.md
+├── ml-integration-contract.md
+├── ml-handoff-contract.md
+├── ml-simulink-handoff.md
+├── simulink-deployment-model.md
+├── model-evidence-package.md
+└── limitations.md
+```
+
+---
+
+# 41. MACHINE-READABLE RESULTS
+
+Maintain:
+
+```text
+outputs/evaluation/
+├── ml_master/
+├── role2/
+├── calibration/
+├── external_validation/
+├── model_comparison/
+├── gradcam/
+└── simulink/
+```
+
+Every important result should have:
+
+* CSV
+* MAT/appropriate MATLAB artifact
+* summary text
+* experiment ID
+* dataset
+* split
+* version
+
+This makes the project reproducible and judge-defensible.
+
+---
+
+# 42. THREE TECHNICAL MEMBERS
+
+# MEMBER 1 — SYSTEM + EXPLAINABILITY + CARE LOOP LEAD
+
+### Owns
+
+1. Retinal validation integration
+2. IQA gate integration
+3. DR inference integration
+4. Grad-CAM
+5. Three-layer reporting
+6. Specialist review UI
+7. Case/referral data model
+8. Referral workflow
+9. Follow-up workflow
+10. Verified specialist grade
+11. Agreement calculation
+12. Controlled adaptation dashboard
+13. Calibration version integration
+14. PDF generation
+15. Integration tests
+16. End-to-end demo
+
+### Does NOT own
+
+* statistical promotion decision
+* inventing calibration results
+* replacing the locked ML baseline without evaluation
+
+---
+
+# MEMBER 2 — ML MODEL / TRAINING LEAD
+
+### Owns
+
+1. ResNet-50 baseline
+2. EfficientNet experiments
+3. Transfer learning
+4. Class imbalance experiments
+5. Weighted loss
+6. LR/batch/augmentation experiments
+7. Model comparison
+8. Final candidate model
+9. DR Grade 0–4
+10. Model inference compatibility
+
+### Rule
+
+Every candidate must preserve the inference contract.
+
+---
+
+# MEMBER 3 — DATASET + IMAGE PROCESSING + EVALUATION LEAD
+
+### Owns
+
+1. Dataset research
+2. Dataset documentation
+3. Role 2 image processing
+4. IQA
+5. Enhancement
+6. Retinal structure extraction
+7. Lesion analysis
+8. Feature extraction
+9. Error analysis
+10. Calibration evaluation
+11. Messidor-2 external validation
+12. IDRiD adaptation experiment
+13. Statistical promotion/rollback decision
+14. Model Evidence Package
+15. Benchmark comparison
+16. Experiment records
+
+---
+
+# 43. SPRINT PLAN
+
+# SPRINT 1 — REQUIREMENT COVERAGE + FOUNDATION
+
+## Member 1
+
+* Freeze system architecture
+* Implement authoritative retinal gate
+* Connect IQA PASS/FAIL state
+* Ensure failed images cannot reach DR inference
+* Finalize unified data model
+* Begin three-layer report structure
+
+## Member 2
+
+* Freeze ResNet-50 V1
+* Establish experiment framework
+* Begin controlled candidate experiments
+
+## Member 3
+
+* Audit Role 2 implementation
+* Verify every IQA component
+* Verify structure/lesion outputs
+* Document validation evidence
+* Confirm dataset splits
+* Prepare IDRiD fit/held-out split
+
+### Sprint 1 exit condition
+
+Every SIH requirement has:
+
+```text
+Owner
+Implementation location
+Evidence required
+Status
+```
+
+---
+
+# SPRINT 2 — IMAGE PROCESSING + ML + CARE LOOP
+
+## Member 1
+
+* Finish report architecture
+* Referral workflow
+* Specialist review screen
+* Case audit
+* Follow-up states
+
+## Member 2
+
+* Model experiments
+* Controlled evaluation
+* Candidate shortlist
+
+## Member 3
+
+* Role 2 validation
+* Error analysis
+* Calibration evaluation
+* External validation documentation
+
+### Exit condition
+
+The complete pipeline can run:
+
+```text
+Image
+→ Validation
+→ IQA
+→ Processing
+→ DR
+→ Referable
+→ Explanation
+→ Report
+```
+
+---
+
+# SPRINT 3 — EVIDENCE + ADAPTATION
+
+## Member 1
+
+* Specialist review
+* Verified grade
+* Agreement
+* Referral/follow-up integration
+
+## Member 2
+
+* Final candidate model evaluation
+
+## Member 3
+
+* Complete IDRiD split
+* Run candidate calibration
+* Evaluate held-out set
+* Apply promotion rule
+* Produce actual PROMOTE/ROLLBACK
+* Complete Messidor-2 evidence
+* Complete model comparison
+
+### Critical dependency
+
+Member 3 must finish the first real adaptation experiment **before** Member 1 builds the final adaptation dashboard around it.
+
+No placeholder numbers.
+
+---
+
+# SPRINT 4 — FINAL INTEGRATION
+
+## Member 1
+
+* Adaptation dashboard
+* Final report
+* PDF pagination
+* Specialist workflow
+* End-to-end integration
+
+## Member 2
+
+* Final model freeze
+
+## Member 3
+
+* Final Evidence Package
+* Final Role 2 validation
+* Calibration documentation
+* External validation
+* Benchmark evidence
+
+---
+
+# FINAL INTEGRATION
+
+The complete demonstration must be:
+
+```text
+RAW FUNDUS
+   ↓
+RETINAL VALIDATION
+   ↓
+IQA
+   ↓
+PREPROCESSING
+   ↓
+STRUCTURES + LESIONS
+   ↓
+DR GRADE 0–4
+   ↓
+REFERABLE DR
+   ↓
+CALIBRATED CONFIDENCE
+   ↓
+GRAD-CAM
+   ↓
+REPORT
+   ↓
+REFERRAL
+   ↓
+SPECIALIST REVIEW
+   ↓
+VERIFIED GRADE
+   ↓
+AGREEMENT
+   ↓
+FOLLOW-UP
+   ↓
+VERIFIED OUTCOMES
+   ↓
+CONTROLLED CALIBRATION
+   ↓
+HELD-OUT VALIDATION
+   ↓
+PROMOTE / ROLLBACK
+```
+
+Parallel deployment demonstration:
+
+```text
+COMPLETE PIPELINE
+       ↓
+SIMULINK
+       ↓
+Acquisition
+       ↓
+Bandwidth
+       ↓
+Processing
+       ↓
+Referral load
+       ↓
+Specialist capacity
+       ↓
+100k+ patients/year scenario
+```
+
+---
+
+# 44. FINAL SIH DEMO STRUCTURE
+
+The final demonstration should follow the same order as the actual PS.
+
+## Demo 1 — Bad image
+
+Show:
+
+```text
+Image
+→ IQA FAIL
+→ reason
+→ recapture guidance
+```
+
+Proves:
+
+> The system does not blindly diagnose poor-quality images.
+
+---
+
+## Demo 2 — Valid image
+
+Show:
+
+```text
+Fundus
+→ IQA PASS
+→ preprocessing
+→ structures/lesions
+→ DR Grade
+→ referable probability
+→ Grad-CAM
+```
+
+---
+
+## Demo 3 — Specialist review
+
+Show:
+
+```text
+AI result
+→ specialist evidence
+→ specialist grade
+→ agreement
+```
+
+Demonstrate the review workflow time.
+
+---
+
+## Demo 4 — Referral
+
+Show:
+
+```text
+Referable
+→ Referral ID
+→ patient guidance
+→ follow-up
+```
+
+---
+
+## Demo 5 — Adaptation
+
+Show actual experiment:
+
+```text
+Verified cases
+→ candidate calibration
+→ held-out evaluation
+→ criteria
+→ PROMOTE / ROLLBACK
+```
+
+---
+
+## Demo 6 — Simulink
+
+Show:
+
+```text
+District workload
+→ acquisition
+→ processing
+→ referral
+→ specialist capacity
+→ annual throughput
+```
+
+---
+
+# 45. WHAT THE JUDGES SHOULD BE ABLE TO SEE
+
+At the end, the judges should be able to answer "yes" to these questions:
+
+### Image quality
+
+> Can the system reject an unusable retinal image and explain what to do?
+
+### Retinal analysis
+
+> Can the system extract meaningful retinal structures and lesion candidates?
+
+### DR grading
+
+> Can the system grade DR from 0–4?
+
+### Referable screening
+
+> Does the locked APTOS evaluation meet the stated numerical referable-DR targets?
+
+### Explainability
+
+> Can we see where the model focused?
+
+### Confidence
+
+> Are its probabilities calibrated and evaluated?
+
+### Human-in-loop
+
+> Can a specialist review and verify the result efficiently?
+
+### Reporting
+
+> Can different users receive the appropriate level of information?
+
+### Referral
+
+> Does a positive screening result create a traceable referral?
+
+### Follow-up
+
+> Can the system track what happened afterward?
+
+### Adaptation
+
+> Can verified outcomes be used in a controlled calibration process?
+
+### Safety
+
+> Can an update be rejected and rolled back?
+
+### Deployment
+
+> Can the workflow be modeled at district scale in Simulink?
+
+### Evidence
+
+> Can the team show actual validation rather than only architecture diagrams?
+
+---
+
+# 46. FINAL RULES
+
+## Rule 1 — Never hide a limitation
+
+If Messidor performance is poor:
+
+> Show it.
+
+If Grade 3/4 recall is weak:
+
+> Show it.
+
+If lesion detection has limited validation:
+
+> Say so.
+
+If clinical validation has not happened:
+
+> Do not call it clinical validation.
+
+---
+
+## Rule 2 — Never fake evidence
+
+No:
+
+* fake specialist results
+* fake adaptation numbers
+* fake patient outcomes
+* fake validation metrics
+* fake benchmark superiority
+* fake clinical validation
+
+Synthetic data is allowed for demonstrating the workflow, but it must be labeled as synthetic/prototype data.
+
+---
+
+## Rule 3 — Never confuse the evidence types
+
+```text
+Grad-CAM ≠ lesion segmentation
+
+APTOS test ≠ clinical validation
+
+Messidor ≠ tuning dataset
+
+Synthetic referral ≠ clinical outcome
+
+Calibration ≠ retraining
+
+Architecture ≠ validated implementation
+```
+
+---
+
+# 47. FINAL PROJECT POSITIONING
+
+The project should be presented as:
+
+> **A quality-gated, explainable and deployment-aware diabetic retinopathy screening prototype that connects retinal image assessment, structured retinal evidence, 0–4 DR grading, calibrated referable-DR screening, specialist review, referral/follow-up tracking, and controlled calibration updates, with district-scale workflow modeling in Simulink.**
+
+Do not call it:
+
+* FDA-approved
+* clinically validated
+* production-ready medical device
+* autonomous diagnosis
+* continuously self-learning AI
+
+unless the corresponding evidence actually exists.
+
+---
+
+# 48. THE CORE USP
+
+## Closed-Loop, Deployment-Aware DR Screening
+
+The system does not end at:
+
+> **"The model predicted Grade 2."**
+
+It continues:
+
+```text
+Screen
+ ↓
+Explain
+ ↓
+Refer
+ ↓
+Follow
+ ↓
+Verify
+ ↓
+Controlled Adaptation
+ ↓
+Validate
+```
+
+The important part is that the adaptation mechanism does **not** allow the AI to teach itself.
+
+Instead:
+
+```text
+AI prediction
+      +
+Specialist-verified outcome
+      ↓
+Candidate calibration
+      ↓
+Held-out validation
+      ↓
+PROMOTE / ROLLBACK
+```
+
+---
+
+# 49. FINAL OWNERSHIP SUMMARY
+
+| Area                   |       Member 1 |       Member 2 |                  Member 3 |
+| ---------------------- | -------------: | -------------: | ------------------------: |
+| System integration     |       **Lead** |        Support |                   Support |
+| Retinal gate           |       **Lead** |              — |               IQA support |
+| IQA                    |    Integration |              — |                  **Lead** |
+| Enhancement            |    Integration |              — |                  **Lead** |
+| Structures             |    Integration |              — |                  **Lead** |
+| Lesions                |    Integration |              — |                  **Lead** |
+| DR model               |    Integration |       **Lead** |                Evaluation |
+| Referable DR           |    Integration |          Model |            **Evaluation** |
+| Calibration            | UI/integration |              — |      **Statistical lead** |
+| Grad-CAM               |       **Lead** |  Model support |                Validation |
+| Specialist review      |       **Lead** |              — | Clinical/evidence support |
+| Referral               |       **Lead** |              — |              Data support |
+| Follow-up              |       **Lead** |              — |              Data support |
+| Adaptation UI          |       **Lead** |              — |       **Experiment lead** |
+| Model experiments      |        Support |       **Lead** |                Evaluation |
+| External validation    |              — |        Support |                  **Lead** |
+| Error analysis         |        Support |        Support |                  **Lead** |
+| Simulink integration   |    Integration |   Model timing |    Data/parameter support |
+| Final evidence package |        Support | Model evidence |                  **Lead** |
+| Final integration      |       **Lead** |          Model |                Evaluation |
+
+---
+
+# 50. DEFINITION OF DONE
+
+The project is **not finished** when every module has been coded.
+
+It is finished when:
+
+```text
+EVERY SIH REQUIREMENT
+        ↓
+IMPLEMENTED
+        ↓
+DEMONSTRABLE
+        ↓
+VALIDATED
+        ↓
+DOCUMENTED
+        ↓
+INTEGRATED
+```
+
+And the final repository can answer:
+
+> **What did we build?**
+
+> **Why did we build it?**
+
+> **What data was used?**
+
+> **How was it evaluated?**
+
+> **What are the actual numbers?**
+
+> **What are the limitations?**
+
+> **What happens when the image is bad?**
+
+> **What happens when the model is uncertain?**
+
+> **What happens when the patient is referred?**
+
+> **What happens after specialist verification?**
+
+> **How can a calibration update be accepted or rejected?**
+
+> **How does the system scale to district-level deployment?**
+
+That is the final standard for SIH26038.

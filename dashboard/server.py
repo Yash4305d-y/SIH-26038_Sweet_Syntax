@@ -173,7 +173,7 @@ def run_matlab_engine(image_path):
         import matlab.engine
         print('[INFO] Starting MATLAB Engine...')
         eng = matlab.engine.start_matlab()
-        eng.addpath(str(PROJECT_DIR / 'src'), nargout=0)
+        eng.addpath(eng.genpath(str(PROJECT_DIR / 'modules')), nargout=0)
 
         json_str = eng.runUnifiedPipeline(image_path, True)
         eng.quit()
@@ -196,7 +196,7 @@ def run_matlab_subprocess(image_path):
     try:
         # Build the MATLAB command
         matlab_cmd = (
-            f"addpath('{PROJECT_DIR / 'src'}'); "
+            f"addpath(genpath('{PROJECT_DIR / 'modules'}')); "
             f"disp(runUnifiedPipeline('{image_path}', true)); "
             f"exit;"
         )

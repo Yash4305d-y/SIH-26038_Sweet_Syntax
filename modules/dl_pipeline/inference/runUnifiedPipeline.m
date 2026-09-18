@@ -11,9 +11,9 @@ function jsonStr = runUnifiedPipeline(imagePath, generateGradCAM)
     [srcDir, ~, ~] = fileparts(scriptPath);
     projectDir = fileparts(srcDir);
     
-    iqaDir = fullfile(projectDir, 'ROLE_2_FINAL', 'ROLE_2_FINAL', '02_MATLAB_CODE', 'IQA');
-    morphDir = fullfile(projectDir, 'ROLE_2_FINAL', 'ROLE_2_FINAL', '02_MATLAB_CODE', 'Morphology');
-    preprocDir = fullfile(projectDir, 'ROLE_2_FINAL', 'ROLE_2_FINAL', '02_MATLAB_CODE', 'Preprocessing');
+    iqaDir = fullfile(projectDir, 'modules', 'image_processing', 'code', 'IQA');
+    morphDir = fullfile(projectDir, 'modules', 'image_processing', 'code', 'Morphology');
+    preprocDir = fullfile(projectDir, 'modules', 'image_processing', 'code', 'Preprocessing');
     
     addpath(iqaDir);
     addpath(morphDir);

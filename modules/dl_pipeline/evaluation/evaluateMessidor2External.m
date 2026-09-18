@@ -36,7 +36,7 @@ function evaluateMessidor2External()
     end
     
     % Load Messidor CSV
-    csvPath = fullfile(projectDir, 'messidor_data.csv');
+    csvPath = fullfile(projectDir, 'data', 'metadata', 'messidor_data.csv');
     if ~exist(csvPath, 'file')
         % Try the messidorDir just in case
         csvPath = fullfile(messidorDir, 'messidor_data.csv');

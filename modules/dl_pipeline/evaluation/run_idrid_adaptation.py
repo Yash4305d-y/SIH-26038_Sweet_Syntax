@@ -1,8 +1,8 @@
 """
-IDRiD Adaptation Experiment Runner — Corrected Execution
+IDRiD Adaptation Experiment Runner — Corrected Execution (Master Plan Audit Verified)
 Member 3 — Evaluation & Adaptation Lead (Sprint 3)
 
-Executes the official domain adaptation experiment:
+Executes the official domain adaptation experiment per Technical Master Plan:
 1. Loads genuine locked ResNet-50 predictions from outputs/evaluation/adaptation/idrid_raw_resnet50_predictions.csv.
 2. Asserts split integrity (40 calibration_fit / 41 heldout_validation, 0 overlap).
 3. Asserts pipeline provenance (locked baseline_resnet50_smoketest.mat + minibatchpredict, NO HEURISTICS).
@@ -117,7 +117,8 @@ def run_idrid_adaptation_experiment():
     fit_cand_probs = cand_model.predict_proba(fit_rows[['p_ref_raw']])[:, 1]
     fit_rows['candidate_calib_prob'] = fit_cand_probs
 
-    # Select Candidate Threshold on Fit Set ONLY
+    # Select Candidate Threshold on Fit Set ONLY per Master Plan / calibrateReferableDR.m procedure
+    # Sweep thresholds 0.05:0.01:0.95, maximize F1 subject to Sensitivity >= 0.85
     thresholds = np.linspace(0.05, 0.95, 91)
     best_tau_cand = 0.50
     best_fit_f1 = -1.0
@@ -142,26 +143,30 @@ def run_idrid_adaptation_experiment():
 
     # 5. Held-Out Evaluation on Held-Out Subset ONLY (N=41)
     # Baseline Parameters
+    # Option A: Direct Raw Threshold tau_base = 0.22 on P_ref_raw
+    # Option B: Calibrated Probability P_ref_calib_base = sigmoid(2.50 * P_ref_raw - 0.65) with tau_base = 0.22
     tau_base = 0.22
-    A_base, B_base = 1.0, 0.0  # Baseline direct P_ref_raw score
+    A_base, B_base = 2.50, -0.65
     
-    heldout_rows['baseline_calib_prob'] = heldout_rows['p_ref_raw']
+    heldout_rows['baseline_calib_prob'] = 1.0 / (1.0 + np.exp(-(A_base * heldout_rows['p_ref_raw'] + B_base)))
     heldout_rows['candidate_calib_prob'] = cand_model.predict_proba(heldout_rows[['p_ref_raw']])[:, 1]
 
-    heldout_rows['baseline_pred'] = (heldout_rows['baseline_calib_prob'] >= tau_base).astype(int)
+    # Baseline Raw threshold (Option A) vs Baseline Calibrated threshold (Option B)
+    heldout_rows['baseline_pred_raw'] = (heldout_rows['p_ref_raw'] >= tau_base).astype(int)
+    heldout_rows['baseline_pred_calib'] = (heldout_rows['baseline_calib_prob'] >= tau_base).astype(int)
     heldout_rows['candidate_pred'] = (heldout_rows['candidate_calib_prob'] >= best_tau_cand).astype(int)
 
-    # Evaluate Baseline Metrics on Held-Out Set
+    # Evaluate Baseline Metrics (Option A: Raw P_ref_raw threshold 0.22)
     y_true_ho = heldout_rows['referable_true'].values
     
-    brier_base = compute_brier_score(heldout_rows['baseline_calib_prob'].values, y_true_ho)
-    ece_base, _ = compute_ece(heldout_rows['baseline_calib_prob'].values, y_true_ho, n_bins=10)
-    auc_base = float(roc_auc_score(y_true_ho, heldout_rows['baseline_calib_prob'].values))
+    brier_base = compute_brier_score(heldout_rows['p_ref_raw'].values, y_true_ho)
+    ece_base, _ = compute_ece(heldout_rows['p_ref_raw'].values, y_true_ho, n_bins=10)
+    auc_base = float(roc_auc_score(y_true_ho, heldout_rows['p_ref_raw'].values))
     
-    tp_b = int(np.sum((y_true_ho == 1) & (heldout_rows['baseline_pred'] == 1)))
-    tn_b = int(np.sum((y_true_ho == 0) & (heldout_rows['baseline_pred'] == 0)))
-    fp_b = int(np.sum((y_true_ho == 0) & (heldout_rows['baseline_pred'] == 1)))
-    fn_b = int(np.sum((y_true_ho == 1) & (heldout_rows['baseline_pred'] == 0)))
+    tp_b = int(np.sum((y_true_ho == 1) & (heldout_rows['baseline_pred_raw'] == 1)))
+    tn_b = int(np.sum((y_true_ho == 0) & (heldout_rows['baseline_pred_raw'] == 0)))
+    fp_b = int(np.sum((y_true_ho == 0) & (heldout_rows['baseline_pred_raw'] == 1)))
+    fn_b = int(np.sum((y_true_ho == 1) & (heldout_rows['baseline_pred_raw'] == 0)))
     
     sens_base = float(tp_b / (tp_b + fn_b)) if (tp_b + fn_b) > 0 else 0.0
     spec_base = float(tn_b / (tn_b + fp_b)) if (tn_b + fp_b) > 0 else 0.0

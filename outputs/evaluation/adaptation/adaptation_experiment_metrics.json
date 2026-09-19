@@ -1,6 +1,6 @@
 {
     "experiment_id": "IDRiD_ResNet50_Domain_Adaptation_Sprint3_Corrected",
-    "timestamp": "2026-09-19T20:29:56.710636",
+    "timestamp": "2026-09-19T21:45:59.616523",
     "prediction_source": "outputs/evaluation/adaptation/idrid_raw_resnet50_predictions.csv",
     "model_artifact": "models/baseline_resnet50_smoketest.mat",
     "dataset": "IDRiD B. Disease Grading (Official Testing Set)",

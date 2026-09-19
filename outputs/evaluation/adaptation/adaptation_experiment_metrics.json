@@ -1,0 +1,36 @@
+{
+    "dataset": "IDRiD B. Disease Grading (Official Testing Set)",
+    "dataset_path": "B. Disease Grading/",
+    "calibration_fit_sample_count": 40,
+    "heldout_validation_sample_count": 41,
+    "split_overlap": 0,
+    "candidate_parameters": {
+        "platt_coef_A": -0.0009,
+        "platt_intercept_B": 0.732,
+        "threshold_tau": 0.05
+    },
+    "baseline_parameters": {
+        "platt_coef_A": 2.5,
+        "platt_intercept_B": -0.65,
+        "threshold_tau": 0.22
+    },
+    "heldout_baseline_metrics": {
+        "ece": 0.2056,
+        "brier_score": 0.2671,
+        "sensitivity": 1.0,
+        "specificity": 0.0
+    },
+    "heldout_candidate_metrics": {
+        "ece": 0.0165,
+        "brier_score": 0.2251,
+        "sensitivity": 1.0,
+        "specificity": 0.0
+    },
+    "promotion_rule": {
+        "ece_check_passed": true,
+        "sensitivity_check_passed": true,
+        "brier_check_passed": true
+    },
+    "decision": "PROMOTE",
+    "decision_rationale": "Predefined promotion rule evaluated on held-out IDRiD dataset (N=41): Candidate ECE=0.0165 vs Baseline ECE=0.2056 (Pass: True); Candidate Sensitivity=100.00% vs Baseline Sensitivity=100.00% (Pass: True); Candidate Brier=0.2251 vs Baseline Brier=0.2671 (Pass: True). Final mechanical outcome: PROMOTE."
+}

@@ -4,10 +4,11 @@ Member 3 — Evaluation & Adaptation Lead
 
 Verifies:
 1. IDRiD split zero-overlap and held-out data isolation.
-2. Promotion rule determinism.
-3. Messidor-2 frozen evaluation status.
-4. Member 1 adaptation handoff package schema and contents.
-5. APTOS locked test split isolation across train/val/test CSVs.
+2. Calibration fit isolation (only 40 fit images used).
+3. Promotion rule determinism & mechanical decision matching.
+4. Messidor-2 frozen evaluation status.
+5. Member 1 adaptation handoff package schema and decision.
+6. APTOS locked test split isolation.
 """
 
 import os
@@ -22,7 +23,10 @@ class TestSprint3Adaptation(unittest.TestCase):
         self.idrid_csv = os.path.join(self.project_root, "data", "splits", "idrid_splits.csv")
         self.messidor_csv = os.path.join(self.project_root, "data", "metadata", "messidor_data.csv")
         self.handoff_json = os.path.join(self.project_root, "outputs", "evaluation", "adaptation_handoff_package.json")
+        self.experiment_json = os.path.join(self.project_root, "outputs", "evaluation", "adaptation", "adaptation_experiment_metrics.json")
         self.splits_dir = os.path.join(self.project_root, "data", "splits")
+        self.fit_pred_csv = os.path.join(self.project_root, "outputs", "evaluation", "adaptation", "idrid_fit_predictions.csv")
+        self.heldout_pred_csv = os.path.join(self.project_root, "outputs", "evaluation", "adaptation", "idrid_heldout_predictions.csv")
 
     def test_idrid_split_no_overlap(self):
         self.assertTrue(os.path.exists(self.idrid_csv), f"Missing {self.idrid_csv}")
@@ -37,6 +41,21 @@ class TestSprint3Adaptation(unittest.TestCase):
         
         overlap = fit_ids.intersection(heldout_ids)
         self.assertEqual(len(overlap), 0, f"Data leakage detected! Overlap between fit and heldout: {overlap}")
+
+    def test_calibration_fit_isolation(self):
+        self.assertTrue(os.path.exists(self.fit_pred_csv), f"Missing {self.fit_pred_csv}")
+        self.assertTrue(os.path.exists(self.heldout_pred_csv), f"Missing {self.heldout_pred_csv}")
+        
+        df_fit = pd.read_csv(self.fit_pred_csv)
+        df_heldout = pd.read_csv(self.heldout_pred_csv)
+        
+        self.assertEqual(len(df_fit), 40, f"Expected 40 fit records, found {len(df_fit)}")
+        self.assertEqual(len(df_heldout), 41, f"Expected 41 heldout records, found {len(df_heldout)}")
+        
+        fit_set = set(df_fit['image_id'])
+        heldout_set = set(df_heldout['image_id'])
+        
+        self.assertEqual(len(fit_set.intersection(heldout_set)), 0, "Heldout data leaked into fit prediction file!")
 
     def test_promotion_rule_determinism(self):
         def evaluate_promotion(baseline_ece, candidate_ece, baseline_sens, candidate_sens, baseline_brier, candidate_brier, data_available=True):
@@ -59,17 +78,18 @@ class TestSprint3Adaptation(unittest.TestCase):
         df = pd.read_csv(self.messidor_csv)
         self.assertEqual(len(df), 1744, f"Expected 1744 Messidor-2 records, found {len(df)}")
 
-    def test_handoff_package_schema(self):
+    def test_handoff_package_schema_and_decision(self):
         self.assertTrue(os.path.exists(self.handoff_json), f"Missing {self.handoff_json}")
-        with open(self.handoff_json, "r") as f:
+        with open(self.handoff_json, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         required_keys = ["metadata", "adaptation_status", "baseline_model", "idrid_split_info", "messidor2_frozen_evidence", "evidence_files", "limitations"]
         for k in required_keys:
             self.assertIn(k, data, f"Missing key '{k}' in handoff package JSON")
 
-        self.assertEqual(data["adaptation_status"]["decision"], "BLOCKED")
-        self.assertIn("BLOCKED", data["adaptation_status"]["decision_rationale"])
+        decision = data["adaptation_status"]["decision"]
+        self.assertIn(decision, ["PROMOTE", "ROLLBACK"])
+        self.assertTrue(data["idrid_split_info"]["raw_images_available"])
 
     def test_aptos_split_isolation(self):
         train_csv = os.path.join(self.splits_dir, "train_split.csv")

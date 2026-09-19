@@ -1,0 +1,106 @@
+{
+    "metadata": {
+        "author": "Member 3 \u2014 Evaluation & Adaptation Lead",
+        "sprint": "Sprint 3",
+        "timestamp": "2026-09-19T18:15:00",
+        "target_consumer": "Member 1 Adaptation Dashboard"
+    },
+    "adaptation_status": {
+        "decision": "BLOCKED",
+        "decision_rationale": "IDRiD quantitative adaptation fitting and held-out evaluation are BLOCKED because raw IDRiD fundus image files and labels are not present in the local workspace repository. Split metadata is verified (40 fit / 41 held-out). In accordance with data integrity guidelines, zero synthetic data was generated.",
+        "promotion_rule": "Candidate model must achieve ECE <= Baseline ECE and Referable DR Sensitivity >= Baseline Sensitivity on untouched IDRiD held-out data (N=41) without increasing Brier score."
+    },
+    "baseline_model": {
+        "name": "Baseline ResNet-50",
+        "status": "LOCKED",
+        "aptos_test_metrics": {
+            "accuracy": 0.8292,
+            "macro_f1": 0.6358,
+            "qwk": 0.8713,
+            "referable_sensitivity": 0.9609,
+            "referable_specificity": 0.9231
+        }
+    },
+    "idrid_split_info": {
+        "split_file": "data/splits/idrid_splits.csv",
+        "total_records": 81,
+        "calibration_fit_count": 40,
+        "heldout_validation_count": 41,
+        "overlap_count": 0,
+        "raw_images_available": false
+    },
+    "heldout_evaluation": {
+        "baseline_heldout_metrics": "UNAVAILABLE_RAW_IMAGES_MISSING",
+        "candidate_heldout_metrics": "UNAVAILABLE_RAW_IMAGES_MISSING"
+    },
+    "messidor2_frozen_evidence": {
+        "dataset": "Messidor-2",
+        "sample_count": 1744,
+        "model_name": "Baseline ResNet-50",
+        "evaluation_type": "External 5-Class & Binary (Frozen)",
+        "tuning_performed": false,
+        "calibration_fitted_on_messidor": false,
+        "threshold_optimized_on_messidor": false,
+        "threshold_used": 0.22,
+        "5class_accuracy": 0.5998,
+        "5class_macro_f1": 0.2581,
+        "5class_qwk": 0.3231,
+        "referable_dr_sensitivity": 0.2932,
+        "referable_dr_specificity": 0.9705,
+        "referable_dr_precision": 0.7791,
+        "referable_dr_npv": 0.7945,
+        "referable_dr_f1": 0.4261,
+        "referable_dr_roc_auc": 0.7669,
+        "brier_score_raw": 0.193753,
+        "ece_raw": 0.182716,
+        "status": "EXTERNAL_VALIDATION_COMPLETE"
+    },
+    "benchmark_comparison": [
+        {
+            "model_variant": "Baseline ResNet-50 (Locked)",
+            "description": "Unweighted CE Loss, Softmax, Platt Scaled",
+            "test_sample_count": 439,
+            "accuracy": 0.8292,
+            "macro_f1": 0.6358,
+            "qwk": 0.8713,
+            "referable_sensitivity": 0.9609,
+            "referable_specificity": 0.9231,
+            "referable_precision": 0.8958
+        },
+        {
+            "model_variant": "Mild Weighted ResNet-50",
+            "description": "Inverse Class Weighting (Mild Penalty)",
+            "test_sample_count": 439,
+            "accuracy": 0.7995,
+            "macro_f1": 0.6467,
+            "qwk": 0.873,
+            "referable_sensitivity": 0.838,
+            "referable_specificity": 0.9731,
+            "referable_precision": 0.9554
+        },
+        {
+            "model_variant": "Strong Weighted ResNet-50",
+            "description": "Square-root Class Weighting",
+            "test_sample_count": 439,
+            "accuracy": 0.7312,
+            "macro_f1": 0.6103,
+            "qwk": 0.8437,
+            "referable_sensitivity": 0.8324,
+            "referable_specificity": 0.9654,
+            "referable_precision": 0.943
+        }
+    ],
+    "evidence_files": {
+        "idrid_splits": "data/splits/idrid_splits.csv",
+        "error_analysis_csv": "outputs/evaluation/error_analysis/error_analysis_report.csv",
+        "calibration_metrics_json": "outputs/evaluation/calibration/calibration_metrics.json",
+        "messidor_external_csv": "outputs/evaluation/external_validation/messidor_external_results.csv",
+        "benchmark_comparison_csv": "outputs/evaluation/benchmark_comparison.csv",
+        "sprint3_report_md": "docs/research/member3_sprint3_report.md"
+    },
+    "limitations": [
+        "Raw IDRiD image files missing locally; quantitative IDRiD adaptation could not be fitted.",
+        "Messidor-2 external validation reveals domain shift (sensitivity drop to 29.32% under fixed threshold tau=0.22).",
+        "MATLAB Image Processing Toolbox not installed on host machine."
+    ]
+}

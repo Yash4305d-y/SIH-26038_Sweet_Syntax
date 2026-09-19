@@ -1,0 +1,13 @@
+{
+  "FittingDataset": "val_split.csv (440 images)",
+  "EvaluationDataset": "test_split.csv (439 images)",
+  "CalibrationMethod": "Platt Scaling (Logistic Link)",
+  "SelectedThreshold": 0.4,
+  "ThresholdRule": "F1 maximization subject to Val Sensitivity >= 0.90",
+  "RawBrierScore": 0.0654,
+  "CalibratedBrierScore": 0.0577,
+  "RawECE": 0.0756,
+  "CalibratedECE": 0.0364,
+  "CalibratedTestSensitivity": 0.9609,
+  "CalibratedTestSpecificity": 0.9231
+}

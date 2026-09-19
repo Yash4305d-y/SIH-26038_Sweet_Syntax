@@ -1,0 +1,73 @@
+{
+  "Dataset": "APTOS 2019 Locked Test Set (439 images)",
+  "Model": "ResNet-50 Official Baseline V1",
+  "TotalSamples": 439,
+  "ReferableSensitivity": 0.9609,
+  "ReferableSpecificity": 0.9231,
+  "ReferableTP": 172,
+  "ReferableTN": 240,
+  "ReferableFP": 20,
+  "ReferableFN": 7,
+  "PerClass": [
+    {
+      "Grade": 0,
+      "TrueCount": 215,
+      "PredCount": 219,
+      "TP": 211,
+      "FN": 4,
+      "FP": 8,
+      "TN": 216,
+      "Recall": 0.9814,
+      "Precision": 0.9635,
+      "F1": 0.9724
+    },
+    {
+      "Grade": 1,
+      "TrueCount": 45,
+      "PredCount": 28,
+      "TP": 22,
+      "FN": 23,
+      "FP": 6,
+      "TN": 388,
+      "Recall": 0.4889,
+      "Precision": 0.7857,
+      "F1": 0.6027
+    },
+    {
+      "Grade": 2,
+      "TrueCount": 121,
+      "PredCount": 168,
+      "TP": 114,
+      "FN": 7,
+      "FP": 54,
+      "TN": 264,
+      "Recall": 0.9421,
+      "Precision": 0.6786,
+      "F1": 0.7889
+    },
+    {
+      "Grade": 3,
+      "TrueCount": 23,
+      "PredCount": 9,
+      "TP": 6,
+      "FN": 17,
+      "FP": 3,
+      "TN": 413,
+      "Recall": 0.2609,
+      "Precision": 0.6667,
+      "F1": 0.375
+    },
+    {
+      "Grade": 4,
+      "TrueCount": 35,
+      "PredCount": 15,
+      "TP": 11,
+      "FN": 24,
+      "FP": 4,
+      "TN": 400,
+      "Recall": 0.3143,
+      "Precision": 0.7333,
+      "F1": 0.44
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-# Member 3 — Sprint 2 Error Analysis Report
+# Member 3 â€” Sprint 2 Error Analysis Report
 
 ## 1. Executive Summary
 This report analyzes the error distribution of the official **ResNet-50 Baseline V1** model on the locked APTOS 2019 test split (439 images).
@@ -34,7 +34,7 @@ This report analyzes the error distribution of the official **ResNet-50 Baseline
 
 ### Grade 1 (Mild DR)
 - **OBSERVED FACT:** Grade 1 recall is lower than Grade 0/2. Mild DR cases are frequently confused with Grade 0 (No DR) or Grade 2 (Moderate DR).
-- **POSSIBLE EXPLANATION:** Mild DR is characterized solely by isolated microaneurysms; at standard 224x224 input resolution, microaneurysms (<3 pixels across) can be smoothed out by spatial downsampling and Gaussian filtering.
+- **OBSERVED PATTERN / POSSIBLE CONTRIBUTING FACTOR:** Mild DR is characterized solely by isolated microaneurysms. Small lesion structures (<3 pixels across) may be affected by spatial downsampling at 224x224 resolution and Gaussian filtering. Establishing causality would require controlled multi-resolution ablation experiments.
 
 ### Grade 2 (Moderate DR)
 - **OBSERVED FACT:** Grade 2 represents the referable boundary. Grade 2 recall is solid, correctly triggering referable status.

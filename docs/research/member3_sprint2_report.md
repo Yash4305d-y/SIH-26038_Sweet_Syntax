@@ -8,16 +8,18 @@
 This official report presents the completed Member 3 Sprint 2 validation, error analysis, calibration evaluation, Messidor-2 external validation, benchmark comparison, and end-to-end pipeline verification.
 
 ### Core Objectives Executed:
-1. **Role 2 Validation**: Comprehensive verification of Image Quality Assessment (Focus, Illumination, FOV, Quality Gate), preprocessing (CLAHE, Denoising), and morphological lesion candidate extractors.
+1. **Role 2 Validation**: Verification of Image Quality Assessment (Focus, Illumination, FOV, Quality Gate), preprocessing (CLAHE, Denoising), structural localization (Vessels, Optic Disc, Fovea), and morphological lesion candidate extractors. **Summary: 9 components VALIDATED and 3 lesion-candidate components PARTIALLY VALIDATED.**
 2. **Error Analysis**: Per-grade breakdown of classification errors on the locked holdout test set (N = 439), distinguishing observed facts from hypotheses.
 3. **Calibration Evaluation**: Verification of Platt scaling, calibration parameters on `val_split.csv` only, Brier score reduction, and ECE evaluation without data leakage.
 4. **Messidor-2 External Validation**: External generalization assessment on Messidor-2 (N = 1,744) under strict frozen evaluation guardrails (zero tuning, zero threshold/calibration refitting).
 5. **Benchmark Evidence**: Empirical comparison of Baseline ResNet-50 vs weighted loss variants on the locked test set.
-6. **End-to-End Pipeline**: Execution of available stage flow (`Image -> Validation -> IQA -> Processing -> DR -> Referable -> Explanation -> Report`), documenting stage status and Member 1 / Member 2 dependencies.
+6. **End-to-End Pipeline**: Verification of available pipeline stages, documenting stage verification status and Member 1 / Member 2 dependencies.
 
 ---
 
 ## 2. Role 2 Validation
+
+**Summary**: 9 components VALIDATED and 3 lesion-candidate components PARTIALLY VALIDATED.
 
 | Component | Implementation Exists | Execution Status | Output Validity | Deterministic | Ground Truth Status | Validation Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -34,7 +36,7 @@ This official report presents the completed Member 3 Sprint 2 validation, error 
 | **Microaneurysm Candidates** | Yes (`MAExtractor`) | Validated | Candidate Mask | Yes | IDRiD GT (Low recall <3px) | **PARTIALLY VALIDATED** |
 | **Hemorrhage Candidates** | Yes (`HemorrhageExtractor`)| Validated | Candidate Mask | Yes | IDRiD GT (Overlaps vessel) | **PARTIALLY VALIDATED** |
 
-*Note on Ground Truth:* Morphological lesion candidate extraction algorithms function as broad-sensitivity candidate screeners. Quantitative evaluation against IDRiD ground-truth masks confirmed candidate detection capability, but fine pixel-level segmentations require deep learning refinement (Member 1 scope).
+*Note on Ground Truth:* The three partially validated components (Exudate candidates, Microaneurysm candidates, Hemorrhage candidates) function as candidate screeners. Quantitative evaluation against IDRiD ground-truth masks confirmed candidate detection capability, but fine pixel-level segmentations require deep learning refinement (Member 2 scope).
 
 ---
 
@@ -47,17 +49,17 @@ This official report presents the completed Member 3 Sprint 2 validation, error 
 
 ### Per-Grade Breakdown:
 
-| DR Grade | Total Samples | Correct Predictions | Grade Recall | Primary Failure Mode |
-| :--- | :--- | :--- | :--- | :--- |
-| **Grade 0 (No DR)** | 215 | 211 | **98.14%** | Minor FP (4 misclassified as Grade 1) |
-| **Grade 1 (Mild)** | 45 | 22 | **48.89%** | 19 misclassified as Grade 0 (Microaneurysm downsampling) |
-| **Grade 2 (Moderate)** | 121 | 114 | **94.21%** | 5 misclassified as Grade 1, 2 as Grade 3 |
-| **Grade 3 (Severe)** | 23 | 6 | **26.09%** | 15 misclassified as Grade 2 (Boundary confusion) |
-| **Grade 4 (PDR)** | 35 | 11 | **31.43%** | 24 misclassified as Grade 2 (Dominant exudate features) |
+| Grade | Description | True Count | Predicted Count | Recall (Sensitivity) | Precision | F1 Score |
+| :---: | :--- | :---: | :---: | :---: | :---: | :---: |
+| 0 | No DR | 215 | 219 | 98.14% | 96.35% | 0.9724 |
+| 1 | Mild DR | 45 | 28 | 48.89% | 78.57% | 0.6027 |
+| 2 | Moderate DR | 121 | 168 | 94.21% | 67.86% | 0.7889 |
+| 3 | Severe DR | 23 | 9 | 26.09% | 66.67% | 0.3750 |
+| 4 | Proliferative DR | 35 | 15 | 31.43% | 73.33% | 0.4400 |
 
 ### Fact vs Hypothesis Separation:
 - **Observed Fact 1**: Grade 1 recall is lower (48.89%) than Grade 0 (98.14%) or Grade 2 (94.21%).
-  - **Possible Explanation**: Microaneurysms, the sole lesion type in Grade 1, often span fewer than 3x3 pixels at input resolution (\(224 \times 224\)) and are lost during spatial downsampling.
+  - **Observed Pattern / Possible Contributing Factor**: Small lesion structures (microaneurysms) may be affected by spatial downsampling at 224x224 resolution and Gaussian filtering. Establishing causality would require controlled multi-resolution ablation experiments.
 - **Observed Fact 2**: Grade 3 (Severe) and Grade 4 (PDR) are frequently misclassified as Grade 2 (Moderate).
   - **Possible Explanation**: Unweighted cross-entropy loss biased the feature representation toward Moderate DR due to higher class frequency in the training set (Grade 2 N=999 vs Grade 3 N=193).
 - **Observed Fact 3**: Referable DR (Grade 2+) recall is **96.09%** at the uncalibrated argmax level and **98.88%** after validation threshold optimization (\(\tau = 0.22\)).
@@ -120,31 +122,38 @@ Empirical comparison across model variants trained on APTOS 2019 and evaluated o
 
 ## 7. End-to-End Pipeline
 
-### Stage-by-Stage Flow & Dependency Audit:
+### Pipeline Verification & Handoff Audit:
+
+- **VERIFIED STAGES** (Executed and tested in code):
+  - `Image` $\rightarrow$ `Validation` $\rightarrow$ `IQA` $\rightarrow$ `Processing` $\rightarrow$ `DR` $\rightarrow$ `Referable` $\rightarrow$ `Explanation`
+- **PREPARED STAGES**:
+  - `Report` data contract / handoff interface (Payload schema and metadata formatting defined).
+- **DEPENDENT ON MEMBER 1**:
+  - `Report` PDF rendering and Web UI display.
 
 ```
-[Raw Image] 
+[VERIFIED: Raw Image] 
    │
    ▼
-[Stage 1: Validation] ──► RetinalDetector (Pass/Fail) ────────────► Status: VALIDATED (Member 3)
+[VERIFIED: Stage 1 Validation] ────► RetinalDetector (Pass/Fail)
    │
    ▼
-[Stage 2: IQA] ──────────► Focus, Illum, FOV, QualityGate ─────────► Status: VALIDATED (Member 3)
+[VERIFIED: Stage 2 IQA] ───────────► Focus, Illumination, FOV, QualityGate
    │
    ▼
-[Stage 3: Processing] ───► CLAHE, Denoise, Candidates ─────────────► Status: VALIDATED (Member 3)
+[VERIFIED: Stage 3 Processing] ────► CLAHE, Denoise, Structural Candidates
    │
    ▼
-[Stage 4: DR Model] ─────► ResNet-50 Logits (5-Class) ─────────────► Status: VALIDATED (Member 3)
+[VERIFIED: Stage 4 DR Model] ──────► ResNet-50 Logits (5-Class)
    │
    ▼
-[Stage 5: Referable] ────► Platt Scaling & Threshold (tau=0.22) ──► Status: VALIDATED (Member 3)
+[VERIFIED: Stage 5 Referable] ─────► Platt Scaling & Threshold (tau=0.22)
    │
    ▼
-[Stage 6: Explanation] ──► Grad-CAM Heatmap ───────────────────────► Status: VALIDATED (Member 3)
+[VERIFIED: Stage 6 Explanation] ───► Grad-CAM Heatmap
    │
    ▼
-[Stage 7: Report] ───────► Clinical PDF & UI Handoff ──────────────► Status: DEPENDENT ON MEMBER 1/2
+[PREPARED / DEPENDENT: Stage 7] ──► Clinical PDF & UI Display (Member 1 Scope)
 ```
 
 ---
@@ -173,13 +182,13 @@ All test suites executed locally:
 - [x] Calibration evaluation (Platt scaling fitting on val split ONLY, Brier score, ECE reduction).
 - [x] Messidor-2 external validation (N=1,744) under frozen guardrails.
 - [x] Empirical benchmark model comparison (Baseline vs Weighted loss variants).
-- [x] End-to-end pipeline execution and Member 1/2 dependency mapping.
+- [x] End-to-end pipeline execution through Stage 6 and Member 1/2 dependency mapping.
 
 ---
 
 ## 10. Partially Validated
 
-- **Morphological Lesion Extractors**: Executable and candidate masks produced, but pixel-level precision limited compared to deep learning segmentation.
+- **Lesion Candidate Extractors**: Exudate candidates, Microaneurysm candidates, and Hemorrhage candidates are executable and produce candidate masks, but pixel-level precision is limited without deep learning segmentation.
 
 ---
 
@@ -191,8 +200,8 @@ All test suites executed locally:
 
 ## 12. Dependencies on Member 1 / Member 2
 
-- **Member 1 Dependency**: Final clinical PDF report renderer and web frontend UI presentation.
-- **Member 2 Dependency**: Optional deep learning lesion segmentation model integration.
+- **Member 1 Dependency**: Stage 7 Report PDF rendering and Web UI display.
+- **Member 2 Dependency**: Deep learning lesion segmentation models.
 
 ---
 
@@ -208,4 +217,4 @@ All test suites executed locally:
 
 The core processing, validation, quality gating, DR classification, referable scaling, and explanation stages:
 $$\text{Image} \rightarrow \text{Validation} \rightarrow \text{IQA} \rightarrow \text{Processing} \rightarrow \text{DR} \rightarrow \text{Referable} \rightarrow \text{Explanation}$$
-are **fully executable, verified, and backed by empirical evidence**. Stage 7 (Report) is prepared with clear handoff interfaces for Member 1/2 final delivery.
+are **fully executable, verified, and backed by empirical evidence**. Stage 7 (Report) is prepared with clear data contract interfaces for Member 1/2 final delivery.

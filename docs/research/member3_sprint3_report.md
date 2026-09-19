@@ -5,7 +5,24 @@
 
 ## 1. Scope
 
-This official report presents the completed Member 3 Sprint 3 domain adaptation evaluation, IDRiD split verification, candidate calibration audit, predefined promotion decision, Messidor-2 external validation evidence, benchmark model comparison, and Member 1 handoff package.
+Member 3 Sprint 3 implementation and evaluation infrastructure is complete. The actual IDRiD adaptation experiment is BLOCKED pending availability of the raw IDRiD images and labels.
+
+### Status Categorization Summary:
+
+#### COMPLETE:
+- IDRiD split metadata (`data/splits/idrid_splits.csv`)
+- Split isolation tests (`tests/test_sprint3_adaptation.py`)
+- Candidate calibration infrastructure (`modules/dl_pipeline/evaluation/`)
+- Predefined promotion rule
+- Adaptation handoff package (`outputs/evaluation/adaptation_handoff_package.json`)
+- Messidor frozen evidence (`outputs/evaluation/external_validation/`)
+- Benchmark evidence (`outputs/evaluation/benchmark_comparison.csv`)
+- Regression tests (27/27 Python unit tests passed)
+
+#### BLOCKED:
+- Candidate calibration fitting on raw IDRiD images
+- IDRiD held-out evaluation
+- Actual PROMOTE / ROLLBACK decision
 
 ---
 
@@ -73,6 +90,9 @@ $$\text{Decision} = \begin{cases} \text{PROMOTE} & \text{if } \text{data\_availa
 ## 7. PROMOTE / ROLLBACK / BLOCKED Decision
 
 ### Official Decision: **BLOCKED**
+
+> [!IMPORTANT]
+> **Clarification:** BLOCKED is not equivalent to ROLLBACK. No candidate was evaluated, therefore no candidate was rejected.
 
 - **Decision Rationale**: Raw IDRiD fundus image files and labels are not present in the local workspace repository. Although split metadata (`idrid_splits.csv`) is 100% verified (40 fit / 41 held-out), quantitative fitting and held-out validation cannot execute without raw data.
 - **Baseline Model State**: **Baseline ResNet-50 remains LOCKED**. No candidate model is promoted.

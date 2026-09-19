@@ -67,6 +67,12 @@ $$P_{\text{ref, cand}} = \frac{1}{1 + e^{-(A_{\text{cand}} \cdot P_{\text{ref, r
 - **Selected Threshold ($\tau_{\text{cand}}$)**: `0.3700` (Optimized on fit set to maximize F1-score subject to sensitivity $\ge 85\%$)
 - **Fit Set F1-Score**: `0.8727` | **Fit Set Sensitivity**: `88.89%` (24/27)
 
+### 4.1 Specificity >85% Fit-Set Threshold Investigation
+A rigorous threshold sweep across $\tau \in [0.05, 0.95]$ (91 grid points) was executed exclusively on the 40 calibration-fit images to investigate if any threshold could legitimately establish $\ge 85\%$ Specificity without looking at held-out data:
+- **Fit Set Sweep Finding**: **ZERO** thresholds on the fit set ($N=40$) achieved both $\text{Sensitivity} \ge 85.0\%$ AND $\text{Specificity} \ge 85.0\%$.
+- **Maximum Specificity Threshold**: $\tau = 0.52$ achieved the highest fit-set Specificity ($76.92\%$) while maintaining fit Sensitivity $\ge 85.0\%$ ($85.19\%$). Evaluating $\tau = 0.52$ once on the held-out set ($N=41$) yielded Sensitivity = $81.48\%$ ($22/27$) and Specificity = $78.57\%$ ($11/14$), failing the $\ge 85\%$ guardrail for both metrics.
+- **Protocol Conclusion**: No calibration-fit threshold exists that can legitimately achieve $\ge 85\%$ Specificity on the held-out IDRiD subset. In strict compliance with data integrity rules, no further threshold tuning is permitted, and the official decision remains **ROLLBACK**.
+
 ### Frozen Parameters:
 $A_{\text{cand}} = 5.4270, B_{\text{cand}} = -1.8918, \tau_{\text{cand}} = 0.3700$ were **FROZEN** before inspecting held-out labels.
 

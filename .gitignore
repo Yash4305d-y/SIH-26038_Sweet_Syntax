@@ -57,6 +57,8 @@ dataset/
 datasets/
 raw_data/
 processed_data/
+A. Segmentation/
+B. Disease Grading/
 
 # -------------------------
 # Model Weights & Checkpoints

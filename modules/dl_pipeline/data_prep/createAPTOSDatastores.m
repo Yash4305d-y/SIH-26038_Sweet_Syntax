@@ -6,7 +6,7 @@ function [imdsTrain, imdsVal, imdsTest] = createAPTOSDatastores()
     % Define directories relative to the project root
     scriptPath = mfilename('fullpath');
     [srcDir, ~, ~] = fileparts(scriptPath);
-    projectDir = fileparts(srcDir);
+    projectDir = fileparts(fileparts(fileparts(srcDir)));
     
     dataDir = fullfile(projectDir, 'data');
     splitsDir = fullfile(dataDir, 'splits');

@@ -62,12 +62,13 @@ The loss in structural ordinal stability (QWK) is generally not justified by the
 | Grade 4 Recall | Strong Weighted | Mild Weighted | Baseline | Medium Weighted |
 
 ## 10. Final Selection
-- **A. Best overall ordinal grading model:** Baseline
-- **B. Best macro-F1 model:** Mild Weighted
-- **C. Best minority-class sensitivity profile:** Strong Weighted
-- **D. Recommended final model for SIH:** **Baseline ResNet-50**
+- **A. Best overall ordinal grading model:** Baseline (R50-V1)
+- **B. Best macro-F1 model:** Undetermined on smoke-test dataset
+- **C. Best minority-class sensitivity profile:** Undetermined on smoke-test dataset
+- **D. Recommended final model for SIH:** **Baseline ResNet-50 (R50-V1)**
 
-The **Baseline ResNet-50** is recommended because it maximizes QWK (0.8713) and Accuracy (0.8292). While class weighting successfully investigated the minority-class tradeoffs, the Baseline provides the strongest, most stable fundamental grading capability for the target problem space.
+The **Baseline ResNet-50 (R50-V1)** is recommended and locked for the next prototype integration stages (Simulink handoff and UI integration). 
+**Important Note:** The 32-image smoke-test results must not be presented as evidence that R50-V1 outperforms the other candidates. All controlled experiments experienced class collapse because of the extremely limited smoke-test dataset and short training duration. R50-V1 is simply selected to fulfill the integration contract.
 
 ## 11. Limitations
 This controlled comparison strictly measures performance on the APTOS internal evaluation set. It does not measure or reflect external validity (domain shift) on external datasets like Messidor-2.

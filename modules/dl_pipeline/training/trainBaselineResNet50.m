@@ -6,13 +6,19 @@ function trainBaselineResNet50()
     % Setup paths relative to the project root
     scriptPath = mfilename('fullpath');
     [srcDir, ~, ~] = fileparts(scriptPath);
-    projectDir = fileparts(srcDir);
+    projectDir = fileparts(fileparts(fileparts(srcDir)));
     
     % Ensure required directories exist
     modelsDir = fullfile(projectDir, 'models');
     resultsDir = fullfile(projectDir, 'results');
+    
+    % Add required modules to path
+    addpath(fullfile(projectDir, 'modules', 'dl_pipeline', 'data_prep'));
     if ~exist(modelsDir, 'dir'), mkdir(modelsDir); end
     if ~exist(resultsDir, 'dir'), mkdir(resultsDir); end
+    
+    % Set random seed for reproducibility (R50-V1)
+    rng(42, 'twister');
     
     % 1-2. Load Datastores via our datastore creation script
     disp('Loading image datastores...');
@@ -63,6 +69,39 @@ function trainBaselineResNet50()
     saveInfoPath = fullfile(resultsDir, 'baseline_training_history.mat');
     disp(['Saving training history to: ', saveInfoPath]);
     save(saveInfoPath, 'info');
+    
+    % 20. Save frozen R50-V1 artifacts
+    saveR50Path = fullfile(modelsDir, 'r50_v1_best.mat');
+    save(saveR50Path, 'net');
+    
+    saveR50Hist = fullfile(resultsDir, 'r50_v1_history.mat');
+    save(saveR50Hist, 'info');
+    
+    % Save R50-V1 Config JSON
+    config = struct();
+    config.experiment_id = 'R50-V1';
+    config.model = 'ResNet-50';
+    config.pretrained = true;
+    config.classes = 5;
+    config.input_size = [224, 224, 3];
+    config.loss = 'crossentropy';
+    config.optimizer = 'adam';
+    config.learning_rate = 1e-4;
+    config.batch_size = 16;
+    config.epochs = 5;
+    config.scheduler = 'none';
+    config.seed = 42;
+    config.dataset = 'APTOS';
+    config.augmentation = 'none';
+    config.normalization = 'imagenet_default';
+    
+    jsonStr = jsonencode(config, 'PrettyPrint', true);
+    configPath = fullfile(resultsDir, 'r50_v1_config.json');
+    fid = fopen(configPath, 'w');
+    if fid ~= -1
+        fprintf(fid, '%s', jsonStr);
+        fclose(fid);
+    end
     
     disp('Baseline network training complete!');
 end

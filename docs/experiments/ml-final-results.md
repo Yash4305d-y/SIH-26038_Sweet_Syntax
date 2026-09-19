@@ -79,4 +79,6 @@ Role 1 formally delegates integration to Role 2 (Quality Gates) and Role 3/4 (Si
 
 ## 12. Final Decision
 **BASELINE RESNET-50 LOCKED.**
-The Baseline ResNet-50 remains the selected model because it achieved the strongest internal test accuracy and QWK among all evaluated variants.
+R50-V1 is locked for the next prototype integration stages, including Simulink handoff and UI integration. 
+
+**Important Note:** The 32-image smoke-test results must not be presented as evidence that R50-V1 outperforms the other candidates. All controlled experiments experienced class collapse because of the extremely limited smoke-test dataset and short training duration. R50-V1 is selected as the representative baseline to fulfill the integration contract. All experiment artifacts and evaluation results have been preserved.

@@ -5,7 +5,7 @@ function evaluateBaselineResNet50()
     % Setup paths
     scriptPath = mfilename('fullpath');
     [srcDir, ~, ~] = fileparts(scriptPath);
-    projectDir = fileparts(srcDir);
+    projectDir = fileparts(fileparts(fileparts(srcDir)));
     
     modelsDir = fullfile(projectDir, 'models');
     resultsDir = fullfile(projectDir, 'results');
@@ -149,11 +149,70 @@ function evaluateBaselineResNet50()
     
     cmPath = fullfile(resultsDir, 'baseline_confusion_matrix.png');
     saveas(fig, cmPath);
+    
+    % Save explicit R50-V1 confusion matrix
+    cmR50Path = fullfile(resultsDir, 'r50_v1_confusion_matrix.png');
+    saveas(fig, cmR50Path);
     close(fig);
+    
+    % ----------------------------------------------------
+    % PHASE 3 LOGGING: Save R50-V1 Metrics JSON and CSV
+    % ----------------------------------------------------
+    expMetrics = struct();
+    expMetrics.experiment_id = 'R50-V1';
+    expMetrics.accuracy = accuracy;
+    expMetrics.macro_f1 = macroF1;
+    
+    % Compute weighted F1 based on support
+    support = sum(O, 2)'; % True counts per class
+    if sum(support) > 0
+        weightedF1 = sum(f1 .* support) / sum(support);
+    else
+        weightedF1 = 0;
+    end
+    expMetrics.weighted_f1 = weightedF1;
+    expMetrics.precision = mean(precision);
+    expMetrics.recall = mean(recall);
+    expMetrics.per_class_precision = precision;
+    expMetrics.per_class_recall = recall;
+    expMetrics.per_class_f1 = f1;
+    
+    % Save JSON
+    metricsJsonStr = jsonencode(expMetrics, 'PrettyPrint', true);
+    metricsJsonPath = fullfile(resultsDir, 'r50_v1_metrics.json');
+    fid = fopen(metricsJsonPath, 'w');
+    if fid ~= -1
+        fprintf(fid, '%s', metricsJsonStr);
+        fclose(fid);
+    end
+    
+    % Append to Registry CSV
+    % Fields: experiment_id, model, pretrained, input_size, loss, optimizer, learning_rate, batch_size, epochs, augmentation, scheduler, seed, dataset, train_split, validation_split, test_split, accuracy, macro_f1, weighted_f1, precision, recall, validation_loss, test_loss, checkpoint, status, notes
+    docsDir = fullfile(projectDir, 'docs', 'experiments');
+    if ~exist(docsDir, 'dir'), mkdir(docsDir); end
+    registryPath = fullfile(docsDir, 'experiment_registry.csv');
+    
+    % Format array data to strings
+    precStr = sprintf('%.4f', expMetrics.precision);
+    recStr = sprintf('%.4f', expMetrics.recall);
+    accStr = sprintf('%.4f', expMetrics.accuracy);
+    mf1Str = sprintf('%.4f', expMetrics.macro_f1);
+    wf1Str = sprintf('%.4f', expMetrics.weighted_f1);
+    
+    csvRow = sprintf('%s,ResNet-50,true,224x224x3,crossentropy,adam,1e-4,16,5,none,none,42,APTOS,train_split,val_split,test_split,%s,%s,%s,%s,%s,NaN,NaN,r50_v1_best.mat,completed,Baseline frozen config\n', ...
+        'R50-V1', accStr, mf1Str, wf1Str, precStr, recStr);
+        
+    fidCsv = fopen(registryPath, 'a');
+    if fidCsv ~= -1
+        fprintf(fidCsv, '%s', csvRow);
+        fclose(fidCsv);
+    end
     
     disp(['Predictions saved to: ', csvOutPath]);
     disp(['Metrics saved to: ', metricsPath]);
     disp(['Confusion matrix saved to: ', cmPath]);
+    disp(['R50-V1 metrics saved to: ', metricsJsonPath]);
+    disp(['Experiment registry updated at: ', registryPath]);
     
     disp('Evaluation script complete!');
 end

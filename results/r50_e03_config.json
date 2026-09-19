@@ -1,0 +1,23 @@
+{
+  "experiment_id": "R50-E03",
+  "model": "ResNet-50",
+  "pretrained": true,
+  "classes": 5,
+  "input_size": [
+    224,
+    224,
+    3
+  ],
+  "loss": "crossentropy",
+  "optimizer": "adam",
+  "learning_rate": 1E-5,
+  "batch_size": 16,
+  "epochs": 5,
+  "scheduler": "none",
+  "seed": 42,
+  "dataset": "APTOS",
+  "augmentation": "none",
+  "normalization": "imagenet_default",
+  "checkpoint": "r50_e03_best.mat",
+  "notes": "Learning rate experiment (1e-5)"
+}

@@ -4,8 +4,8 @@
 function result = runDRInference(inputImage, generateGradCAM)
     % Initialize default result structure
     result = struct(...
-        'modelName', 'Baseline ResNet-50', ...
-        'modelVersion', '1.0', ...
+        'modelName', 'ResNet-50 (R50-V1 Final Frozen)', ...
+        'modelVersion', '2.0', ...
         'modelStatus', 'LOCKED', ...
         'predictedGrade', NaN, ...
         'classLabels', [0, 1, 2, 3, 4], ...
@@ -66,12 +66,12 @@ function result = runDRInference(inputImage, generateGradCAM)
         
         scriptPath = mfilename('fullpath');
         [srcDir, ~, ~] = fileparts(scriptPath);
-        projectDir = fileparts(srcDir);
+        projectDir = fileparts(fileparts(fileparts(srcDir)));
         
         if isempty(net)
-            netPath = fullfile(projectDir, 'models', 'baseline_resnet50_smoketest.mat');
+            netPath = fullfile(projectDir, 'models', 'final', 'R50-V1', 'r50_v1_best.mat');
             if ~exist(netPath, 'file')
-                error('Model artifact not found.');
+                error('Trained final network not found at: %s', netPath);
             end
             loadedNet = load(netPath, 'net');
             net = loadedNet.net;

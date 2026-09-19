@@ -11,7 +11,7 @@ function net = createBaselineNetwork()
     % to output 5 classes for our DR classification task.
     % This returns an uninitialized dlnetwork without a deprecated 
     % classificationLayer, perfectly suited for the trainnet workflow.
-    net = imagePretrainedNetwork("resnet50", "NumClasses", 5);
+    net = imagePretrainedNetwork("resnet50", "NumClasses", 5, "Weights", "none");
     
     % Display the resulting network architecture
     disp('--- Configured Network Architecture ---');
@@ -48,7 +48,7 @@ function net = createBaselineNetwork()
     % Determine the project root directory and create 'models' directory
     scriptPath = mfilename('fullpath');
     [srcDir, ~, ~] = fileparts(scriptPath);
-    projectDir = fileparts(srcDir);
+    projectDir = fileparts(fileparts(fileparts(srcDir)));
     modelsDir = fullfile(projectDir, 'models');
     
     if ~exist(modelsDir, 'dir')

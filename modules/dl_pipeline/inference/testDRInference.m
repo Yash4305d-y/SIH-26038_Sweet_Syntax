@@ -7,9 +7,7 @@ function testDRInference()
     disp('ROLE 1 ML INFERENCE INTERFACE');
     disp('=============================');
     
-    scriptPath = mfilename('fullpath');
-    [srcDir, ~, ~] = fileparts(scriptPath);
-    projectDir = fileparts(srcDir);
+    projectDir = getProjectRoot();
     
     % Pick a known image from the test set predictions artifact
     testCsv = fullfile(projectDir, 'results', 'baseline_test_predictions.csv');

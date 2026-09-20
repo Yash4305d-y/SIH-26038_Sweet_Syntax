@@ -1,8 +1,6 @@
 function verifyFix()
     % Setup paths
-    scriptPath = mfilename('fullpath');
-    [srcDir, ~, ~] = fileparts(scriptPath);
-    projectDir = fileparts(srcDir);
+    projectDir = getProjectRoot();
     modelsDir = fullfile(projectDir, 'models');
     resultsDir = fullfile(projectDir, 'results');
     

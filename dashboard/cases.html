@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Specialist Review — OculaAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .cases-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-xl);
+    }
+    @media (min-width: 1024px) {
+      .cases-layout {
+        grid-template-columns: 350px 1fr;
+      }
+    }
+    
+    .cases-list-container {
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+      border-right: 1px solid var(--border-default);
+      padding-right: var(--space-md);
+    }
+    
+    .case-item {
+      padding: var(--space-md);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-sm);
+      cursor: pointer;
+      background: var(--surface-card);
+      transition: all 0.2s;
+    }
+    .case-item:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+    .case-item.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .case-item-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .case-id {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--text-primary);
+    }
+    .case-time {
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+    
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .details-table th, .details-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-default);
+      text-align: left;
+    }
+    .details-table th {
+      font-weight: 600;
+      color: var(--text-muted);
+      width: 40%;
+    }
+    
+    .grade-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .grade-option {
+      position: relative;
+    }
+    .grade-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+    }
+    .grade-btn {
+      display: inline-block;
+      padding: 8px 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      font-family: var(--font-mono);
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--surface-card);
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+    .grade-option input[type="radio"]:checked + .grade-btn {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .grade-option input[type="radio"]:disabled + .grade-btn {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a class="logo" href="index.html">
+          <img class="logo-icon" src="data:image/png;base64,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" alt="OculaAI Icon" style="border-radius: 50%;">
+          <div class="logo-text">Ocula<span>AI</span></div>
+        </a>
+      </div>
+      <div class="header-right">
+        <div class="header-badge">
+          <span class="material-symbols-outlined" style="font-size:12px;">person</span>
+          Specialist Review
+        </div>
+        <a href="adaptation.html" class="btn btn-secondary" style="border-color: var(--primary); color: var(--primary);">
+          <span class="material-symbols-outlined">tune</span> Controlled Adaptation
+        </a>
+        <a href="index.html" class="btn btn-secondary">
+          <span class="material-symbols-outlined">add</span> New Screening
+        </a>
+        <a href="#" title="Help & Documentation" style="color: var(--text-faint); text-decoration:none;">
+          <span class="material-symbols-outlined" style="font-size:20px;">help</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <div class="app-container" style="padding-top: 72px;">
+    
+    <div id="api-error" class="alert-banner alert-banner-danger hidden" style="margin-bottom: var(--space-md);">
+      <div class="alert-icon"><span class="material-symbols-outlined">error</span></div>
+      <div class="alert-content">
+        <div class="alert-title">API Error</div>
+        <div class="alert-description" id="api-error-text">Unable to load cases.</div>
+      </div>
+    </div>
+
+    <div class="cases-layout">
+      <!-- Left: Case Queue -->
+      <div class="cases-list-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+          <h2 class="headline-md">Case Queue</h2>
+          <button class="btn btn-secondary" id="btn-refresh" style="padding: 4px 8px;">
+            <span class="material-symbols-outlined">refresh</span>
+          </button>
+        </div>
+
+        <div id="queue-empty" class="empty-state hidden" style="padding: var(--space-xl); text-align: center; border: 1px dashed var(--border-default); border-radius: var(--radius-md);">
+          <span class="material-symbols-outlined" style="font-size: 32px; color: var(--text-faint);">inbox</span>
+          <h3 class="headline-sm" style="margin-top: 8px;">No cases available</h3>
+          <p class="body-sm">Complete a screening first.</p>
+        </div>
+
+        <div id="queue-loading" style="padding: var(--space-xl); text-align: center;">
+          <div class="spinner" style="margin: 0 auto 8px; border-color: var(--primary) transparent var(--primary) transparent; width: 24px; height: 24px; border-width: 2px;"></div>
+          <p class="body-sm">Loading queue...</p>
+        </div>
+
+        <div id="queue-list">
+          <!-- Cases injected here -->
+        </div>
+      </div>
+
+      <!-- Right: Case Details -->
+      <div class="case-details-container">
+        <div id="details-empty" class="empty-state" style="height: 100%; min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--surface-card); border: 1px solid var(--border-default); border-radius: var(--radius-lg);">
+          <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-faint);">find_in_page</span>
+          <h3 class="headline-md" style="margin-top: 16px;">Select a case</h3>
+          <p class="body-md" style="color: var(--text-muted); margin-top: 4px;">Choose a case from the queue to view details.</p>
+        </div>
+
+        <div id="details-content" class="card hidden" style="display: flex; flex-direction: column; gap: var(--space-lg);">
+          
+          <!-- Header info -->
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-default); padding-bottom: var(--space-md);">
+            <div>
+              <h2 class="headline-lg" id="detail-case-id">—</h2>
+              <div class="body-sm" id="detail-time">—</div>
+            </div>
+            <div style="text-align: right;">
+              <div class="label-sm" style="color: var(--text-muted);">Referral ID</div>
+              <div class="body-md" id="detail-referral-id" style="font-weight: 600;">—</div>
+            </div>
+          </div>
+
+          <!-- Split View for Images and Assessment -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+            
+            <!-- Left: Images -->
+            <div style="display: flex; flex-direction: column; gap: var(--space-md);">
+              <div>
+                <div class="label-sm" style="margin-bottom: 4px; color: var(--text-muted);">Original Image</div>
+                <img id="detail-img-orig" src="" style="width: 100%; aspect-ratio: 1; object-fit: contain; background: #000; border-radius: var(--radius-md);">
+              </div>
+              <div>
+                <div class="label-sm" style="margin-bottom: 4px; color: var(--text-muted);">Grad-CAM Explanation</div>
+                <div id="detail-img-gradcam-container" style="width: 100%; aspect-ratio: 1; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-muted); display: flex; align-items: center; justify-content: center;">
+                  <img id="detail-img-gradcam" src="" style="width: 100%; height: 100%; object-fit: contain; background: #000; display: none;">
+                  <span id="detail-img-gradcam-empty" style="color: var(--text-faint);">Not available</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Details and Form -->
+            <div style="display: flex; flex-direction: column; gap: var(--space-lg);">
+              
+              <!-- AI Assessment -->
+              <div>
+                <h3 class="headline-sm" style="margin-bottom: 8px;">AI Assessment</h3>
+                <table class="details-table">
+                  <tr><th>AI Grade</th><td id="detail-ai-grade" style="font-weight: 600;">—</td></tr>
+                  <tr><th>Referable Decision</th><td id="detail-ai-decision">—</td></tr>
+                  <tr><th>AI Referable Prob</th><td id="detail-ai-prob">—</td></tr>
+                  <tr><th>Model Version</th><td id="detail-model-version" class="body-sm">—</td></tr>
+                  <tr><th>Calibration Version</th><td id="detail-calib-version" class="body-sm">—</td></tr>
+                </table>
+              </div>
+
+              <!-- Morphology Evidence -->
+              <div id="morphology-section">
+                <h3 class="headline-sm" style="margin-bottom: 8px;">Retinal structure / lesion-candidate evidence</h3>
+                <table class="details-table" id="morphology-table">
+                  <!-- Populated dynamically -->
+                </table>
+              </div>
+
+              <!-- Specialist Review Form -->
+              <div style="background: var(--surface-muted); padding: var(--space-md); border-radius: var(--radius-md); border: 1px solid var(--border-default);">
+                
+                <div id="review-pending">
+                  <h3 class="headline-sm" style="color: var(--primary); margin-bottom: 4px;">Awaiting specialist review</h3>
+                  <p class="body-sm" style="margin-bottom: 12px;">Submit your clinical assessment.</p>
+                  
+                  <div class="label-sm" style="margin-bottom: 8px; color: var(--text-secondary);">Specialist Grade</div>
+                  <div class="grade-selector" id="grade-selector">
+                    <label class="grade-option">
+                      <input type="radio" name="specialist_grade" value="0">
+                      <span class="grade-btn">0</span>
+                    </label>
+                    <label class="grade-option">
+                      <input type="radio" name="specialist_grade" value="1">
+                      <span class="grade-btn">1</span>
+                    </label>
+                    <label class="grade-option">
+                      <input type="radio" name="specialist_grade" value="2">
+                      <span class="grade-btn">2</span>
+                    </label>
+                    <label class="grade-option">
+                      <input type="radio" name="specialist_grade" value="3">
+                      <span class="grade-btn">3</span>
+                    </label>
+                    <label class="grade-option">
+                      <input type="radio" name="specialist_grade" value="4">
+                      <span class="grade-btn">4</span>
+                    </label>
+                  </div>
+                  
+                  <button class="btn btn-primary" id="btn-submit-review" style="width: 100%; justify-content: center;">Submit Specialist Review</button>
+                  <div id="submit-error" class="body-sm" style="color: var(--color-danger); margin-top: 8px; display: none;"></div>
+                </div>
+
+                <div id="review-completed" class="hidden">
+                  <h3 class="headline-sm" style="color: var(--color-success); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined">check_circle</span> Specialist reviewed
+                  </h3>
+                  
+                  <table class="details-table" style="background: var(--surface-card);">
+                    <tr><th>Specialist Grade</th><td id="detail-spec-grade" style="font-weight: 700;">—</td></tr>
+                    <tr><th>Agreement</th><td id="detail-agreement" style="font-weight: 700;">—</td></tr>
+                  </table>
+                </div>
+
+              </div>
+              
+              <!-- Follow Up -->
+              <div>
+                 <div class="label-sm" style="margin-bottom: 4px; color: var(--text-muted);">Follow-up Status</div>
+                 <div class="body-md" id="detail-followup" style="font-weight: 600;">—</div>
+              </div>
+
+            </div>
+          </div>
+          
+          <!-- ========== LAYER 3 CASE AUDIT / TRACEABILITY ========== -->
+          <div style="margin-top: var(--space-xl); border-top: 1px solid var(--border-default); padding-top: var(--space-lg);">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: var(--space-md);">
+              <span class="material-symbols-outlined" style="color: var(--text-faint);">manage_search</span>
+              <h2 class="headline-md">CASE AUDIT / TRACEABILITY</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr; gap: var(--space-lg); background: var(--surface-base); padding: var(--space-lg); border-radius: var(--radius-lg); border: 1px solid var(--border-default);">
+              
+              <!-- Timeline -->
+              <div>
+                <h3 class="headline-sm" style="margin-bottom: 8px; color: var(--text-secondary);">Timeline Trace</h3>
+                <div style="font-family: var(--font-mono); font-size: 11px; background: #fff; padding: var(--space-md); border-radius: var(--radius-md); border: 1px solid var(--border-default);">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span>[<span id="audit-time-created">—</span>]</span> <strong>Screening Created</strong>
+                  </div>
+                  <div style="color: var(--text-muted); margin-left: 20px; border-left: 1px solid var(--border-default); padding-left: 12px; height: 16px;"></div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span style="color: var(--text-faint);">[Timestamp not stored]</span> <strong>AI Assessment</strong>
+                  </div>
+                  <div style="color: var(--text-muted); margin-left: 20px; border-left: 1px solid var(--border-default); padding-left: 12px; height: 16px;"></div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span style="color: var(--text-faint);">[Timestamp not stored]</span> <strong>Referral</strong>
+                  </div>
+                  <div style="color: var(--text-muted); margin-left: 20px; border-left: 1px solid var(--border-default); padding-left: 12px; height: 16px;"></div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span style="color: var(--text-faint);">[Timestamp not stored]</span> <strong id="audit-trace-specialist">Specialist Review</strong>
+                  </div>
+                  <div style="color: var(--text-muted); margin-left: 20px; border-left: 1px solid var(--border-default); padding-left: 12px; height: 16px;"></div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span style="color: var(--text-faint);">[Timestamp not stored]</span> <strong id="audit-trace-agreement">Agreement Recorded</strong>
+                  </div>
+                  <div style="color: var(--text-muted); margin-left: 20px; border-left: 1px solid var(--border-default); padding-left: 12px; height: 16px;"></div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-faint);">[Timestamp not stored]</span> <strong>Follow-up State</strong>
+                  </div>
+                </div>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+                
+                <!-- Identity & AI Trace -->
+                <div>
+                  <h3 class="headline-sm" style="margin-bottom: 8px; color: var(--text-secondary);">Case Identity</h3>
+                  <table class="details-table" style="background: #fff; margin-bottom: var(--space-md);">
+                    <tr><th>Case ID</th><td id="audit-id" style="font-family: var(--font-mono);">—</td></tr>
+                    <tr><th>Timestamp</th><td id="audit-timestamp" style="font-family: var(--font-mono);">—</td></tr>
+                    <tr><th>Image ID</th><td id="audit-image-id" style="font-family: var(--font-mono);">—</td></tr>
+                    <tr><th>Referral ID</th><td id="audit-referral-id" style="font-family: var(--font-mono);">—</td></tr>
+                  </table>
+
+                  <h3 class="headline-sm" style="margin-bottom: 8px; color: var(--text-secondary);">AI Traceability</h3>
+                  <table class="details-table" style="background: #fff;">
+                    <tr><th>Model version</th><td id="audit-model-version" style="font-family: var(--font-mono);">—</td></tr>
+                    <tr><th>Calibration version</th><td id="audit-calib-version" style="font-family: var(--font-mono);">—</td></tr>
+                    <tr><th>AI grade</th><td id="audit-ai-grade">—</td></tr>
+                    <tr><th>AI referable probability</th><td id="audit-ai-prob" style="font-family: var(--font-mono);">—</td></tr>
+                    <tr><th>Referable decision</th><td id="audit-ai-decision">—</td></tr>
+                  </table>
+                </div>
+
+                <!-- Quality, Specialist, Care-Loop -->
+                <div>
+                  <h3 class="headline-sm" style="margin-bottom: 8px; color: var(--text-secondary);">Quality / Inference Trace</h3>
+                  <table class="details-table" style="background: #fff; margin-bottom: var(--space-md);">
+                    <tr><th>IQA status</th><td id="audit-iqa">—</td></tr>
+                    <tr><th>Grad-CAM status</th><td id="audit-gradcam" style="color: var(--text-muted); font-size: 11px;">—</td></tr>
+                    <tr><th>Morphology execution</th><td id="audit-morph-status">—</td></tr>
+                  </table>
+                  
+                  <div style="margin-bottom: var(--space-md);">
+                    <div class="label-sm" style="margin-bottom: 4px; color: var(--text-muted);">Morphology Component Status</div>
+                    <table class="details-table" id="audit-morph-components" style="background: #fff;">
+                      <!-- Populated dynamically -->
+                    </table>
+                  </div>
+
+                  <h3 class="headline-sm" style="margin-bottom: 8px; color: var(--text-secondary);">Specialist & Care-Loop Trace</h3>
+                  <table class="details-table" style="background: #fff;">
+                    <tr><th>Review status</th><td id="audit-review-status">—</td></tr>
+                    <tr><th>Specialist grade</th><td id="audit-spec-grade">—</td></tr>
+                    <tr><th>Agreement</th><td id="audit-spec-agreement">—</td></tr>
+                    <tr><th>Follow-up state</th><td id="audit-followup-state">—</td></tr>
+                  </table>
+                </div>
+                
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/cases.js?v=1" defer></script>
+</body>
+</html>

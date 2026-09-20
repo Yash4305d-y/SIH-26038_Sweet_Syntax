@@ -27,6 +27,12 @@
           <span class="material-symbols-outlined" style="font-size:12px;">science</span>
           MATLAB Pipeline
         </div>
+        <a href="adaptation.html" class="btn btn-secondary" style="border-color: var(--primary); color: var(--primary);">
+          <span class="material-symbols-outlined">tune</span> Controlled Adaptation
+        </a>
+        <a href="cases.html" class="btn btn-secondary">
+          <span class="material-symbols-outlined">person</span> Specialist Portal
+        </a>
         <a href="#" title="Help & Documentation" style="color: var(--text-faint); text-decoration:none;">
           <span class="material-symbols-outlined" style="font-size:20px;">help</span>
         </a>
@@ -197,15 +203,15 @@
           <div class="report-actions" style="display: flex; gap: 12px; margin-top: 24px;">
             <button class="btn btn-primary" id="btn-show-report">
               <span class="material-symbols-outlined">visibility</span>
-              Show Details
+              Preview Screening Report
             </button>
             <button class="btn btn-secondary" id="btn-download-report">
               <span class="material-symbols-outlined">download</span>
-              Download Report
+              Download Screening Report
             </button>
-            <button class="btn btn-secondary" id="btn-share-report">
-              <span class="material-symbols-outlined">share</span>
-              Share Report
+            <button class="btn btn-secondary" id="btn-show-evidence">
+              <span class="material-symbols-outlined">science</span>
+              View Model Evidence
             </button>
           </div>
           
@@ -224,7 +230,7 @@
         <div class="modal-backdrop" id="report-modal-backdrop"></div>
         <div class="modal-content">
           <div class="modal-header">
-            <h2>Detailed Diagnostic Report</h2>
+            <h2>Layer 1 Screening Report Preview</h2>
             <button class="btn-icon" id="btn-close-report" style="background:transparent; border:none; cursor:pointer;"><span class="material-symbols-outlined">close</span></button>
           </div>
           <div class="modal-body">
@@ -232,74 +238,94 @@
             <!-- REPORT CONTENT FOR PDF -->
             <div class="pdf-report" id="pdf-report">
               
-              <!-- 1. Report Cover / Screening Summary -->
+              <!-- 1. Header -->
               <div class="report-section cover-section">
                 <h1>Explainable AI for Diabetic Retinopathy Screening</h1>
                 <h3>SIH 26038</h3>
                 <div class="summary-grid">
-                  <div><strong>Patient/Screening ID:</strong> <span id="report-patient-id"></span></div>
+                  <div><strong>Case ID:</strong> <span id="report-patient-id"></span></div>
                   <div><strong>Date:</strong> <span id="report-date"></span></div>
-                  <div><strong>Model:</strong> <span id="report-model-name"></span></div>
-                  <div><strong>Predicted DR Grade:</strong> <span id="report-grade"></span></div>
-                  <div><strong>Referable Status:</strong> <span id="report-ref-status"></span></div>
-                  <div><strong>Referable Probability:</strong> <span id="report-ref-prob"></span></div>
+                  <div><strong>Report Type:</strong> <span>Screening Report</span></div>
                 </div>
                 <div class="disclaimer">
                   "AI-generated screening result for decision support. This prototype is not a substitute for clinical diagnosis."
                 </div>
               </div>
 
-              <div class="html2pdf__page-break"></div>
-
-              <!-- 2. Patient & Screening Information -->
+              <!-- 2. Screening Result -->
               <div class="report-section">
-                <h2>2. Patient & Screening Information</h2>
+                <h2>2. Screening Result</h2>
                 <table class="report-table">
-                  <tr><th>Patient ID</th><td id="sec2-patient"></td></tr>
-                  <tr><th>Screening Date</th><td id="sec2-date"></td></tr>
-                  <tr><th>System Status</th><td>Operational</td></tr>
+                  <tr><th>AI Screening Result</th><td id="sec2-class"></td></tr>
+                  <tr><th>Predicted DR Grade</th><td id="sec2-grade"></td></tr>
+                  <tr><th>Referable Decision</th><td id="sec2-ref-status"></td></tr>
+                  <tr><th>Calibrated Probability</th><td id="sec2-ref-prob"></td></tr>
                 </table>
               </div>
 
-              <!-- 3. Image Quality Assessment -->
+              <!-- 3. Retinal Image -->
               <div class="report-section">
-                <h2>3. Image Quality Assessment</h2>
-                <table class="report-table">
-                  <tr><th>IQA Status</th><td id="sec3-iqa-status">PASS</td></tr>
-                </table>
-                <p id="sec3-iqa-msg">Image quality passed all automated thresholds for focus, illumination, and field-of-view.</p>
-              </div>
-
-              <!-- 4. Screening Result -->
-              <div class="report-section">
-                <h2>4. Final Screening Result</h2>
-                <table class="report-table">
-                  <tr><th>Predicted DR Grade</th><td id="sec4-grade"></td></tr>
-                  <tr><th>Classification</th><td id="sec4-class"></td></tr>
-                  <tr><th>Referable Status</th><td id="sec4-ref-status"></td></tr>
-                  <tr><th>Referable Probability</th><td id="sec4-ref-prob"></td></tr>
-                  <tr><th>Model Confidence</th><td id="sec4-confidence"></td></tr>
-                </table>
-              </div>
-
-              <!-- 5. Retinal Image -->
-              <div class="report-section">
-                <h2>5. Retinal Image</h2>
+                <h2>3. Retinal Image</h2>
                 <img id="report-original-img" src="" style="max-height: 250px;">
               </div>
 
-              <!-- 6. Grad-CAM Explanation -->
+              <!-- 4. Explanation -->
               <div class="report-section">
-                <h2>6. Grad-CAM Explanation</h2>
+                <h2>4. AI Attention Visualization (Grad-CAM)</h2>
                 <div id="report-gradcam-container">
                   <img id="report-gradcam-img" src="" style="max-height: 250px;">
                 </div>
-                <p class="caption">"Highlighted regions show areas that influenced the model's prediction. This visualization explains model attention and is not a clinical proof of lesion location."</p>
+                <p class="caption">"AI attention/explanation visualization. This is not a clinical proof of lesion location."</p>
               </div>
 
+              <!-- 5. Referral Recommendation -->
+              <div class="report-section">
+                <h2>5. Referral Recommendation</h2>
+                <table class="report-table">
+                  <tr><th>Referable Status</th><td id="sec5-ref-status"></td></tr>
+                  <tr><th>Referral Recommendation</th><td id="sec5-recommendation"></td></tr>
+                  <tr id="sec5-ref-id-row" style="display:none;"><th>Referral ID</th><td id="sec5-ref-id"></td></tr>
+                  <tr><th>Follow-up Status</th><td id="sec5-followup"></td></tr>
+                </table>
+              </div>
+
+              <!-- 6. Next Action -->
+              <div class="report-section">
+                <h2>6. Next Action</h2>
+                <p id="sec6-next-action" style="font-weight: 600; padding: 12px; background: #f8fafc; border-left: 4px solid var(--primary);"></p>
+              </div>
+
+              <!-- 7. Case Identification -->
+              <div class="report-section">
+                <h2>7. Case Identification</h2>
+                <table class="report-table">
+                  <tr><th>Case ID</th><td id="sec7-case-id"></td></tr>
+                  <tr id="sec7-ref-id-row" style="display:none;"><th>Referral ID</th><td id="sec7-ref-id"></td></tr>
+                  <tr><th>Screening Timestamp</th><td id="sec7-date"></td></tr>
+                  <tr><th>Follow-up Status</th><td id="sec7-followup"></td></tr>
+                </table>
+              </div>
+            </div>
+          <div class="modal-footer" style="padding: 16px; border-top: 1px solid var(--border-color); display:flex; justify-content:flex-end;">
+            <button class="btn btn-primary" id="btn-modal-download">
+              <span class="material-symbols-outlined">download</span> Download PDF
+            </button>
+          </div>
+        </div>
+      </div>
 
 
-              <!-- 7. Probability Distribution -->
+      <!-- MODEL EVIDENCE MODAL (Hidden by default) -->
+      <div id="evidence-modal" class="modal hidden">
+        <div class="modal-backdrop" id="evidence-modal-backdrop"></div>
+        <div class="modal-content" style="max-width: 900px;">
+          <div class="modal-header">
+            <h2>Model Evidence Package</h2>
+            <button class="btn-icon" id="btn-close-evidence" style="background:transparent; border:none; cursor:pointer;"><span class="material-symbols-outlined">close</span></button>
+          </div>
+          <div class="modal-body">
+            <div class="pdf-report" id="evidence-report">
+<!-- 7. Probability Distribution -->
               <div class="report-section">
                 <h2>7. Probability Distribution</h2>
                 <div class="prob-chart">
@@ -474,25 +500,11 @@ Integration Layer → UI / Simulink Workflow
                 </pre>
               </div>
 
-              <!-- 21. Final Screening Summary -->
-              <div class="report-section">
-                <h2>21. Final Screening Summary</h2>
-                <table class="report-table summary-table">
-                  <tr><th>Patient/Case ID</th><td id="sec21-id"></td></tr>
-                  <tr><th>DR Grade</th><td id="sec21-grade"></td></tr>
-                  <tr><th>Referable Status</th><td id="sec21-ref-status"></td></tr>
-                  <tr><th>Referable Probability</th><td id="sec21-ref-prob"></td></tr>
-                  <tr><th>Confidence</th><td id="sec21-confidence"></td></tr>
-                  <tr><th>Date</th><td id="sec21-date"></td></tr>
-                </table>
-              </div>
-
+              
             </div>
           </div>
           <div class="modal-footer" style="padding: 16px; border-top: 1px solid var(--border-color); display:flex; justify-content:flex-end;">
-            <button class="btn btn-primary" id="btn-modal-download">
-              <span class="material-symbols-outlined">download</span> Download PDF
-            </button>
+            <button class="btn btn-secondary" id="btn-close-evidence-footer">Close</button>
           </div>
         </div>
       </div>

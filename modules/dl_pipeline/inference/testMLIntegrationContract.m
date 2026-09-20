@@ -7,9 +7,7 @@ function testMLIntegrationContract()
     disp('ROLE 1 ML INTEGRATION CONTRACT TEST');
     disp('===================================');
 
-    scriptPath = mfilename('fullpath');
-    [srcDir, ~, ~] = fileparts(scriptPath);
-    projectDir = fileparts(srcDir);
+    projectDir = getProjectRoot();
     
     testCsv = fullfile(projectDir, 'results', 'baseline_test_predictions.csv');
     t = readtable(testCsv, 'PreserveVariableNames', true);

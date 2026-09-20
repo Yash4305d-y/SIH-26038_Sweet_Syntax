@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OculaAI - Controlled Adaptation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link rel="stylesheet" href="css/style.css?v=2">
+</head>
+<body>
+  
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a class="logo" href="index.html">
+          <img class="logo-icon" src="data:image/png;base64,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" alt="OculaAI Icon" style="border-radius: 50%;">
+          <div class="logo-text">Ocula<span>AI</span></div>
+        </a>
+      </div>
+      <div class="header-right">
+        <div class="header-badge" style="background: var(--surface-muted); color: var(--text-secondary); border-color: var(--border-strong);">
+          <span class="material-symbols-outlined" style="font-size:12px;">tune</span>
+          Controlled Adaptation
+        </div>
+        <a href="cases.html" class="btn btn-secondary">
+          <span class="material-symbols-outlined">person</span> Specialist Portal
+        </a>
+        <a href="index.html" class="btn btn-secondary">
+          <span class="material-symbols-outlined">add</span> New Screening
+        </a>
+        <a href="#" title="Help & Documentation" style="color: var(--text-faint); text-decoration:none;">
+          <span class="material-symbols-outlined" style="font-size:20px;">help</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <main class="main-content" style="max-width: 1200px; margin: 0 auto; padding-top: 40px;">
+      
+      <!-- HEADER -->
+      <div style="margin-bottom: var(--space-xl);">
+        <h1 class="headline-lg" style="margin-bottom: 8px;">Controlled Adaptation</h1>
+        <p style="color: var(--text-secondary); max-width: 800px; line-height: 1.5;">Calibration-only adaptation using verified IDRiD data with the ResNet-50 weights frozen.</p>
+      </div>
+
+      <!-- MAIN CONTAINER -->
+      <div id="adaptation-loading" style="padding: 40px; text-align: center; color: var(--text-faint);">
+        <span class="material-symbols-outlined" style="font-size: 32px; animation: spin 1s linear infinite;">autorenew</span>
+        <p style="margin-top: 16px;">Loading adaptation handoff package...</p>
+      </div>
+
+      <div id="adaptation-error" class="hidden" style="padding: 40px; text-align: center; background: var(--surface-base); border: 1px solid var(--color-danger); border-radius: var(--radius-lg); margin-bottom: 24px;">
+        <span class="material-symbols-outlined" style="font-size: 48px; color: var(--color-danger); margin-bottom: 16px;">error</span>
+        <h2 style="color: var(--color-danger); margin-bottom: 8px;">Adaptation Package Not Found</h2>
+        <p id="error-message" style="color: var(--text-secondary);">Unable to load the machine-readable handoff package.</p>
+      </div>
+
+      <div id="adaptation-content" class="hidden">
+        
+        <!-- DECISION BANNER -->
+        <div id="decision-banner" style="display: flex; align-items: center; justify-content: space-between; padding: 24px; border-radius: var(--radius-lg); margin-bottom: 32px; border: 2px solid var(--border-default);">
+          <div>
+            <div style="font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; opacity: 0.8;">Mechanical Decision</div>
+            <h2 id="final-decision" style="font-size: 36px; margin: 0; font-weight: 700;">—</h2>
+          </div>
+          <div style="flex: 1; margin-left: 40px;">
+            <p id="decision-rationale" style="margin: 0; font-size: 14px; line-height: 1.6; opacity: 0.9;"></p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+          <!-- CURRENT CALIBRATION -->
+          <div class="card" style="padding: 24px;">
+            <h3 class="headline-md" style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+              <span class="material-symbols-outlined" style="color: var(--text-faint);">lock</span>
+              Current Baseline
+            </h3>
+            <table class="details-table" style="width: 100%;">
+              <tr><th>Method</th><td id="base-method">Platt Scaling</td></tr>
+              <tr><th>Model State</th><td id="base-state">—</td></tr>
+              <tr><th>Platt A</th><td id="base-platt-a" style="font-family: var(--font-mono);">—</td></tr>
+              <tr><th>Platt B</th><td id="base-platt-b" style="font-family: var(--font-mono);">—</td></tr>
+              <tr><th>Threshold</th><td id="base-threshold" style="font-family: var(--font-mono); font-weight: 600;">—</td></tr>
+            </table>
+          </div>
+
+          <!-- CANDIDATE CALIBRATION -->
+          <div class="card" style="padding: 24px;">
+            <h3 class="headline-md" style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+              <span class="material-symbols-outlined" style="color: var(--primary);">model_training</span>
+              Candidate Calibration
+            </h3>
+            <table class="details-table" style="width: 100%;">
+              <tr><th>Method</th><td id="cand-method">Platt Scaling</td></tr>
+              <tr><th>Candidate ID</th><td id="cand-id">—</td></tr>
+              <tr><th>Platt A</th><td id="cand-platt-a" style="font-family: var(--font-mono);">—</td></tr>
+              <tr><th>Platt B</th><td id="cand-platt-b" style="font-family: var(--font-mono);">—</td></tr>
+              <tr><th>Threshold</th><td id="cand-threshold" style="font-family: var(--font-mono); font-weight: 600;">—</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- EXPERIMENTAL DESIGN -->
+        <div class="card" style="padding: 24px; margin-bottom: 32px;">
+          <h3 class="headline-md" style="margin-bottom: 16px;">Dataset & Experimental Design</h3>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px;">
+            <div style="background: var(--surface-base); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-default);">
+              <div class="label-sm" style="color: var(--text-muted); margin-bottom: 4px;">Dataset</div>
+              <div class="body-lg" style="font-weight: 600;" id="ds-name">—</div>
+            </div>
+            <div style="background: var(--surface-base); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-default);">
+              <div class="label-sm" style="color: var(--text-muted); margin-bottom: 4px;">Total Valid Records</div>
+              <div class="body-lg" style="font-weight: 600; font-family: var(--font-mono);" id="ds-total">—</div>
+            </div>
+            <div style="background: var(--surface-base); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-default);">
+              <div class="label-sm" style="color: var(--text-muted); margin-bottom: 4px;">Fit Sample Count</div>
+              <div class="body-lg" style="font-weight: 600; font-family: var(--font-mono);" id="ds-fit">—</div>
+            </div>
+            <div style="background: var(--surface-base); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-default);">
+              <div class="label-sm" style="color: var(--text-muted); margin-bottom: 4px;">Held-out Sample Count</div>
+              <div class="body-lg" style="font-weight: 600; font-family: var(--font-mono);" id="ds-heldout">—</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; color: var(--color-success); font-size: 14px; background: rgba(16,185,129,0.1); padding: 12px; border-radius: var(--radius-md);">
+            <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
+            <span><strong>Zero Leakage Verified:</strong> Split overlap is <span id="ds-overlap">0</span>. Held-out evaluation subset was strictly untouched during candidate fitting.</span>
+          </div>
+        </div>
+
+        <!-- A/B METRICS & GUARDRAILS -->
+        <div class="card" style="padding: 24px; margin-bottom: 32px;">
+          <h3 class="headline-md" style="margin-bottom: 16px;">Held-out Evaluation vs Predefined Guardrails</h3>
+          
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border-default);">
+                <th style="padding: 12px; font-weight: 600; color: var(--text-secondary);">Metric</th>
+                <th style="padding: 12px; font-weight: 600; color: var(--text-secondary);">Baseline</th>
+                <th style="padding: 12px; font-weight: 600; color: var(--text-secondary);">Candidate</th>
+                <th style="padding: 12px; font-weight: 600; color: var(--text-secondary);">Required Guardrail</th>
+                <th style="padding: 12px; font-weight: 600; color: var(--text-secondary);">Status</th>
+              </tr>
+            </thead>
+            <tbody id="metrics-table-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+          <p id="guardrail-disclaimer" style="margin-top: 16px; font-size: 13px; color: var(--text-muted);"></p>
+        </div>
+
+        <!-- TRACEABILITY FOOTER -->
+        <div style="border-top: 1px solid var(--border-default); padding-top: 24px; color: var(--text-muted); font-size: 13px; margin-bottom: 40px;">
+          <p><strong>Evaluation Timestamp:</strong> <span id="trace-timestamp" style="font-family: var(--font-mono);">—</span></p>
+          <p><strong>Clinical Disclaimer:</strong> <span id="trace-disclaimer">This is a quantitative domain-adaptation proof-of-concept using IDRiD. It is not clinical validation and does not authorize automatic calibration deployment.</span></p>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/adaptation.js"></script>
+</body>
+</html>

@@ -64,9 +64,7 @@ function result = runDRInference(inputImage, generateGradCAM)
         % 3. Load Persistent State (Model & Calibration)
         persistent net calibMdl;
         
-        scriptPath = mfilename('fullpath');
-        [srcDir, ~, ~] = fileparts(scriptPath);
-        projectDir = fileparts(srcDir);
+        projectDir = getProjectRoot();
         
         if isempty(net)
             netPath = fullfile(projectDir, 'models', 'baseline_resnet50_smoketest.mat');

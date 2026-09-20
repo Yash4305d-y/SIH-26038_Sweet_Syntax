@@ -96,7 +96,7 @@ class CaseManager:
         with self.lock:
             return list(self._load().values())
 
-    def update_specialist_grade(self, case_id, grade):
+    def update_specialist_grade(self, case_id, grade, review_duration_seconds=None):
         if grade not in [0, 1, 2, 3, 4]:
             return False, "Invalid specialist grade. Must be 0-4."
         with self.lock:
@@ -108,6 +108,10 @@ class CaseManager:
             ai_grade = case.get("ai_grade")
             if ai_grade is not None:
                 case["agreement"] = "AGREE" if ai_grade == grade else "DISAGREE"
+            
+            if review_duration_seconds is not None:
+                case["review_duration_seconds"] = review_duration_seconds
+                
             self._save(cases)
             return True, case
 
@@ -151,6 +155,16 @@ app = Flask(__name__, static_folder=str(DASHBOARD_DIR))
 @app.route('/')
 def serve_index():
     return send_from_directory(str(DASHBOARD_DIR), 'index.html')
+
+
+@app.route('/cases.html')
+def serve_cases():
+    return send_from_directory(str(DASHBOARD_DIR), 'cases.html')
+
+
+@app.route('/adaptation.html')
+def serve_adaptation():
+    return send_from_directory(str(DASHBOARD_DIR), 'adaptation.html')
 
 
 @app.route('/css/<path:filename>')
@@ -293,7 +307,18 @@ def update_specialist(case_id):
     if not data or 'specialist_grade' not in data:
         return jsonify({'error': 'specialist_grade is required'}), 400
     grade = data['specialist_grade']
-    success, result = case_manager.update_specialist_grade(case_id, grade)
+    
+    review_duration_seconds = data.get('review_duration_seconds')
+    if review_duration_seconds is not None:
+        try:
+            review_duration_seconds = float(review_duration_seconds)
+            import math
+            if math.isnan(review_duration_seconds) or math.isinf(review_duration_seconds):
+                review_duration_seconds = None
+        except (ValueError, TypeError):
+            review_duration_seconds = None
+            
+    success, result = case_manager.update_specialist_grade(case_id, grade, review_duration_seconds)
     if success:
         return jsonify(result)
     return jsonify({'error': result}), 400

@@ -4,6 +4,8 @@
    =================================================================== */
 
 let currentCaseId = null;
+window.currentReviewCaseId = null;
+window.currentReviewStartTime = null;
 
 // DOM Elements
 const queueList = document.getElementById('queue-list');
@@ -118,6 +120,8 @@ async function fetchCases() {
 async function loadCaseDetails(caseId) {
   // Stale data protection: capture requested caseId
   currentCaseId = caseId;
+  window.currentReviewCaseId = null;
+  window.currentReviewStartTime = null;
   
   detailsEmpty.classList.add('hidden');
   detailsContent.classList.add('hidden');
@@ -142,6 +146,24 @@ async function loadCaseDetails(caseId) {
     elAiProb.textContent = c.ai_referable_probability !== null ? (c.ai_referable_probability * 100).toFixed(1) + '%' : 'N/A';
     elModelVersion.textContent = c.model_version || 'N/A';
     elCalibVersion.textContent = c.calibration_version || 'N/A';
+    
+    // Populate IQA Status and Class Probabilities
+    document.getElementById('detail-iqa').textContent = c.iqa_pass !== null && c.iqa_pass !== undefined ? (c.iqa_pass ? 'PASS' : 'FAIL') : '—';
+    document.getElementById('detail-iqa').style.color = c.iqa_pass !== null && c.iqa_pass !== undefined ? (c.iqa_pass ? 'var(--color-success)' : 'var(--color-danger)') : 'var(--text-primary)';
+
+    if (c.probabilities && c.probabilities.length === 5) {
+      document.getElementById('detail-ai-prob-0').textContent = (c.probabilities[0] * 100).toFixed(1) + '%';
+      document.getElementById('detail-ai-prob-1').textContent = (c.probabilities[1] * 100).toFixed(1) + '%';
+      document.getElementById('detail-ai-prob-2').textContent = (c.probabilities[2] * 100).toFixed(1) + '%';
+      document.getElementById('detail-ai-prob-3').textContent = (c.probabilities[3] * 100).toFixed(1) + '%';
+      document.getElementById('detail-ai-prob-4').textContent = (c.probabilities[4] * 100).toFixed(1) + '%';
+    } else {
+      document.getElementById('detail-ai-prob-0').textContent = '—';
+      document.getElementById('detail-ai-prob-1').textContent = '—';
+      document.getElementById('detail-ai-prob-2').textContent = '—';
+      document.getElementById('detail-ai-prob-3').textContent = '—';
+      document.getElementById('detail-ai-prob-4').textContent = '—';
+    }
     
     if (c.referable_decision === 'Referable') {
       elAiDecision.style.color = 'var(--color-danger)';
@@ -223,6 +245,7 @@ async function loadCaseDetails(caseId) {
     const elAuditSpecGrade = document.getElementById('audit-spec-grade');
     const elAuditSpecAgre = document.getElementById('audit-spec-agreement');
     const elAuditFollowup = document.getElementById('audit-followup-state');
+    const elAuditReviewTime = document.getElementById('audit-review-time');
 
     // Timeline Trace
     const timeStr = new Date(c.timestamp).toLocaleString();
@@ -296,6 +319,31 @@ async function loadCaseDetails(caseId) {
     elAuditSpecGrade.textContent = c.specialist_grade !== null ? c.specialist_grade : 'None';
     elAuditSpecAgre.textContent = c.agreement || 'None';
     elAuditFollowup.textContent = c.follow_up_status || 'UNKNOWN';
+    
+    if (c.review_duration_seconds !== undefined && c.review_duration_seconds !== null) {
+      elAuditReviewTime.textContent = `${c.review_duration_seconds.toFixed(2)} seconds`;
+    } else {
+      elAuditReviewTime.textContent = '—';
+    }
+
+    // Controlled Adaptation Trace
+    const elAuditAdaptStatus = document.getElementById('audit-adapt-status');
+    const elAuditAdaptExp = document.getElementById('audit-adapt-exp');
+    const elAuditAdaptDecision = document.getElementById('audit-adapt-decision');
+    
+    if (c.adaptation) {
+      elAuditAdaptStatus.textContent = c.adaptation.status || 'UNKNOWN';
+      elAuditAdaptExp.textContent = c.adaptation.experiment_id || 'UNKNOWN';
+      elAuditAdaptDecision.textContent = c.adaptation.decision || 'UNKNOWN';
+    } else if (c.adaptation_info) {
+      elAuditAdaptStatus.textContent = c.adaptation_info.status || 'UNKNOWN';
+      elAuditAdaptExp.textContent = c.adaptation_info.experiment_id || 'UNKNOWN';
+      elAuditAdaptDecision.textContent = c.adaptation_info.decision || 'UNKNOWN';
+    } else {
+      elAuditAdaptStatus.textContent = '—';
+      elAuditAdaptExp.textContent = '—';
+      elAuditAdaptDecision.textContent = '—';
+    }
 
     // Populate Review Form
     submitError.style.display = 'none';
@@ -312,6 +360,12 @@ async function loadCaseDetails(caseId) {
       specGradeValue.textContent = `Grade ${c.specialist_grade}`;
       agreementValue.textContent = c.agreement || 'UNKNOWN';
       
+      if (c.review_duration_seconds !== undefined && c.review_duration_seconds !== null) {
+        document.getElementById('detail-review-time').textContent = `${c.review_duration_seconds.toFixed(2)} seconds`;
+      } else {
+        document.getElementById('detail-review-time').textContent = '—';
+      }
+      
       if (c.agreement === 'AGREE') {
         agreementValue.style.color = 'var(--color-success)';
       } else if (c.agreement === 'DISAGREE') {
@@ -326,6 +380,10 @@ async function loadCaseDetails(caseId) {
     }
 
     detailsContent.classList.remove('hidden');
+    
+    // Start the timer for the specialist review
+    window.currentReviewCaseId = caseId;
+    window.currentReviewStartTime = Date.now();
     
   } catch (err) {
     // If user clicked another case while fetching, ignore this error
@@ -353,6 +411,12 @@ async function submitReview() {
 
   const grade = parseInt(selectedInput.value, 10);
   
+  let payload = { specialist_grade: grade };
+  if (window.currentReviewCaseId === currentCaseId && window.currentReviewStartTime) {
+    const durationMs = Date.now() - window.currentReviewStartTime;
+    payload.review_duration_seconds = durationMs / 1000;
+  }
+  
   btnSubmitReview.disabled = true;
   btnSubmitReview.innerHTML = '<div class="spinner" style="width:16px; height:16px; border-width:2px; margin-right:8px;"></div> Submitting...';
   submitError.style.display = 'none';
@@ -363,13 +427,17 @@ async function submitReview() {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ specialist_grade: grade })
+      body: JSON.stringify(payload)
     });
     
     if (!res.ok) {
       const errData = await res.json();
       throw new Error(errData.error || `HTTP error ${res.status}`);
     }
+
+    // Success! Clear timer
+    window.currentReviewCaseId = null;
+    window.currentReviewStartTime = null;
 
     // Success! Reload the current case to show updated status
     await loadCaseDetails(currentCaseId);

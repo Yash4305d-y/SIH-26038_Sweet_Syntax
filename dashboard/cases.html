@@ -132,7 +132,7 @@
         <a href="adaptation.html" class="btn btn-secondary" style="border-color: var(--primary); color: var(--primary);">
           <span class="material-symbols-outlined">tune</span> Controlled Adaptation
         </a>
-        <a href="index.html" class="btn btn-secondary">
+        <a href="/" class="btn btn-secondary">
           <span class="material-symbols-outlined">add</span> New Screening
         </a>
         <a href="#" title="Help & Documentation" style="color: var(--text-faint); text-decoration:none;">
@@ -226,9 +226,15 @@
               <div>
                 <h3 class="headline-sm" style="margin-bottom: 8px;">AI Assessment</h3>
                 <table class="details-table">
+                  <tr><th>IQA Status</th><td id="detail-iqa" style="font-weight: 600;">—</td></tr>
                   <tr><th>AI Grade</th><td id="detail-ai-grade" style="font-weight: 600;">—</td></tr>
                   <tr><th>Referable Decision</th><td id="detail-ai-decision">—</td></tr>
                   <tr><th>AI Referable Prob</th><td id="detail-ai-prob">—</td></tr>
+                  <tr><th>Grade 0 Prob</th><td id="detail-ai-prob-0" class="body-sm" style="color: var(--text-muted);">—</td></tr>
+                  <tr><th>Grade 1 Prob</th><td id="detail-ai-prob-1" class="body-sm" style="color: var(--text-muted);">—</td></tr>
+                  <tr><th>Grade 2 Prob</th><td id="detail-ai-prob-2" class="body-sm" style="color: var(--text-muted);">—</td></tr>
+                  <tr><th>Grade 3 Prob</th><td id="detail-ai-prob-3" class="body-sm" style="color: var(--text-muted);">—</td></tr>
+                  <tr><th>Grade 4 Prob</th><td id="detail-ai-prob-4" class="body-sm" style="color: var(--text-muted);">—</td></tr>
                   <tr><th>Model Version</th><td id="detail-model-version" class="body-sm">—</td></tr>
                   <tr><th>Calibration Version</th><td id="detail-calib-version" class="body-sm">—</td></tr>
                 </table>
@@ -285,6 +291,7 @@
                   <table class="details-table" style="background: var(--surface-card);">
                     <tr><th>Specialist Grade</th><td id="detail-spec-grade" style="font-weight: 700;">—</td></tr>
                     <tr><th>Agreement</th><td id="detail-agreement" style="font-weight: 700;">—</td></tr>
+                    <tr><th>Review Duration</th><td id="detail-review-time" class="body-sm">—</td></tr>
                   </table>
                 </div>
 
@@ -377,11 +384,19 @@
                   </div>
 
                   <h3 class="headline-sm" style="margin-bottom: 8px; color: var(--text-secondary);">Specialist & Care-Loop Trace</h3>
-                  <table class="details-table" style="background: #fff;">
+                  <table class="details-table" style="background: #fff; margin-bottom: var(--space-md);">
                     <tr><th>Review status</th><td id="audit-review-status">—</td></tr>
+                    <tr><th>Review duration</th><td id="audit-review-time">—</td></tr>
                     <tr><th>Specialist grade</th><td id="audit-spec-grade">—</td></tr>
                     <tr><th>Agreement</th><td id="audit-spec-agreement">—</td></tr>
                     <tr><th>Follow-up state</th><td id="audit-followup-state">—</td></tr>
+                  </table>
+
+                  <h3 class="headline-sm" style="margin-bottom: 8px; color: var(--text-secondary);">Controlled Adaptation</h3>
+                  <table class="details-table" style="background: #fff;">
+                    <tr><th>Adaptation Status</th><td id="audit-adapt-status">—</td></tr>
+                    <tr><th>Experiment ID</th><td id="audit-adapt-exp">—</td></tr>
+                    <tr><th>Adaptation Decision</th><td id="audit-adapt-decision">—</td></tr>
                   </table>
                 </div>
                 

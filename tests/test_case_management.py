@@ -75,6 +75,61 @@ class TestCaseManagement(unittest.TestCase):
         resp = self.client.put(f'/api/cases/{cid}/specialist', json={'specialist_grade': 5})
         self.assertEqual(resp.status_code, 400)
 
+    def test_specialist_grade_with_duration(self):
+        case = case_manager.create_case({'success': True, 'predictedGrade': 2, 'referableStatus': 'Referable'}, 'img.png')
+        cid = case['case_id']
+        resp = self.client.put(f'/api/cases/{cid}/specialist', json={'specialist_grade': 3, 'review_duration_seconds': 24.5})
+        self.assertEqual(resp.status_code, 200)
+        updated = resp.get_json()
+        self.assertEqual(updated['specialist_grade'], 3)
+        self.assertEqual(updated['review_duration_seconds'], 24.5)
+
+    def test_specialist_grade_without_duration_succeeds(self):
+        case = case_manager.create_case({'success': True, 'predictedGrade': 2, 'referableStatus': 'Referable'}, 'img.png')
+        cid = case['case_id']
+        resp = self.client.put(f'/api/cases/{cid}/specialist', json={'specialist_grade': 3})
+        self.assertEqual(resp.status_code, 200)
+        updated = resp.get_json()
+        self.assertEqual(updated['specialist_grade'], 3)
+        self.assertNotIn('review_duration_seconds', updated)
+
+    def test_specialist_grade_null_duration(self):
+        case = case_manager.create_case({'success': True, 'predictedGrade': 2, 'referableStatus': 'Referable'}, 'img.png')
+        cid = case['case_id']
+        resp = self.client.put(f'/api/cases/{cid}/specialist', json={'specialist_grade': 3, 'review_duration_seconds': None})
+        self.assertEqual(resp.status_code, 200)
+        updated = resp.get_json()
+        self.assertEqual(updated['specialist_grade'], 3)
+        self.assertNotIn('review_duration_seconds', updated)
+        
+    def test_specialist_grade_large_duration(self):
+        case = case_manager.create_case({'success': True, 'predictedGrade': 2, 'referableStatus': 'Referable'}, 'img.png')
+        cid = case['case_id']
+        resp = self.client.put(f'/api/cases/{cid}/specialist', json={'specialist_grade': 3, 'review_duration_seconds': 3600.5})
+        self.assertEqual(resp.status_code, 200)
+        updated = resp.get_json()
+        self.assertEqual(updated['specialist_grade'], 3)
+        self.assertEqual(updated['review_duration_seconds'], 3600.5)
+
+    def test_specialist_grade_invalid_duration(self):
+        case = case_manager.create_case({'success': True, 'predictedGrade': 2, 'referableStatus': 'Referable'}, 'img.png')
+        cid = case['case_id']
+        
+        # Test string
+        resp = self.client.put(f'/api/cases/{cid}/specialist', json={'specialist_grade': 3, 'review_duration_seconds': "invalid"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotIn('review_duration_seconds', resp.get_json())
+        
+        # Test NaN
+        resp = self.client.put(f'/api/cases/{cid}/specialist', json={'specialist_grade': 3, 'review_duration_seconds': float('nan')})
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotIn('review_duration_seconds', resp.get_json())
+        
+        # Test Infinity
+        resp = self.client.put(f'/api/cases/{cid}/specialist', json={'specialist_grade': 3, 'review_duration_seconds': float('inf')})
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotIn('review_duration_seconds', resp.get_json())
+
     def test_agreement_agree(self):
         case = case_manager.create_case({'success': True, 'predictedGrade': 4, 'referableStatus': 'Referable'}, 'img.png')
         cid = case['case_id']

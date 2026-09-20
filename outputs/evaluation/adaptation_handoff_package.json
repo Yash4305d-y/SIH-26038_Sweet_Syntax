@@ -1,0 +1,165 @@
+{
+    "metadata": {
+        "author": "Member 3 \u2014 Evaluation & Adaptation Lead",
+        "sprint": "Sprint 3",
+        "timestamp": "2026-09-19T21:45:59.624664",
+        "target_consumer": "Member 1 Adaptation Dashboard"
+    },
+    "adaptation_status": {
+        "decision": "ROLLBACK",
+        "decision_rationale": "Predefined promotion rule evaluated on held-out IDRiD dataset (N=41): Candidate ECE=0.1412 vs Baseline ECE=0.1789 (Pass: True); Candidate Brier=0.1193 vs Baseline Brier=0.1319 (Pass: True); Candidate Sensitivity=96.30% vs Baseline Sensitivity=96.30% (Pass: True); Candidate Specificity=64.29% vs Baseline Specificity=57.14% (Pass: False). Mechanical outcome: ROLLBACK. Rejection rationale: Specificity guardrail missed (64.29% < max(85%, 57.14%)).",
+        "promotion_rule": "Candidate must pass ECE, Brier score, Sensitivity (>=85%), and Specificity (>=85%) guardrails on untouched IDRiD held-out data (N=41)."
+    },
+    "baseline_model": {
+        "name": "Baseline ResNet-50",
+        "status": "LOCKED",
+        "artifact": "models/baseline_resnet50_smoketest.mat",
+        "aptos_test_metrics": {
+            "accuracy": 0.8292,
+            "macro_f1": 0.6358,
+            "qwk": 0.8713,
+            "referable_sensitivity": 0.9609,
+            "referable_specificity": 0.9231
+        }
+    },
+    "idrid_split_info": {
+        "split_file": "data/splits/idrid_splits.csv",
+        "total_records": 81,
+        "calibration_fit_count": 40,
+        "heldout_validation_count": 41,
+        "overlap_count": 0,
+        "raw_images_available": true
+    },
+    "idrid_adaptation_experiment": {
+        "experiment_id": "IDRiD_ResNet50_Domain_Adaptation_Sprint3_Corrected",
+        "timestamp": "2026-09-19T21:45:59.616523",
+        "prediction_source": "outputs/evaluation/adaptation/idrid_raw_resnet50_predictions.csv",
+        "model_artifact": "models/baseline_resnet50_smoketest.mat",
+        "dataset": "IDRiD B. Disease Grading (Official Testing Set)",
+        "calibration_fit_sample_count": 40,
+        "heldout_validation_sample_count": 41,
+        "split_overlap": 0,
+        "candidate_parameters": {
+            "platt_coef_A": 5.42697,
+            "platt_intercept_B": -1.891827,
+            "threshold_tau": 0.37,
+            "fit_f1": 0.8727,
+            "fit_sensitivity": 0.8889
+        },
+        "baseline_parameters": {
+            "platt_coef_A": 1.0,
+            "platt_intercept_B": 0.0,
+            "threshold_tau": 0.22
+        },
+        "heldout_baseline_metrics": {
+            "sample_count": 41,
+            "tp": 26,
+            "tn": 8,
+            "fp": 6,
+            "fn": 1,
+            "ece": 0.1789,
+            "brier_score": 0.1319,
+            "sensitivity": 0.963,
+            "specificity": 0.5714,
+            "precision": 0.8125,
+            "f1_score": 0.8814,
+            "roc_auc": 0.9048
+        },
+        "heldout_candidate_metrics": {
+            "sample_count": 41,
+            "tp": 26,
+            "tn": 9,
+            "fp": 5,
+            "fn": 1,
+            "ece": 0.1412,
+            "brier_score": 0.1193,
+            "sensitivity": 0.963,
+            "specificity": 0.6429,
+            "precision": 0.8387,
+            "f1_score": 0.8966,
+            "roc_auc": 0.9048
+        },
+        "promotion_rule": {
+            "ece_check_passed": true,
+            "brier_check_passed": true,
+            "sensitivity_check_passed": true,
+            "specificity_check_passed": false,
+            "required_specificity_guardrail": 0.85,
+            "required_sensitivity_guardrail": 0.85
+        },
+        "decision": "ROLLBACK",
+        "decision_rationale": "Predefined promotion rule evaluated on held-out IDRiD dataset (N=41): Candidate ECE=0.1412 vs Baseline ECE=0.1789 (Pass: True); Candidate Brier=0.1193 vs Baseline Brier=0.1319 (Pass: True); Candidate Sensitivity=96.30% vs Baseline Sensitivity=96.30% (Pass: True); Candidate Specificity=64.29% vs Baseline Specificity=57.14% (Pass: False). Mechanical outcome: ROLLBACK. Rejection rationale: Specificity guardrail missed (64.29% < max(85%, 57.14%)).",
+        "clinical_disclaimer": "This adaptation experiment is a quantitative domain adaptation proof-of-concept on 81 IDRiD images. It DOES NOT constitute clinical validation, specialist validation, or evidence of patient outcomes."
+    },
+    "messidor2_frozen_evidence": {
+        "dataset": "Messidor-2",
+        "sample_count": 1744,
+        "model_name": "Baseline ResNet-50",
+        "evaluation_type": "External 5-Class & Binary (Frozen)",
+        "tuning_performed": false,
+        "calibration_fitted_on_messidor": false,
+        "threshold_optimized_on_messidor": false,
+        "threshold_used": 0.22,
+        "5class_accuracy": 0.5998,
+        "5class_macro_f1": 0.2581,
+        "5class_qwk": 0.3231,
+        "referable_dr_sensitivity": 0.2932,
+        "referable_dr_specificity": 0.9705,
+        "referable_dr_precision": 0.7791,
+        "referable_dr_npv": 0.7945,
+        "referable_dr_f1": 0.4261,
+        "referable_dr_roc_auc": 0.7669,
+        "brier_score_raw": 0.193753,
+        "ece_raw": 0.182716,
+        "status": "EXTERNAL_VALIDATION_COMPLETE"
+    },
+    "benchmark_comparison": [
+        {
+            "model_variant": "Baseline ResNet-50 (Locked)",
+            "description": "Unweighted CE Loss, Softmax, Platt Scaled",
+            "test_sample_count": 439,
+            "accuracy": 0.8292,
+            "macro_f1": 0.6358,
+            "qwk": 0.8713,
+            "referable_sensitivity": 0.9609,
+            "referable_specificity": 0.9231,
+            "referable_precision": 0.8958
+        },
+        {
+            "model_variant": "Mild Weighted ResNet-50",
+            "description": "Inverse Class Weighting (Mild Penalty)",
+            "test_sample_count": 439,
+            "accuracy": 0.7995,
+            "macro_f1": 0.6467,
+            "qwk": 0.873,
+            "referable_sensitivity": 0.838,
+            "referable_specificity": 0.9731,
+            "referable_precision": 0.9554
+        },
+        {
+            "model_variant": "Strong Weighted ResNet-50",
+            "description": "Square-root Class Weighting",
+            "test_sample_count": 439,
+            "accuracy": 0.7312,
+            "macro_f1": 0.6103,
+            "qwk": 0.8437,
+            "referable_sensitivity": 0.8324,
+            "referable_specificity": 0.9654,
+            "referable_precision": 0.943
+        }
+    ],
+    "evidence_files": {
+        "idrid_splits": "data/splits/idrid_splits.csv",
+        "raw_predictions_csv": "outputs/evaluation/adaptation/idrid_raw_resnet50_predictions.csv",
+        "fit_predictions_csv": "outputs/evaluation/adaptation/idrid_fit_predictions.csv",
+        "heldout_predictions_csv": "outputs/evaluation/adaptation/idrid_heldout_predictions.csv",
+        "metrics_json": "outputs/evaluation/adaptation/adaptation_experiment_metrics.json",
+        "messidor_external_metrics_json": "outputs/evaluation/external_validation/messidor_external_metrics.json",
+        "sprint3_report_md": "docs/research/member3_sprint3_report.md"
+    },
+    "limitations": [
+        "Quantitative IDRiD adaptation fitted on N=40 calibration-fit images and evaluated on N=41 held-out images.",
+        "Candidate adaptation achieved 96.30% sensitivity, 64.29% specificity, 0.1412 ECE, and 0.1193 Brier score on held-out set.",
+        "Candidate specificity (64.29%) missed the required 85.0% operational guardrail, resulting in ROLLBACK to locked Baseline ResNet-50."
+    ]
+}

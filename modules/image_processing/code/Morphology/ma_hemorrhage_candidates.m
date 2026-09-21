@@ -23,9 +23,31 @@ candidateMask = bwareaopen(candidateMask, 20);
 
 candidateMask = imclose(candidateMask, strel("disk", 2));
 
-result.response = response;
-result.mask = candidateMask;
-result.threshold = threshold;
-result.candidateAreaRatio = nnz(candidateMask) / numel(candidateMask);
+cc = bwconncomp(candidateMask);
+stats = regionprops(cc, 'Area');
+areas = [stats.Area];
+
+ma_idx = find(areas <= 100);
+hem_idx = find(areas > 100);
+
+maMask = false(size(candidateMask));
+if ~isempty(ma_idx)
+    maMask(vertcat(cc.PixelIdxList{ma_idx})) = true;
+end
+
+hemMask = false(size(candidateMask));
+if ~isempty(hem_idx)
+    hemMask(vertcat(cc.PixelIdxList{hem_idx})) = true;
+end
+
+result.microaneurysm.detected = nnz(maMask) > 0;
+result.microaneurysm.candidateCount = length(ma_idx);
+result.microaneurysm.candidateAreaRatio = nnz(maMask) / numel(maMask);
+result.microaneurysm.mask = maMask;
+
+result.hemorrhage.detected = nnz(hemMask) > 0;
+result.hemorrhage.candidateCount = length(hem_idx);
+result.hemorrhage.candidateAreaRatio = nnz(hemMask) / numel(hemMask);
+result.hemorrhage.mask = hemMask;
 
 end

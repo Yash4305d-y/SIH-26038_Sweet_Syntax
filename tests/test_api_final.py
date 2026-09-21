@@ -61,3 +61,15 @@ res = upload_image(r"d:\SIH-26038\messidor-2\preprocess\20051020_44261_0100_PP.p
 print(f"  success={res.get('success')} errorType={res.get('errorType', 'NONE')}")
 if res.get('success'):
     print(f"  grade={res.get('grade')} referable={res.get('referable')}")
+print()
+
+# Test 5: Controlled Adaptation Endpoint
+print("TEST 5: Controlled Adaptation API")
+try:
+    req = urllib.request.Request('http://127.0.0.1:5050/api/adaptation')
+    response = urllib.request.urlopen(req, timeout=10)
+    data = json.loads(response.read().decode('utf-8'))
+    print(f"  success=True decision={data.get('adaptation_status', {}).get('decision')}")
+except Exception as e:
+    print(f"  success=False error={str(e)}")
+print()

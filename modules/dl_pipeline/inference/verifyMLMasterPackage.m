@@ -3,9 +3,7 @@
 
 function verifyMLMasterPackage()
     % Setup paths
-    scriptPath = mfilename('fullpath');
-    [srcDir, ~, ~] = fileparts(scriptPath);
-    projectDir = fileparts(srcDir);
+    projectDir = getProjectRoot();
     
     modelsDir = fullfile(projectDir, 'models');
     docsDir = fullfile(projectDir, 'docs');

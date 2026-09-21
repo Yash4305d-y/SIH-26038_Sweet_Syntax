@@ -1,0 +1,307 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IntegratedStructuredRetinalFeatures",
+  "type": "object",
+  "description": "Authoritative machine-readable interface for the current integrated SIH-26038 retinal quality and structured morphology evidence pipeline. This schema reflects the runtime output of runUnifiedPipeline.m.",
+  "required": [
+    "iqa",
+    "morphology"
+  ],
+  "properties": {
+    "iqa": {
+      "type": "object",
+      "description": "Image-quality assessment and retinal image quality gate output.",
+      "required": [
+        "focusScore",
+        "illumination",
+        "fov",
+        "focusPass",
+        "illuminationPass",
+        "fovPass",
+        "pass",
+        "reason"
+      ],
+      "properties": {
+        "focusScore": {
+          "type": "number",
+          "description": "Laplacian-variance based focus score."
+        },
+        "illumination": {
+          "type": "object",
+          "required": [
+            "meanIntensity",
+            "darkPixelRatio",
+            "brightPixelRatio"
+          ],
+          "properties": {
+            "meanIntensity": {
+              "type": "number"
+            },
+            "darkPixelRatio": {
+              "type": "number"
+            },
+            "brightPixelRatio": {
+              "type": "number"
+            }
+          }
+        },
+        "fov": {
+          "type": "object",
+          "required": [
+            "areaRatio",
+            "circularity",
+            "boundingBoxRatio",
+            "detected"
+          ],
+          "properties": {
+            "areaRatio": {
+              "type": "number"
+            },
+            "circularity": {
+              "type": "number"
+            },
+            "boundingBoxRatio": {
+              "type": "number"
+            },
+            "detected": {
+              "type": "boolean"
+            }
+          }
+        },
+        "focusPass": {
+          "type": "boolean"
+        },
+        "illuminationPass": {
+          "type": "boolean"
+        },
+        "fovPass": {
+          "type": "boolean"
+        },
+        "pass": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "morphology": {
+      "type": "object",
+      "description": "Structured retinal morphology candidate evidence generated after a successful IQA gate. Morphology evidence does not independently determine the DR grade.",
+      "required": [
+        "executed",
+        "vessels",
+        "optic_disc",
+        "fovea",
+        "exudates",
+        "microaneurysm",
+        "hemorrhage",
+        "neovascularization",
+        "overall_status"
+      ],
+      "properties": {
+        "executed": {
+          "type": "boolean"
+        },
+        "vessels": {
+          "type": "object",
+          "required": [
+            "ratio",
+            "status"
+          ],
+          "properties": {
+            "ratio": {
+              "type": "number",
+              "description": "Fraction of image pixels included in the extracted vessel mask."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "SUCCESS",
+                "NO_DETECTION",
+                "PROCESSING_FAILED",
+                "BLOCKED_BY_DEPENDENCY"
+              ]
+            }
+          }
+        },
+        "optic_disc": {
+          "type": "object",
+          "required": [
+            "detected",
+            "status",
+            "centroid"
+          ],
+          "properties": {
+            "detected": {
+              "type": "boolean"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "SUCCESS",
+                "NO_DETECTION",
+                "PROCESSING_FAILED",
+                "BLOCKED_BY_DEPENDENCY"
+              ]
+            },
+            "centroid": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        },
+        "fovea": {
+          "type": "object",
+          "required": [
+            "detected",
+            "status",
+            "centroid"
+          ],
+          "properties": {
+            "detected": {
+              "type": "boolean"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "SUCCESS",
+                "NO_DETECTION",
+                "PROCESSING_FAILED",
+                "BLOCKED_BY_DEPENDENCY"
+              ]
+            },
+            "centroid": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        },
+        "exudates": {
+          "type": "object",
+          "required": [
+            "ratio",
+            "status"
+          ],
+          "properties": {
+            "ratio": {
+              "type": "number",
+              "description": "Fraction of image pixels included in the exudate candidate mask."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "SUCCESS",
+                "NO_DETECTION",
+                "PROCESSING_FAILED",
+                "BLOCKED_BY_DEPENDENCY"
+              ]
+            }
+          }
+        },
+        "microaneurysm": {
+          "type": "object",
+          "required": [
+            "ratio",
+            "count",
+            "status"
+          ],
+          "properties": {
+            "ratio": {
+              "type": "number",
+              "description": "Fraction of image pixels included in the microaneurysm candidate mask."
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "SUCCESS",
+                "NO_DETECTION",
+                "PROCESSING_FAILED",
+                "BLOCKED_BY_DEPENDENCY"
+              ]
+            }
+          }
+        },
+        "hemorrhage": {
+          "type": "object",
+          "required": [
+            "ratio",
+            "count",
+            "status"
+          ],
+          "properties": {
+            "ratio": {
+              "type": "number",
+              "description": "Fraction of image pixels included in the hemorrhage candidate mask."
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "SUCCESS",
+                "NO_DETECTION",
+                "PROCESSING_FAILED",
+                "BLOCKED_BY_DEPENDENCY"
+              ]
+            }
+          }
+        },
+        "neovascularization": {
+          "type": "object",
+          "required": [
+            "ratio",
+            "count",
+            "method",
+            "status"
+          ],
+          "properties": {
+            "ratio": {
+              "type": "number",
+              "description": "Fraction of image pixels included in the neovascularization candidate mask."
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "method": {
+              "type": "string",
+              "description": "Candidate extraction method used by the current implementation."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "SUCCESS",
+                "NO_DETECTION",
+                "PROCESSING_FAILED",
+                "BLOCKED_BY_DEPENDENCY"
+              ]
+            }
+          }
+        },
+        "overall_status": {
+          "type": "string",
+          "enum": [
+            "SUCCESS",
+            "PARTIAL",
+            "PROCESSING_FAILED"
+          ]
+        }
+      }
+    }
+  }
+}

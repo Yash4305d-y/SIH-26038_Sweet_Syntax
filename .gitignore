@@ -204,3 +204,4 @@ logs/
 *.7z
 *.tar
 *.gz
+!outputs/evaluation/structured_retinal_features_schema.json

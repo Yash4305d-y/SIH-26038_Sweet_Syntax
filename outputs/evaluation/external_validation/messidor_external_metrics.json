@@ -1,0 +1,22 @@
+{
+    "dataset": "Messidor-2",
+    "sample_count": 1744,
+    "model_name": "Baseline ResNet-50",
+    "evaluation_type": "External 5-Class & Binary (Frozen)",
+    "tuning_performed": false,
+    "calibration_fitted_on_messidor": false,
+    "threshold_optimized_on_messidor": false,
+    "threshold_used": 0.22,
+    "5class_accuracy": 0.5998,
+    "5class_macro_f1": 0.2581,
+    "5class_qwk": 0.3231,
+    "referable_dr_sensitivity": 0.2932,
+    "referable_dr_specificity": 0.9705,
+    "referable_dr_precision": 0.7791,
+    "referable_dr_npv": 0.7945,
+    "referable_dr_f1": 0.4261,
+    "referable_dr_roc_auc": 0.7669,
+    "brier_score_raw": 0.193753,
+    "ece_raw": 0.182716,
+    "status": "EXTERNAL_VALIDATION_COMPLETE"
+}

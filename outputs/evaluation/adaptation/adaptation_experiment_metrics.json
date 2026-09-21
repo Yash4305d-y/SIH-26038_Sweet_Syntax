@@ -1,0 +1,61 @@
+{
+    "experiment_id": "IDRiD_ResNet50_Domain_Adaptation_Sprint3_Corrected",
+    "timestamp": "2026-09-19T21:45:59.616523",
+    "prediction_source": "outputs/evaluation/adaptation/idrid_raw_resnet50_predictions.csv",
+    "model_artifact": "models/baseline_resnet50_smoketest.mat",
+    "dataset": "IDRiD B. Disease Grading (Official Testing Set)",
+    "calibration_fit_sample_count": 40,
+    "heldout_validation_sample_count": 41,
+    "split_overlap": 0,
+    "candidate_parameters": {
+        "platt_coef_A": 5.42697,
+        "platt_intercept_B": -1.891827,
+        "threshold_tau": 0.37,
+        "fit_f1": 0.8727,
+        "fit_sensitivity": 0.8889
+    },
+    "baseline_parameters": {
+        "platt_coef_A": 1.0,
+        "platt_intercept_B": 0.0,
+        "threshold_tau": 0.22
+    },
+    "heldout_baseline_metrics": {
+        "sample_count": 41,
+        "tp": 26,
+        "tn": 8,
+        "fp": 6,
+        "fn": 1,
+        "ece": 0.1789,
+        "brier_score": 0.1319,
+        "sensitivity": 0.963,
+        "specificity": 0.5714,
+        "precision": 0.8125,
+        "f1_score": 0.8814,
+        "roc_auc": 0.9048
+    },
+    "heldout_candidate_metrics": {
+        "sample_count": 41,
+        "tp": 26,
+        "tn": 9,
+        "fp": 5,
+        "fn": 1,
+        "ece": 0.1412,
+        "brier_score": 0.1193,
+        "sensitivity": 0.963,
+        "specificity": 0.6429,
+        "precision": 0.8387,
+        "f1_score": 0.8966,
+        "roc_auc": 0.9048
+    },
+    "promotion_rule": {
+        "ece_check_passed": true,
+        "brier_check_passed": true,
+        "sensitivity_check_passed": true,
+        "specificity_check_passed": false,
+        "required_specificity_guardrail": 0.85,
+        "required_sensitivity_guardrail": 0.85
+    },
+    "decision": "ROLLBACK",
+    "decision_rationale": "Predefined promotion rule evaluated on held-out IDRiD dataset (N=41): Candidate ECE=0.1412 vs Baseline ECE=0.1789 (Pass: True); Candidate Brier=0.1193 vs Baseline Brier=0.1319 (Pass: True); Candidate Sensitivity=96.30% vs Baseline Sensitivity=96.30% (Pass: True); Candidate Specificity=64.29% vs Baseline Specificity=57.14% (Pass: False). Mechanical outcome: ROLLBACK. Rejection rationale: Specificity guardrail missed (64.29% < max(85%, 57.14%)).",
+    "clinical_disclaimer": "This adaptation experiment is a quantitative domain adaptation proof-of-concept on 81 IDRiD images. It DOES NOT constitute clinical validation, specialist validation, or evidence of patient outcomes."
+}

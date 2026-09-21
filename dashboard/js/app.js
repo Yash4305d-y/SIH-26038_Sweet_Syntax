@@ -164,7 +164,11 @@ function handleFileSelect(file) {
 
 // ── Analysis ──
 
+let currentAnalysisId = 0;
+
 async function runAnalysis(file) {
+  const analysisId = ++currentAnalysisId;
+  
   btnAnalyze.disabled = true;
   btnAnalyze.innerHTML = '<div class="spinner"></div><span>Analyzing...</span>';
   analysisStatus.textContent = 'Running AI inference...';
@@ -184,12 +188,21 @@ async function runAnalysis(file) {
 
     progressBar.style.width = '90%';
 
+    if (analysisId !== currentAnalysisId) {
+      console.log('Stale async response (HTTP error) ignored.');
+      return;
+    }
     if (!response.ok) {
       throw new Error(`Server error: ${response.status}`);
     }
 
     const data = await response.json();
     progressBar.style.width = '100%';
+
+    if (analysisId !== currentAnalysisId) {
+      console.log('Stale async response ignored due to new upload/analysis.');
+      return;
+    }
 
     if (data.success === false || data.success === 0) {
       if (data.errorType === 'NON_RETINAL') {
@@ -207,14 +220,18 @@ async function runAnalysis(file) {
 
     renderResults(data);
   } catch (err) {
+    if (analysisId !== currentAnalysisId) return;
+    
     progressBar.style.width = '100%';
     progressBar.style.background = 'var(--color-danger)';
     analysisStatus.textContent = `Error: ${err.message}`;
     analysisStatus.style.color = 'var(--color-danger)';
     console.error('Analysis error:', err);
   } finally {
-    btnAnalyze.disabled = false;
-    btnAnalyze.innerHTML = '<span class="material-symbols-outlined">play_arrow</span><span>Run AI Analysis (MATLAB)</span>';
+    if (analysisId === currentAnalysisId) {
+      btnAnalyze.disabled = false;
+      btnAnalyze.innerHTML = '<span class="material-symbols-outlined">play_arrow</span><span>Run AI Analysis (MATLAB)</span>';
+    }
   }
 }
 
@@ -422,56 +439,81 @@ function populateReport(result) {
   const refProbPercent = result.calibratedReferableProbability ? (result.calibratedReferableProbability * 100).toFixed(2) + '%' : 'N/A';
   const isReferable = result.referableStatus === 'Referable';
 
-  // COVER
-  document.getElementById('report-patient-id').textContent = patientId;
+  // --- LAYER 1 REPORT FIELDS ---
+  
+  // Section 1: Header
+  document.getElementById('report-patient-id').textContent = result.case_id || patientId;
   document.getElementById('report-date').textContent = dateStr;
-  document.getElementById('report-model-name').textContent = modelName;
-  document.getElementById('report-grade').textContent = `Grade ${grade} (${gradeName})`;
-  document.getElementById('report-ref-status').textContent = isReferable ? 'Referable' : 'Non-referable';
-  document.getElementById('report-ref-prob').textContent = refProbPercent;
 
-  // SEC 2
-  document.getElementById('sec2-patient').textContent = patientId;
-  document.getElementById('sec2-date').textContent = dateStr;
+  // Section 2: Screening Result
+  if (document.getElementById('sec2-class')) {
+    document.getElementById('sec2-class').textContent = `${gradeName}`;
+    document.getElementById('sec2-grade').textContent = `Grade ${grade}`;
+    document.getElementById('sec2-ref-status').textContent = isReferable ? 'Referable' : 'Non-referable';
+    document.getElementById('sec2-ref-status').style.color = isReferable ? 'var(--color-danger)' : 'var(--color-success)';
+    document.getElementById('sec2-ref-prob').textContent = refProbPercent;
+  }
 
-  // SEC 4
-  document.getElementById('sec4-grade').textContent = `Grade ${grade}`;
-  document.getElementById('sec4-class').textContent = gradeName;
-  document.getElementById('sec4-ref-status').textContent = isReferable ? 'Referable' : 'Non-referable';
-  document.getElementById('sec4-ref-prob').textContent = refProbPercent;
-  document.getElementById('sec4-confidence').textContent = confPercent;
-
-  // SEC 5
-  if (previewDataUrl) {
+  // Section 3: Retinal Image
+  if (previewDataUrl && document.getElementById('report-original-img')) {
     document.getElementById('report-original-img').src = previewDataUrl;
   }
 
-  // SEC 6
-  if (result.gradcam_url) {
-    document.getElementById('report-gradcam-img').src = result.gradcam_url;
-  } else {
-    document.getElementById('report-gradcam-container').innerHTML = '<p><em>Grad-CAM visualization not available.</em></p>';
+  // Section 4: Explanation (Grad-CAM)
+  if (document.getElementById('report-gradcam-container')) {
+    if (result.gradcam_url) {
+      document.getElementById('report-gradcam-container').innerHTML = `<img id="report-gradcam-img" src="${result.gradcam_url}" style="max-height: 250px; display: block;">`;
+    } else {
+      document.getElementById('report-gradcam-container').innerHTML = '<p style="color: var(--text-faint); padding: 12px; border: 1px dashed var(--border-default);"><em>Grad-CAM visualization not persisted for this case.</em></p>';
+    }
   }
 
-  // SEC 7
+  // Section 5: Referral Recommendation
+  const recommendation = isReferable ? 'Specialist Review Recommended' : 'Routine Screening';
+  if (document.getElementById('sec5-ref-status')) {
+    document.getElementById('sec5-ref-status').textContent = isReferable ? 'Referable' : 'Non-referable';
+    document.getElementById('sec5-recommendation').textContent = recommendation;
+    document.getElementById('sec5-followup').textContent = result.follow_up_status || (isReferable ? 'PENDING' : 'NOT_REFERRED');
+    
+    if (result.referral_id) {
+      document.getElementById('sec5-ref-id').textContent = result.referral_id;
+      document.getElementById('sec5-ref-id-row').style.display = 'table-row';
+      document.getElementById('sec7-ref-id').textContent = result.referral_id;
+      document.getElementById('sec7-ref-id-row').style.display = 'table-row';
+    } else {
+      document.getElementById('sec5-ref-id-row').style.display = 'none';
+      if (document.getElementById('sec7-ref-id-row')) document.getElementById('sec7-ref-id-row').style.display = 'none';
+    }
+  }
+
+  // Section 6: Next Action
+  if (document.getElementById('sec6-next-action')) {
+    document.getElementById('sec6-next-action').textContent = isReferable 
+      ? 'Specialist review is recommended according to the screening workflow.' 
+      : 'Continue according to the local screening/follow-up protocol.';
+  }
+
+  // Section 7: Case Identification
+  if (document.getElementById('sec7-case-id')) {
+    document.getElementById('sec7-case-id').textContent = result.case_id || patientId;
+    document.getElementById('sec7-date').textContent = result.timestamp ? new Date(result.timestamp).toLocaleString() : dateStr;
+    document.getElementById('sec7-followup').textContent = result.follow_up_status || (isReferable ? 'PENDING' : 'NOT_REFERRED');
+  }
+
+  // --- EVIDENCE PACKAGE POPULATION ---
   const probs = result.probabilities || [0,0,0,0,0];
   for(let i=0; i<5; i++) {
     const val = (probs[i] * 100).toFixed(1);
-    document.getElementById(`prob-bar-${i}`).style.width = `${val}%`;
-    document.getElementById(`prob-bar-${i}`).style.background = BAR_COLORS[i];
-    document.getElementById(`prob-val-${i}`).textContent = `${val}%`;
+    if(document.getElementById(`prob-bar-${i}`)) {
+      document.getElementById(`prob-bar-${i}`).style.width = `${val}%`;
+      document.getElementById(`prob-bar-${i}`).style.background = BAR_COLORS[i];
+      document.getElementById(`prob-val-${i}`).textContent = `${val}%`;
+    }
   }
 
-  // SEC 9
-  document.getElementById('sec9-model-version').textContent = modelVersion;
-
-  // SEC 21
-  document.getElementById('sec21-id').textContent = patientId;
-  document.getElementById('sec21-grade').textContent = `Grade ${grade} (${gradeName})`;
-  document.getElementById('sec21-ref-status').textContent = isReferable ? 'Referable' : 'Non-referable';
-  document.getElementById('sec21-ref-prob').textContent = refProbPercent;
-  document.getElementById('sec21-confidence').textContent = confPercent;
-  document.getElementById('sec21-date').textContent = dateStr;
+  if(document.getElementById('sec9-model-version')) {
+    document.getElementById('sec9-model-version').textContent = modelVersion;
+  }
 }
 
 
@@ -541,6 +583,22 @@ document.getElementById('report-modal-backdrop')?.addEventListener('click', () =
   document.getElementById('report-modal').classList.add('hidden');
 });
 
+document.getElementById('btn-show-evidence')?.addEventListener('click', () => {
+  document.getElementById('evidence-modal').classList.remove('hidden');
+});
+
+document.getElementById('btn-close-evidence')?.addEventListener('click', () => {
+  document.getElementById('evidence-modal').classList.add('hidden');
+});
+
+document.getElementById('btn-close-evidence-footer')?.addEventListener('click', () => {
+  document.getElementById('evidence-modal').classList.add('hidden');
+});
+
+document.getElementById('evidence-modal-backdrop')?.addEventListener('click', () => {
+  document.getElementById('evidence-modal').classList.add('hidden');
+});
+
 const handleDownloadReport = async (e) => {
   const btn = e ? e.currentTarget : document.getElementById('btn-download-report');
   const originalText = btn ? btn.innerHTML : '';
@@ -601,10 +659,7 @@ const handleDownloadReport = async (e) => {
         currentY += imgHeight + 8; 
       }
       
-      if (section.classList.contains('cover-section') && i < sections.length - 1) {
-        pdf.addPage();
-        currentY = margin;
-      }
+      // Removed forced page break for cover-section to allow compact Layer 1 report
     }
     
     const totalPages = pdf.internal.getNumberOfPages();
@@ -616,7 +671,8 @@ const handleDownloadReport = async (e) => {
       pdf.text(`Page ${i} of ${totalPages}`, pdfWidth - margin - 20, pdfHeight - 10);
     }
     
-    const patientId = document.getElementById('sec2-patient').textContent || 'Unknown';
+    const patientIdElement = document.getElementById('report-patient-id');
+    const patientId = patientIdElement ? patientIdElement.textContent : 'Unknown';
     const safeId = patientId.replace(/[^a-z0-9]/gi, '_');
     const filename = `DR_Screening_Report_${safeId}.pdf`;
     

@@ -1,0 +1,2 @@
+dataset,sample_count,model_name,evaluation_type,tuning_performed,calibration_fitted_on_messidor,threshold_optimized_on_messidor,threshold_used,5class_accuracy,5class_macro_f1,5class_qwk,referable_dr_sensitivity,referable_dr_specificity,referable_dr_precision,referable_dr_npv,referable_dr_f1,referable_dr_roc_auc,brier_score_raw,ece_raw,status
+Messidor-2,1744,Baseline ResNet-50,External 5-Class & Binary (Frozen),False,False,False,0.22,0.5998,0.2581,0.3231,0.2932,0.9705,0.7791,0.7945,0.4261,0.7669,0.193753,0.182716,EXTERNAL_VALIDATION_COMPLETE

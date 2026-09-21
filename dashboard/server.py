@@ -18,6 +18,8 @@ import uuid
 import shutil
 import tempfile
 import subprocess
+import threading
+from datetime import datetime, timezone
 from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory, send_file
 
@@ -26,11 +28,142 @@ DASHBOARD_DIR = Path(__file__).parent.resolve()
 PROJECT_DIR = DASHBOARD_DIR.parent.resolve()
 UPLOAD_DIR = DASHBOARD_DIR / 'uploads'
 GRADCAM_DIR = DASHBOARD_DIR / 'gradcam_output'
+DATA_DIR = DASHBOARD_DIR / 'data'
 RESULTS_DIR = PROJECT_DIR / 'results'
 OUTPUTS_DIR = PROJECT_DIR / 'outputs'
 
 UPLOAD_DIR.mkdir(exist_ok=True)
 GRADCAM_DIR.mkdir(exist_ok=True)
+DATA_DIR.mkdir(exist_ok=True)
+
+CASES_FILE = DATA_DIR / 'cases.json'
+
+class CaseManager:
+    def __init__(self, filepath):
+        self.filepath = Path(filepath)
+        self.lock = threading.Lock()
+        if not self.filepath.exists():
+            self._save({})
+
+    def _load(self):
+        try:
+            with open(self.filepath, 'r') as f:
+                return json.load(f)
+        except Exception:
+            return {}
+
+    def _save(self, data):
+        with open(self.filepath, 'w') as f:
+            json.dump(data, f, indent=2)
+
+    def create_case(self, ml_result, image_id):
+        with self.lock:
+            cases = self._load()
+            date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
+            import uuid
+            suffix = str(uuid.uuid4())[:6].upper()
+            case_id = f"CASE-{date_str}-{suffix}"
+            
+            is_referable = ml_result.get('referableStatus') == 'Referable'
+            referral_id = f"REF-{date_str}-{suffix}" if is_referable else None
+            follow_up_status = "REFERRED" if is_referable else "NOT_REFERRED"
+            
+            gradcam_generated = False
+            gradcam_reference = None
+            
+            # Use provided URL from result if we have it, else check disk
+            gradcam_url = ml_result.get('gradcam_url')
+            if gradcam_url:
+                gradcam_generated = True
+                gradcam_reference = gradcam_url
+            else:
+                base_id = Path(image_id).stem
+                gradcam_path = GRADCAM_DIR / f'{base_id}_gradcam.png'
+                if gradcam_path.exists():
+                    gradcam_generated = True
+                    gradcam_reference = f'/gradcam_output/{base_id}_gradcam.png'
+            
+            # Extract adaptation info if present, otherwise explicitly mark as baseline locked
+            adaptation = ml_result.get('adaptation') or ml_result.get('adaptation_info')
+            if not adaptation:
+                adaptation = {
+                    "status": "BASELINE_LOCKED",
+                    "experiment_id": "None",
+                    "decision": "LOCKED"
+                }
+            
+            case_data = {
+                "case_id": case_id,
+                "referral_id": referral_id,
+                "ai_grade": ml_result.get('predictedGrade'),
+                "ai_referable_probability": ml_result.get('calibratedReferableProbability'),
+                "calibration_version": ml_result.get('calibrationVersion', 'baseline-resnet50-v1'),
+                "model_version": ml_result.get('modelVersion', '1.0'),
+                "specialist_grade": None,
+                "agreement": None,
+                "follow_up_status": follow_up_status,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "image_id": image_id,
+                "iqa_pass": ml_result.get('iqa', {}).get('pass', False),
+                "referable_decision": ml_result.get('referableStatus'),
+                "morphology": ml_result.get('morphology', {}),
+                "gradcam": {
+                    "generated": gradcam_generated,
+                    "reference": gradcam_reference
+                },
+                "adaptation": adaptation
+            }
+            cases[case_id] = case_data
+            self._save(cases)
+            return case_data
+
+    def get_case(self, case_id):
+        with self.lock:
+            return self._load().get(case_id)
+
+    def list_cases(self):
+        with self.lock:
+            return list(self._load().values())
+
+    def update_specialist_grade(self, case_id, grade, review_duration_seconds=None):
+        if grade not in [0, 1, 2, 3, 4]:
+            return False, "Invalid specialist grade. Must be 0-4."
+        with self.lock:
+            cases = self._load()
+            if case_id not in cases:
+                return False, "Case not found."
+            case = cases[case_id]
+            case["specialist_grade"] = grade
+            ai_grade = case.get("ai_grade")
+            if ai_grade is not None:
+                case["agreement"] = "AGREE" if ai_grade == grade else "DISAGREE"
+            
+            if review_duration_seconds is not None:
+                case["review_duration_seconds"] = review_duration_seconds
+                
+            self._save(cases)
+            return True, case
+
+    def update_follow_up(self, case_id, status):
+        with self.lock:
+            cases = self._load()
+            if case_id not in cases:
+                return False, "Case not found."
+            case = cases[case_id]
+            curr = case["follow_up_status"]
+            valid = False
+            if curr == "REFERRED" and status in ["SEEN", "LOST_TO_FOLLOWUP"]:
+                valid = True
+            elif curr == "SEEN" and status == "COMPLETED":
+                valid = True
+            
+            if not valid:
+                return False, f"Invalid transition from {curr} to {status}."
+            case["follow_up_status"] = status
+            self._save(cases)
+            return True, case
+
+case_manager = CaseManager(CASES_FILE)
 
 # Check if MATLAB is available
 MATLAB_AVAILABLE = shutil.which('matlab') is not None
@@ -51,6 +184,16 @@ app = Flask(__name__, static_folder=str(DASHBOARD_DIR))
 @app.route('/')
 def serve_index():
     return send_from_directory(str(DASHBOARD_DIR), 'index.html')
+
+
+@app.route('/cases.html')
+def serve_cases():
+    return send_from_directory(str(DASHBOARD_DIR), 'cases.html')
+
+
+@app.route('/adaptation.html')
+def serve_adaptation():
+    return send_from_directory(str(DASHBOARD_DIR), 'adaptation.html')
 
 
 @app.route('/css/<path:filename>')
@@ -154,6 +297,15 @@ def predict():
     else:
         print("[DEBUG] IQA STATUS: PASS")
         print("[DEBUG] INFERENCE EXECUTED: YES")
+        
+        # Only create a case if the inference returned success
+        if result.get('success'):
+            case = case_manager.create_case(result, saved_filename)
+            result['case_id'] = case['case_id']
+            result['referral_id'] = case['referral_id']
+            result['follow_up_status'] = case['follow_up_status']
+            result['calibrationVersion'] = case['calibration_version']
+            result['modelVersion'] = case['model_version']
 
     # Add the gradcam URL if applicable
     gradcam_path = GRADCAM_DIR / f'{image_id}_gradcam.png'
@@ -165,6 +317,66 @@ def predict():
     return jsonify(result)
 
 
+# ── API Endpoints for Case Management ──
+
+@app.route('/api/cases', methods=['GET'])
+def get_cases():
+    return jsonify(case_manager.list_cases())
+
+@app.route('/api/cases/<case_id>', methods=['GET'])
+def get_case_by_id(case_id):
+    case = case_manager.get_case(case_id)
+    if case:
+        return jsonify(case)
+    return jsonify({'error': 'Case not found'}), 404
+
+@app.route('/api/cases/<case_id>/specialist', methods=['PUT'])
+def update_specialist(case_id):
+    data = request.json
+    if not data or 'specialist_grade' not in data:
+        return jsonify({'error': 'specialist_grade is required'}), 400
+    grade = data['specialist_grade']
+    
+    review_duration_seconds = data.get('review_duration_seconds')
+    if review_duration_seconds is not None:
+        try:
+            review_duration_seconds = float(review_duration_seconds)
+            import math
+            if math.isnan(review_duration_seconds) or math.isinf(review_duration_seconds):
+                review_duration_seconds = None
+        except (ValueError, TypeError):
+            review_duration_seconds = None
+            
+    success, result = case_manager.update_specialist_grade(case_id, grade, review_duration_seconds)
+    if success:
+        return jsonify(result)
+    return jsonify({'error': result}), 400
+
+@app.route('/api/cases/<case_id>/follow_up', methods=['PUT'])
+def update_follow_up(case_id):
+    data = request.json
+    if not data or 'status' not in data:
+        return jsonify({'error': 'status is required'}), 400
+    status = data['status']
+    success, result = case_manager.update_follow_up(case_id, status)
+    if success:
+        return jsonify(result)
+    return jsonify({'error': result}), 400
+
+# ── API Endpoints for Controlled Adaptation ──
+@app.route('/api/adaptation', methods=['GET'])
+def get_adaptation():
+    handoff_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'outputs', 'evaluation', 'adaptation_handoff_package.json')
+    if not os.path.exists(handoff_path):
+        return jsonify({'error': 'Adaptation handoff package not found'}), 404
+    try:
+        import json
+        with open(handoff_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': 'Malformed adaptation handoff package', 'details': str(e)}), 500
+
 # ── MATLAB Integration Methods ──
 
 def run_matlab_engine(image_path):
@@ -173,7 +385,7 @@ def run_matlab_engine(image_path):
         import matlab.engine
         print('[INFO] Starting MATLAB Engine...')
         eng = matlab.engine.start_matlab()
-        eng.addpath(str(PROJECT_DIR / 'src'), nargout=0)
+        eng.addpath(eng.genpath(str(PROJECT_DIR / 'modules')), nargout=0)
 
         json_str = eng.runUnifiedPipeline(image_path, True)
         eng.quit()
@@ -196,7 +408,7 @@ def run_matlab_subprocess(image_path):
     try:
         # Build the MATLAB command
         matlab_cmd = (
-            f"addpath('{PROJECT_DIR / 'src'}'); "
+            f"addpath(genpath('{PROJECT_DIR / 'modules'}')); "
             f"disp(runUnifiedPipeline('{image_path}', true)); "
             f"exit;"
         )

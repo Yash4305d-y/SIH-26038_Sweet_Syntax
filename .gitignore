@@ -1,10 +1,15 @@
 # ============================================================
+
 # SIH-26038 — Explainable AI for Diabetic Retinopathy
+
 # ============================================================
 
 # -------------------------
-# OS / Editor
+
+# OS / IDE
+
 # -------------------------
+
 .DS_Store
 Thumbs.db
 desktop.ini
@@ -13,33 +18,38 @@ desktop.ini
 .idea/
 
 # -------------------------
-# MATLAB
+
+# MATLAB Temporary / Generated
+
 # -------------------------
+
 *.asv
 *.autosave
 *.bak
 *.mex*
 *.slxc
 *.slx.autosave
-
-# -------------------------
-# Python
-# -------------------------
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.ipynb_checkpoints/
-
-# -------------------------
-# MATLAB generated / temporary
-# -------------------------
 *.fig
 *.matlab
 *.tmp
 
 # -------------------------
-# Large image files
+
+# Python
+
 # -------------------------
+
+**/**pycache**/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# -------------------------
+
+# Large Image Files
+
+# -------------------------
+
 *.jpg
 *.jpeg
 *.png
@@ -50,74 +60,147 @@ __pycache__/
 *.webp
 
 # -------------------------
-# Datasets
+
+# Datasets & Local Data
+
 # -------------------------
+
 data/
 dataset/
 datasets/
 raw_data/
 processed_data/
 
+A. Segmentation/
+B. Disease Grading/
+
 # -------------------------
-# Model weights / checkpoints
+
+# Model Weights & Checkpoints
+
 # -------------------------
+
 *.pt
 *.pth
 *.ckpt
 *.onnx
 
-# MATLAB model files
-models/*.mat
+# Ignore MATLAB model files by default
 
-# LOCKED FINAL ML MODEL
+models/*.mat
+modules/**/models/*.mat
+modules/**/model/*.mat
+
+# LOCKED FINAL ML MODEL — REQUIRED
+
 !models/baseline_resnet50_smoketest.mat
 
 # -------------------------
-# Generated model outputs
+
+# Generated Model Outputs
+
 # -------------------------
+
 outputs/gradcam/
 outputs/predictions/
 outputs/checkpoints/
 
 # -------------------------
-# Generated evaluation artifacts
-# -------------------------
-outputs/evaluation/
 
-# LOCKED REQUIRED CALIBRATION ARTIFACT
+# Evaluation Artifacts
+
+# -------------------------
+
+# Ignore evaluation artifacts by default
+
+outputs/evaluation/*
+
+# CONTROLLED ADAPTATION — REQUIRED
+
+!outputs/evaluation/adaptation_handoff_package.json
+
+# REFERABLE DR — REQUIRED CALIBRATION ARTIFACT
+
 !outputs/evaluation/referable_dr/
-outputs/evaluation/referable_dr/*
 !outputs/evaluation/referable_dr/calibration/
-outputs/evaluation/referable_dr/calibration/*
 !outputs/evaluation/referable_dr/calibration/calibration_parameters.mat
 
-# MACHINE-READABLE CONTRACT RESULTS
+# MACHINE-READABLE MASTER RESULTS — REQUIRED
+
 !outputs/evaluation/ml_master/
 
 # -------------------------
-# Logs / temporary results
+
+# MATLAB / SIMULINK RESULT FILES
+
 # -------------------------
+
+# Ignore generated simulation results by default
+
+modules/simulink_telemed/results/*.mat
+outputs/**/*.mat
+
+# REQUIRED VERIFIED SIMULATION EVIDENCE
+
+!modules/simulink_telemed/results/day2_experiment_results.mat
+!modules/simulink_telemed/results/results_30day.mat
+!modules/simulink_telemed/results/results_365day.mat
+
+# Required model artifact
+
+!models/baseline_resnet50_smoketest.mat
+
+# Required evaluation artifacts
+
+!outputs/evaluation/adaptation_handoff_package.json
+!outputs/evaluation/referable_dr/calibration/calibration_parameters.mat
+
+# -------------------------
+
+# Dashboard Runtime / Temporary
+
+# -------------------------
+
+dashboard/venv/
+dashboard/**/**pycache**/
+
+dashboard/uploads/*
+!dashboard/uploads/.gitkeep
+
+# Runtime Grad-CAM artifacts
+
+dashboard/gradcam_output/*
+!dashboard/gradcam_output/.gitkeep
+
+# -------------------------
+
+# Scratch / Local Sandbox
+
+# -------------------------
+
+scratch/
+
+# -------------------------
+
+# Logs & Secrets
+
+# -------------------------
+
 logs/
 *.log
 
-# -------------------------
-# Local environment / secrets
-# -------------------------
 .env
 .env.*
 !.env.example
 
 # -------------------------
-# Large archives
+
+# Large Archives
+
 # -------------------------
+
 *.zip
 *.rar
 *.7z
 *.tar
 *.gz
-# Dashboard
-dashboard/venv/
-dashboard/__pycache__/
-dashboard/uploads/
-dashboard/gradcam_output/
-

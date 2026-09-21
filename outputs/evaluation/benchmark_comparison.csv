@@ -1,0 +1,4 @@
+model_variant,description,test_sample_count,accuracy,macro_f1,qwk,referable_sensitivity,referable_specificity,referable_precision
+Baseline ResNet-50 (Locked),"Unweighted CE Loss, Softmax, Platt Scaled",439,0.8292,0.6358,0.8713,0.9609,0.9231,0.8958
+Mild Weighted ResNet-50,Inverse Class Weighting (Mild Penalty),439,0.7995,0.6467,0.873,0.838,0.9731,0.9554
+Strong Weighted ResNet-50,Square-root Class Weighting,439,0.7312,0.6103,0.8437,0.8324,0.9654,0.943

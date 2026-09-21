@@ -148,31 +148,75 @@ function jsonStr = runUnifiedPipeline(imagePath, generateGradCAM)
         morphology.exudates.ratio = [];
     end
     
-    % 2.5 MA/Hemorrhages
+    % 2.5 Microaneurysm & Hemorrhage
     if strcmp(morphology.vessels.status, 'SUCCESS') || strcmp(morphology.vessels.status, 'NO_DETECTION')
         try
-            % Requires full mask, which we didn't save. We must fetch it from the workspace.
-            % Wait, if vessel_extraction succeeded, we have `vessels.mask`.
-            hemorrhages = ma_hemorrhage_candidates(I, vessels.mask);
-            morphology.ma_hemorrhage.ratio = hemorrhages.candidateAreaRatio;
-            if hemorrhages.candidateAreaRatio == 0
-                morphology.ma_hemorrhage.status = 'NO_DETECTION';
+            ma_hem_result = ma_hemorrhage_candidates(I, vessels.mask);
+            
+            morphology.microaneurysm.ratio = ma_hem_result.microaneurysm.candidateAreaRatio;
+            morphology.microaneurysm.count = ma_hem_result.microaneurysm.candidateCount;
+            if morphology.microaneurysm.count == 0
+                morphology.microaneurysm.status = 'NO_DETECTION';
             else
-                morphology.ma_hemorrhage.status = 'SUCCESS';
+                morphology.microaneurysm.status = 'SUCCESS';
+            end
+            
+            morphology.hemorrhage.ratio = ma_hem_result.hemorrhage.candidateAreaRatio;
+            morphology.hemorrhage.count = ma_hem_result.hemorrhage.candidateCount;
+            if morphology.hemorrhage.count == 0
+                morphology.hemorrhage.status = 'NO_DETECTION';
+            else
+                morphology.hemorrhage.status = 'SUCCESS';
             end
         catch ME
-            morphology.ma_hemorrhage.status = 'PROCESSING_FAILED';
-            morphology.ma_hemorrhage.ratio = [];
+            morphology.microaneurysm.status = 'PROCESSING_FAILED';
+            morphology.microaneurysm.ratio = [];
+            morphology.microaneurysm.count = 0;
+            
+            morphology.hemorrhage.status = 'PROCESSING_FAILED';
+            morphology.hemorrhage.ratio = [];
+            morphology.hemorrhage.count = 0;
         end
     else
-        morphology.ma_hemorrhage.status = 'BLOCKED_BY_DEPENDENCY';
-        morphology.ma_hemorrhage.ratio = [];
+        morphology.microaneurysm.status = 'BLOCKED_BY_DEPENDENCY';
+        morphology.microaneurysm.ratio = [];
+        morphology.microaneurysm.count = 0;
+        
+        morphology.hemorrhage.status = 'BLOCKED_BY_DEPENDENCY';
+        morphology.hemorrhage.ratio = [];
+        morphology.hemorrhage.count = 0;
+    end
+    
+    % 2.7 Neovascularization
+    if strcmp(morphology.vessels.status, 'SUCCESS') || strcmp(morphology.vessels.status, 'NO_DETECTION')
+        try
+            nv_result = neovascularization_candidates(vessels.mask);
+            morphology.neovascularization.ratio = nv_result.candidateAreaRatio;
+            morphology.neovascularization.count = nv_result.candidateCount;
+            morphology.neovascularization.method = nv_result.method;
+            if morphology.neovascularization.count == 0
+                morphology.neovascularization.status = 'NO_DETECTION';
+            else
+                morphology.neovascularization.status = 'SUCCESS';
+            end
+        catch ME
+            morphology.neovascularization.status = 'PROCESSING_FAILED';
+            morphology.neovascularization.ratio = [];
+            morphology.neovascularization.count = 0;
+            morphology.neovascularization.method = '';
+        end
+    else
+        morphology.neovascularization.status = 'BLOCKED_BY_DEPENDENCY';
+        morphology.neovascularization.ratio = [];
+        morphology.neovascularization.count = 0;
+        morphology.neovascularization.method = '';
     end
     
     % Overall Morphology Status
     statuses = {morphology.vessels.status, morphology.optic_disc.status, ...
                 morphology.fovea.status, morphology.exudates.status, ...
-                morphology.ma_hemorrhage.status};
+                morphology.microaneurysm.status, morphology.hemorrhage.status, ...
+                morphology.neovascularization.status};
             
     numFailed = sum(strcmp(statuses, 'PROCESSING_FAILED'));
     

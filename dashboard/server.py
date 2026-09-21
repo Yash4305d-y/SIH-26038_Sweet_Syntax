@@ -68,6 +68,30 @@ class CaseManager:
             referral_id = f"REF-{date_str}-{suffix}" if is_referable else None
             follow_up_status = "REFERRED" if is_referable else "NOT_REFERRED"
             
+            gradcam_generated = False
+            gradcam_reference = None
+            
+            # Use provided URL from result if we have it, else check disk
+            gradcam_url = ml_result.get('gradcam_url')
+            if gradcam_url:
+                gradcam_generated = True
+                gradcam_reference = gradcam_url
+            else:
+                base_id = Path(image_id).stem
+                gradcam_path = GRADCAM_DIR / f'{base_id}_gradcam.png'
+                if gradcam_path.exists():
+                    gradcam_generated = True
+                    gradcam_reference = f'/gradcam_output/{base_id}_gradcam.png'
+            
+            # Extract adaptation info if present, otherwise explicitly mark as baseline locked
+            adaptation = ml_result.get('adaptation') or ml_result.get('adaptation_info')
+            if not adaptation:
+                adaptation = {
+                    "status": "BASELINE_LOCKED",
+                    "experiment_id": "None",
+                    "decision": "LOCKED"
+                }
+            
             case_data = {
                 "case_id": case_id,
                 "referral_id": referral_id,
@@ -82,7 +106,12 @@ class CaseManager:
                 "image_id": image_id,
                 "iqa_pass": ml_result.get('iqa', {}).get('pass', False),
                 "referable_decision": ml_result.get('referableStatus'),
-                "morphology": ml_result.get('morphology', {})
+                "morphology": ml_result.get('morphology', {}),
+                "gradcam": {
+                    "generated": gradcam_generated,
+                    "reference": gradcam_reference
+                },
+                "adaptation": adaptation
             }
             cases[case_id] = case_data
             self._save(cases)

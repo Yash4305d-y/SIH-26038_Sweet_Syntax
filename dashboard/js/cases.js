@@ -176,18 +176,15 @@ async function loadCaseDetails(caseId) {
     // Populate Images
     if (c.image_id) {
       imgOrig.src = `/uploads/${c.image_id}`;
-      const baseId = c.image_id.split('.')[0];
-      imgGradcam.src = `/gradcam_output/${baseId}_gradcam.png`;
-      imgGradcam.style.display = 'block';
-      imgGradcamEmpty.style.display = 'none';
-      
-      // Fallback if gradcam doesn't exist
-      imgGradcam.onerror = () => {
-        imgGradcam.style.display = 'none';
-        imgGradcamEmpty.style.display = 'block';
-      };
     } else {
       imgOrig.src = '';
+    }
+    
+    if (c.gradcam && c.gradcam.generated) {
+      imgGradcam.src = c.gradcam.reference;
+      imgGradcam.style.display = 'block';
+      imgGradcamEmpty.style.display = 'none';
+    } else {
       imgGradcam.style.display = 'none';
       imgGradcamEmpty.style.display = 'block';
     }
@@ -269,14 +266,23 @@ async function loadCaseDetails(caseId) {
     // Quality Trace
     elAuditIqa.textContent = c.iqa_pass ? 'PASS' : 'FAIL';
     elAuditIqa.style.color = c.iqa_pass ? 'var(--color-success)' : 'var(--color-danger)';
-    elAuditGradcam.textContent = 'Grad-CAM reference not persisted for this case.';
+    
+    if (c.gradcam) {
+      if (c.gradcam.generated) {
+        elAuditGradcam.textContent = `Status: Generated | Reference: ${c.gradcam.reference}`;
+      } else {
+        elAuditGradcam.textContent = 'Status: Not available | Reference: —';
+      }
+    } else {
+      elAuditGradcam.textContent = 'Not recorded';
+    }
 
     // Morphology Trace
     elAuditMorphComps.innerHTML = '';
     if (c.morphology && Object.keys(c.morphology).length > 0) {
       elAuditMorphStatus.textContent = c.morphology.overall_status || 'EXECUTED';
       
-      const orderedKeys = ['vessels', 'optic_disc', 'fovea', 'exudates', 'ma_hemorrhage'];
+      const orderedKeys = ['vessels', 'optic_disc', 'fovea', 'exudates', 'microaneurysm', 'hemorrhage', 'neovascularization', 'ma_hemorrhage'];
       orderedKeys.forEach(key => {
         if (c.morphology[key]) {
           const val = c.morphology[key];
@@ -332,17 +338,23 @@ async function loadCaseDetails(caseId) {
     const elAuditAdaptDecision = document.getElementById('audit-adapt-decision');
     
     if (c.adaptation) {
-      elAuditAdaptStatus.textContent = c.adaptation.status || 'UNKNOWN';
-      elAuditAdaptExp.textContent = c.adaptation.experiment_id || 'UNKNOWN';
-      elAuditAdaptDecision.textContent = c.adaptation.decision || 'UNKNOWN';
+      if (c.adaptation.status === 'BASELINE_LOCKED') {
+        elAuditAdaptStatus.textContent = 'Baseline locked';
+        elAuditAdaptExp.textContent = 'None';
+        elAuditAdaptDecision.textContent = 'LOCKED';
+      } else {
+        elAuditAdaptStatus.textContent = c.adaptation.status || 'UNKNOWN';
+        elAuditAdaptExp.textContent = c.adaptation.experiment_id || 'UNKNOWN';
+        elAuditAdaptDecision.textContent = c.adaptation.decision || 'UNKNOWN';
+      }
     } else if (c.adaptation_info) {
       elAuditAdaptStatus.textContent = c.adaptation_info.status || 'UNKNOWN';
       elAuditAdaptExp.textContent = c.adaptation_info.experiment_id || 'UNKNOWN';
       elAuditAdaptDecision.textContent = c.adaptation_info.decision || 'UNKNOWN';
     } else {
-      elAuditAdaptStatus.textContent = '—';
-      elAuditAdaptExp.textContent = '—';
-      elAuditAdaptDecision.textContent = '—';
+      elAuditAdaptStatus.textContent = 'Not recorded';
+      elAuditAdaptExp.textContent = 'Not recorded';
+      elAuditAdaptDecision.textContent = 'Not recorded';
     }
 
     // Populate Review Form

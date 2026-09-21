@@ -179,5 +179,81 @@ class TestCaseManagement(unittest.TestCase):
         resp2 = self.client.put(f'/api/cases/{cid2}/follow_up', json={'status': 'NOT_REFERRED'})
         self.assertEqual(resp2.status_code, 400)
 
+    def test_gradcam_generated_persisted(self):
+        # Create a mock gradcam file
+        gradcam_dir = PROJECT_ROOT / 'dashboard' / 'gradcam_output'
+        gradcam_dir.mkdir(exist_ok=True)
+        mock_file = gradcam_dir / 'test_img_gc_gradcam.png'
+        mock_file.touch()
+
+        ml_result = {'success': True, 'predictedGrade': 2, 'referableStatus': 'Referable'}
+        
+        try:
+            case = case_manager.create_case(ml_result, 'test_img_gc.png')
+            self.assertIn('gradcam', case)
+            self.assertTrue(case['gradcam']['generated'])
+            self.assertEqual(case['gradcam']['reference'], '/gradcam_output/test_img_gc_gradcam.png')
+            
+            # Verify API retrieval
+            resp = self.client.get(f"/api/cases/{case['case_id']}")
+            self.assertEqual(resp.status_code, 200)
+            fetched = resp.get_json()
+            self.assertTrue(fetched['gradcam']['generated'])
+            self.assertEqual(fetched['gradcam']['reference'], '/gradcam_output/test_img_gc_gradcam.png')
+            
+            # Verify immutability of other fields
+            self.assertEqual(fetched['ai_grade'], 2)
+        finally:
+            if mock_file.exists():
+                mock_file.unlink()
+
+    def test_gradcam_not_generated_persisted(self):
+        ml_result = {'success': True, 'predictedGrade': 1, 'referableStatus': 'Non-referable'}
+        case = case_manager.create_case(ml_result, 'test_img_no_gc.png')
+        self.assertIn('gradcam', case)
+        self.assertFalse(case['gradcam']['generated'])
+        self.assertIsNone(case['gradcam']['reference'])
+        
+        # Verify API retrieval
+        resp = self.client.get(f"/api/cases/{case['case_id']}")
+        fetched = resp.get_json()
+        self.assertFalse(fetched['gradcam']['generated'])
+        self.assertIsNone(fetched['gradcam']['reference'])
+
+    def test_adaptation_persisted_baseline_locked(self):
+        ml_result = {'success': True, 'predictedGrade': 1, 'referableStatus': 'Non-referable'}
+        case = case_manager.create_case(ml_result, 'test_img_no_adapt.png')
+        self.assertIn('adaptation', case)
+        self.assertEqual(case['adaptation']['status'], 'BASELINE_LOCKED')
+        self.assertEqual(case['adaptation']['experiment_id'], 'None')
+        self.assertEqual(case['adaptation']['decision'], 'LOCKED')
+
+        # Verify API retrieval
+        resp = self.client.get(f"/api/cases/{case['case_id']}")
+        fetched = resp.get_json()
+        self.assertEqual(fetched['adaptation']['status'], 'BASELINE_LOCKED')
+        self.assertEqual(fetched['adaptation']['experiment_id'], 'None')
+        self.assertEqual(fetched['adaptation']['decision'], 'LOCKED')
+
+    def test_adaptation_metadata_persisted(self):
+        adapt_info = {
+            "status": "EVALUATED",
+            "experiment_id": "EXP-123",
+            "decision": "PROMOTE"
+        }
+        ml_result = {'success': True, 'predictedGrade': 1, 'referableStatus': 'Non-referable', 'adaptation': adapt_info}
+        case = case_manager.create_case(ml_result, 'test_img_adapt.png')
+        self.assertIn('adaptation', case)
+        self.assertEqual(case['adaptation']['status'], 'EVALUATED')
+        self.assertEqual(case['adaptation']['experiment_id'], 'EXP-123')
+        self.assertEqual(case['adaptation']['decision'], 'PROMOTE')
+
+        # Verify API retrieval
+        resp = self.client.get(f"/api/cases/{case['case_id']}")
+        fetched = resp.get_json()
+        self.assertEqual(fetched['adaptation']['status'], 'EVALUATED')
+        self.assertEqual(fetched['adaptation']['experiment_id'], 'EXP-123')
+        self.assertEqual(fetched['adaptation']['decision'], 'PROMOTE')
+
 if __name__ == '__main__':
     unittest.main()

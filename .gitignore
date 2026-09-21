@@ -39,7 +39,7 @@ desktop.ini
 
 # -------------------------
 
-**pycache**/
+**/**pycache**/
 *.py[cod]
 .pytest_cache/
 .ipynb_checkpoints/
@@ -70,6 +70,7 @@ dataset/
 datasets/
 raw_data/
 processed_data/
+
 A. Segmentation/
 B. Disease Grading/
 
@@ -90,7 +91,7 @@ models/*.mat
 modules/**/models/*.mat
 modules/**/model/*.mat
 
-# LOCKED FINAL ML MODEL
+# LOCKED FINAL ML MODEL — REQUIRED
 
 !models/baseline_resnet50_smoketest.mat
 
@@ -114,34 +115,43 @@ outputs/checkpoints/
 
 outputs/evaluation/*
 
-# CONTROLLED ADAPTATION — required machine-readable contract
+# CONTROLLED ADAPTATION — REQUIRED
 
 !outputs/evaluation/adaptation_handoff_package.json
 
-# REFERABLE DR — required calibration artifact
+# REFERABLE DR — REQUIRED CALIBRATION ARTIFACT
 
 !outputs/evaluation/referable_dr/
 !outputs/evaluation/referable_dr/calibration/
 !outputs/evaluation/referable_dr/calibration/calibration_parameters.mat
 
-# MACHINE-READABLE MASTER RESULTS
+# MACHINE-READABLE MASTER RESULTS — REQUIRED
 
 !outputs/evaluation/ml_master/
 
 # -------------------------
 
-# MATLAB .mat Files
+# MATLAB / SIMULINK RESULT FILES
 
 # -------------------------
 
-# Ignore generated/simulation .mat files
+# Ignore generated simulation results by default
 
 modules/simulink_telemed/results/*.mat
 outputs/**/*.mat
 
-# Re-allow explicitly required tracked artifacts
+# REQUIRED VERIFIED SIMULATION EVIDENCE
+
+!modules/simulink_telemed/results/day2_experiment_results.mat
+!modules/simulink_telemed/results/results_30day.mat
+!modules/simulink_telemed/results/results_365day.mat
+
+# Required model artifact
 
 !models/baseline_resnet50_smoketest.mat
+
+# Required evaluation artifacts
+
 !outputs/evaluation/adaptation_handoff_package.json
 !outputs/evaluation/referable_dr/calibration/calibration_parameters.mat
 
@@ -152,10 +162,12 @@ outputs/**/*.mat
 # -------------------------
 
 dashboard/venv/
-dashboard/**pycache**/
+dashboard/**/**pycache**/
 
 dashboard/uploads/*
 !dashboard/uploads/.gitkeep
+
+# Runtime Grad-CAM artifacts
 
 dashboard/gradcam_output/*
 !dashboard/gradcam_output/.gitkeep

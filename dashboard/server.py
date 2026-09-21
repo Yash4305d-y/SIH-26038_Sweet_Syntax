@@ -5,7 +5,7 @@ SIH-26038 Diabetic Retinopathy Screening
 This server:
 1. Serves the static dashboard frontend
 2. Receives image uploads via POST /api/predict
-3. Calls MATLAB runDRInference (or mock mode if MATLAB unavailable)
+3. Calls MATLAB runDRInference (fails closed if MATLAB unavailable)
 4. Returns the inference result as JSON
 
 Run: python server.py
@@ -233,7 +233,7 @@ def predict():
     """
     Receives a retinal fundus image and returns DR inference results.
     
-    Tries MATLAB Engine API first, then subprocess, then falls back to mock mode.
+    Tries MATLAB Engine API first, then subprocess.
     """
     if 'image' not in request.files:
         return jsonify({'success': False, 'errorMessage': 'No image file provided'}), 400
@@ -287,7 +287,7 @@ def predict():
 
     # Method 3: Mock mode (development fallback)
     if result is None:
-        if os.environ.get('SIH_ALLOW_MOCK_INFERENCE') == '1':
+        if os.environ.get('SIH_ENABLE_MOCK_INFERENCE') == '1':
             print('[WARN] MATLAB not available. Using mock inference mode.')
             result = generate_mock_result(str(saved_path))
         else:
@@ -723,7 +723,10 @@ if __name__ == '__main__':
 
     if not MATLAB_ENGINE_AVAILABLE and not MATLAB_AVAILABLE:
         print()
-        print('  ⚠  MATLAB not available — running in MOCK MODE')
+        if os.environ.get('SIH_ENABLE_MOCK_INFERENCE') == '1':
+            print('  ⚠  MATLAB not available — running in MOCK MODE')
+        else:
+            print('  ⚠  MATLAB not available — inference is FAIL CLOSED')
         print('     Install MATLAB Engine API for Python or ensure')
         print('     matlab is on your PATH for real inference.')
     

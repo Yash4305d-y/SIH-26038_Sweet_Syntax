@@ -109,62 +109,62 @@
         "iqa_focus_check": {
             "method": "Laplacian Variance Thresholding",
             "status": "VALIDATED",
-            "file": "modules/image_processing/code/IQA/check_image_quality.m"
+            "file": "modules/image_processing/code/IQA/focus_score.m"
         },
         "iqa_illumination_check": {
             "method": "Histogram Exposure Checking",
             "status": "VALIDATED",
-            "file": "modules/image_processing/code/IQA/check_illumination.m"
+            "file": "modules/image_processing/code/IQA/illumination_score.m"
         },
         "iqa_fov_check": {
             "method": "Circular FOV Boundary Estimation",
             "status": "VALIDATED",
-            "file": "modules/image_processing/code/IQA/check_fov.m"
+            "file": "modules/image_processing/code/IQA/fov_score.m"
         },
         "preprocessing_clahe": {
             "method": "Contrast Limited Adaptive Histogram Equalization",
             "status": "VALIDATED",
-            "file": "modules/image_processing/code/Preprocessing/preprocess_fundus.m"
+            "file": "modules/image_processing/code/Preprocessing/preprocess_clahe.m"
         },
         "preprocessing_denoising": {
             "method": "Green Channel Normalization & Filtering",
             "status": "VALIDATED",
-            "file": "modules/image_processing/code/Preprocessing/preprocess_fundus.m"
+            "file": "modules/image_processing/code/Preprocessing/preprocess_denoise.m"
         },
         "structure_vessels": {
             "method": "Frangi Vesselness Filtering (fibermetric)",
             "status": "VALIDATED",
-            "file": "modules/image_processing/code/Structures/segment_vessels.m"
+            "file": "modules/image_processing/code/Morphology/vessel_extraction.m"
         },
         "structure_optic_disc": {
             "method": "Bright Blob Centroid & Compactness Check",
             "status": "VALIDATED",
-            "file": "modules/image_processing/code/Structures/detect_optic_disc.m"
+            "file": "modules/image_processing/code/Morphology/optic_disc.m"
         },
         "structure_fovea": {
             "method": "Temporal Horizontal Meridian Heuristic",
             "status": "VALIDATED",
-            "file": "modules/image_processing/code/Structures/locate_fovea.m"
+            "file": "modules/image_processing/code/Morphology/fovea_heuristic.m"
         },
         "lesion_exudate_candidates": {
             "method": "Top-hat Morphological Filtering",
             "status": "PARTIALLY VALIDATED",
-            "file": "modules/image_processing/code/Lesions/detect_exudates.m"
+            "file": "modules/image_processing/code/Morphology/exudate_candidates.m"
         },
         "lesion_microaneurysm_candidates": {
             "method": "Bottom-hat Morphological Filtering",
             "status": "PARTIALLY VALIDATED",
-            "file": "modules/image_processing/code/Lesions/detect_microaneurysms.m"
+            "file": "modules/image_processing/code/Morphology/ma_hemorrhage_candidates.m"
         },
         "lesion_hemorrhage_candidates": {
             "method": "Bottom-hat Candidate Extraction",
             "status": "PARTIALLY VALIDATED",
-            "file": "modules/image_processing/code/Lesions/detect_hemorrhages.m"
+            "file": "modules/image_processing/code/Morphology/ma_hemorrhage_candidates.m"
         },
         "lesion_neovascularization": {
             "method": "Dropped from MVP Scope (Master Plan \u00a76.3)",
             "status": "NOT IMPLEMENTED",
-            "file": "N/A"
+            "file": "modules/image_processing/code/Morphology/neovascularization_candidates.m"
         }
     },
     "benchmark_comparison": [

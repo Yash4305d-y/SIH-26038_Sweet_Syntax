@@ -38,7 +38,7 @@ Open a terminal in the root `D:\SIH-26038` directory and run:
 python dashboard/server.py
 ```
 
-This starts the Python backend server. You should see Flask output indicating the server is running on `http://127.0.0.1:5000`.
+This starts the Python backend server. You should see Flask output indicating the server is running on `http://127.0.0.1:5050`.
 
 ---
 
@@ -46,28 +46,28 @@ This starts the Python backend server. You should see Flask output indicating th
 
 | What evaluator wants | Where to go |
 | -------------------- | ----------- |
-| Run product          | `http://127.0.0.1:5000` |
-| Screening demo       | `http://127.0.0.1:5000` -> Upload New Image |
+| Run product          | `http://127.0.0.1:5050` |
+| Screening demo       | `http://127.0.0.1:5050` -> Upload New Image |
 | PDF                  | Layer 1 Report -> Click "Print Report" / "Download PDF" |
-| Specialist review    | `http://127.0.0.1:5000/cases.html` |
-| Audit trail          | `http://127.0.0.1:5000/cases.html` -> Select Case -> Scroll to Traceability Audit |
+| Specialist review    | `http://127.0.0.1:5050/cases.html` |
+| Audit trail          | `http://127.0.0.1:5050/cases.html` -> Select Case -> Scroll to Traceability Audit |
 | Grad-CAM             | Shown in Layer 1 Report and Specialist Portal (`dashboard/gradcam_output`) |
 | Morphology           | Shown in Layer 1 Report and Specialist Portal |
-| Adaptation           | `http://127.0.0.1:5000/adaptation.html` |
+| Adaptation           | `http://127.0.0.1:5050/adaptation.html` |
 | Simulink             | Open `DR_DigitalTwin_Day2.slx` in MATLAB Simulink |
 | Validation metrics   | `outputs/evaluation/` directory |
 | Tests                | Run `python -m unittest discover tests` or `testDRInference` in MATLAB |
 
 **Step-by-step walkthrough:**
 1. **Launch**: Run `python dashboard/server.py`.
-2. **Open dashboard**: Navigate to `http://127.0.0.1:5000`.
+2. **Open dashboard**: Navigate to `http://127.0.0.1:5050`.
 3. **Load sample fundus**: Select a sample image from `data/raw/train_images/` or `messidor-2/preprocess/`.
 4. **Run screening**: Click to analyze. The first run takes longer as the ResNet-50 model is loaded into memory via the MATLAB subprocess.
 5. **Inspect result**: View the AI Grade and referable probability in the Layer 1 report.
 6. **Open Grad-CAM**: The visual explanation is rendered directly on the report screen.
 7. **Open morphology evidence**: The extracted features (vessels, exudates, neovascularization candidates, etc.) are listed below the image.
 8. **Generate PDF**: Use the browser's native print function to generate a 2-page report (the UI is structured for standard print layouts).
-9. **Open Specialist Portal**: Click "Specialist Review" or navigate to `http://127.0.0.1:5000/cases.html`.
+9. **Open Specialist Portal**: Click "Specialist Review" or navigate to `http://127.0.0.1:5050/cases.html`.
 10. **Submit specialist review**: Select the generated case on the left, assign a manual specialist grade, and submit.
 11. **Inspect Layer 3 audit**: Scroll down in the case view to see the complete immutable traceability audit log, tracking versions, IQA, calibration, and adaptation configuration.
 
@@ -105,7 +105,7 @@ The system preserves all provenance. As an evaluator, you can inspect:
 
 ## 7. Controlled adaptation
 
-Navigate to `http://127.0.0.1:5000/adaptation.html`.
+Navigate to `http://127.0.0.1:5050/adaptation.html`.
 
 The project evaluated a domain-shift candidate on the IDRiD dataset via Platt scaling. The pipeline is:
 Baseline → Candidate evaluation → Held-out validation → Mechanical decision → ROLLBACK

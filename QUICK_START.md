@@ -24,7 +24,7 @@ python dashboard/server.py
 ## Open
 Navigate to the dashboard in your web browser:
 ```text
-http://127.0.0.1:5000
+http://127.0.0.1:5050
 ```
 
 ## Run Sample

@@ -287,8 +287,17 @@ def predict():
 
     # Method 3: Mock mode (development fallback)
     if result is None:
-        print('[WARN] MATLAB not available. Using mock inference mode.')
-        result = generate_mock_result(str(saved_path))
+        if os.environ.get('SIH_ALLOW_MOCK_INFERENCE') == '1':
+            print('[WARN] MATLAB not available. Using mock inference mode.')
+            result = generate_mock_result(str(saved_path))
+        else:
+            print('[ERROR] MATLAB not available and mock mode is disabled.')
+            return jsonify({
+                'success': False,
+                'errorType': 'INFERENCE_UNAVAILABLE',
+                'errorMessage': 'Inference unavailable — validated inference backend is not available.',
+                'guidance': 'Please ensure MATLAB is installed and running.'
+            }), 200
 
     iqa_result = result.get('iqa', {})
     if not iqa_result.get('pass', True):
@@ -722,4 +731,4 @@ if __name__ == '__main__':
     print('  Dashboard: http://localhost:5050')
     print('=' * 60)
 
-    app.run(host='0.0.0.0', port=5050, debug=True)
+    app.run(host='0.0.0.0', port=5050, debug=os.environ.get('FLASK_DEBUG') == '1')

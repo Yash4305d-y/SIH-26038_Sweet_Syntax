@@ -1,257 +1,356 @@
 # Explainable AI for Diabetic Retinopathy Screening in Rural India
 
 > **SIH 2026 — Problem Statement 26038 / PS 38**
-> An explainable, confidence-aware AI prototype for diabetic retinopathy screening and referral support in rural telemedicine workflows.
+> **Team: Sweet Syntax**
+>
+> A MATLAB-based, explainable and confidence-aware diabetic retinopathy screening prototype designed for rural telemedicine and human-in-the-loop referral workflows.
 
 ---
 
-## Overview
+## 🚀 What is this project?
 
-Diabetic Retinopathy (DR) is a diabetes-related retinal disease that can lead to vision impairment and blindness if not detected and managed appropriately.
+Diabetic Retinopathy (DR) is a diabetes-related retinal disease that can lead to vision impairment and blindness if it is not detected and managed appropriately.
 
-This project develops a **reproducible MATLAB-based AI screening prototype** that analyzes retinal fundus images and provides:
+This project develops an **integrated retinal screening prototype** that combines:
 
-* Five-level diabetic retinopathy grading
+* Retinal image validation
+* Image Quality Assessment (IQA)
+* Image enhancement and preprocessing
+* DR severity grading from **Grade 0–4**
 * Referable-DR screening
-* Calibrated referral probability
-* Model confidence
-* Grad-CAM visual explanations
-* External-domain evaluation
-* A standardized ML inference interface for system integration
-* Support for integration with a larger telemedicine workflow and Simulink-based simulation
+* Probability calibration
+* Grad-CAM explainability
+* Retinal morphology candidate evidence
+* Specialist review and referral workflow
+* Case-level audit and traceability
+* Controlled adaptation experiments
+* District-scale Simulink/Digital Twin simulation
 
-The system is designed as a **screening and decision-support prototype, not an autonomous clinical diagnostic system**.
+The system is designed as a **screening and decision-support prototype** rather than an autonomous clinical diagnostic system.
 
 ---
 
-## Key Idea
+# ⚡ Quick Start
 
-The ML pipeline combines detailed DR grading with a separate referral decision:
+If you only want to run the working prototype locally, start here.
 
-```text
-Retinal Fundus Image
-        │
-        ▼
-Image Quality / Retinal Analysis
-        │
-        ▼
-Frozen ResNet-50 ML Model
-        │
-        ├──► Grade 0
-        ├──► Grade 1
-        ├──► Grade 2
-        ├──► Grade 3
-        └──► Grade 4
-        │
-        ▼
-P(Grade 2) + P(Grade 3) + P(Grade 4)
-        │
-        ▼
-Platt Calibration
-        │
-        ▼
-Frozen Threshold = 0.22
-        │
-        ▼
-Referable / Non-Referable
-        │
-        ├──► Confidence
-        ├──► Grad-CAM
-        └──► Reliability / Domain-Shift Analysis
+## 1. Requirements
+
+You need:
+
+* **Python 3.8+**
+* **MATLAB R2023b or newer**
+* MATLAB toolboxes used by the project, including:
+
+  * Deep Learning Toolbox
+  * Image Processing Toolbox
+  * Computer Vision Toolbox
+* A modern web browser
+
+Simulink/SimEvents are additionally required if you want to inspect or reproduce the Digital Twin simulations.
+
+> **Important:** The repository does not include the original retinal datasets. Dataset images are excluded from version control. To run a normal screening inference, provide a valid retinal/fundus image.
+
+---
+
+## 2. Clone the repository
+
+```bash
+git clone https://github.com/Yash4305d-y/SIH-26038_Sweet_Syntax.git
+cd SIH-26038_Sweet_Syntax
 ```
 
-The final ML component is exposed through a controlled inference interface so downstream UI and simulation components do not independently recreate the prediction logic.
+If you already have the repository, simply open a terminal in the project root.
 
 ---
 
-# 1. Project Objectives
+## 3. Install Python dependencies
 
-The ML component is designed to:
+```bash
+pip install -r dashboard/requirements.txt
+```
 
-1. Classify retinal fundus images into five DR severity levels.
-2. Provide a binary **referable-DR** screening decision.
-3. Handle severe class imbalance through experimentally evaluated training strategies.
-4. Evaluate performance using metrics appropriate for both class imbalance and ordinal disease severity.
-5. Provide calibrated referral probabilities.
-6. Provide visual model explanations using Grad-CAM.
-7. Evaluate generalization on an independent external dataset.
-8. Expose the frozen ML pipeline through a standardized inference contract.
-9. Provide ML outputs that can be consumed by the system's UI and workflow simulation.
+The current dashboard requires Flask.
 
 ---
 
-# 2. DR Grading
+## 4. Verify MATLAB
 
-The model predicts five classes:
+Open MATLAB once and make sure the required toolboxes are available.
 
-| Grade | Description             |
+From the MATLAB Command Window:
+
+```matlab
+ver
+```
+
+The project expects the required MATLAB toolboxes to be installed and licensed.
+
+---
+
+## 5. Start the application
+
+From the project root:
+
+```bash
+python dashboard/server.py
+```
+
+The local dashboard runs at:
+
+```text
+http://127.0.0.1:5050
+```
+
+Open that address in your browser.
+
+### How inference works
+
+The web dashboard is the interface.
+
+MATLAB remains the authoritative inference backend:
+
+```text
+Browser
+   │
+   ▼
+Flask Dashboard
+   │
+   ▼
+Retinal Validation
+   │
+   ▼
+IQA / Preprocessing
+   │
+   ▼
+MATLAB ML Inference
+   │
+   ▼
+Locked ResNet-50
+   │
+   ├──► DR Grade 0–4
+   ├──► Class Probabilities
+   ├──► Referable Probability
+   ├──► Calibrated Decision
+   └──► Grad-CAM
+   │
+   ▼
+Case / Report / Specialist Workflow
+```
+
+The system **fails closed** if the validated MATLAB inference backend is unavailable. Mock inference is not part of the real screening workflow.
+
+---
+
+# 🖥️ Using the Application
+
+## Step 1 — Upload a fundus image
+
+Open:
+
+```text
+http://127.0.0.1:5050
+```
+
+Choose **Upload New Image** and provide a retinal fundus image.
+
+> A sample retinal image is intentionally not committed to the repository because the underlying datasets are excluded from version control.
+
+---
+
+## Step 2 — Run screening
+
+The system processes the image through the integrated pipeline:
+
+```text
+Image
+  ↓
+Retinal suitability check
+  ↓
+Image Quality Assessment
+  ↓
+Enhancement / preprocessing
+  ↓
+Morphology evidence
+  ↓
+DR grading
+  ↓
+Referable-DR decision
+  ↓
+Confidence / calibration
+  ↓
+Grad-CAM
+  ↓
+Screening report
+```
+
+The first inference may take longer because MATLAB needs to initialize and load the locked model.
+
+---
+
+## Step 3 — Inspect the result
+
+The Layer 1 report provides the screening-oriented information:
+
+* Case ID
+* Screening result
+* DR grade
+* Referable probability
+* Referral recommendation
+* Next action
+* Retinal image
+* Explainability evidence
+* Referral/follow-up information where available
+
+---
+
+# 🛡️ Safety Gates
+
+The prototype deliberately prevents unsafe downstream execution.
+
+### Non-retinal image
+
+Provide a clearly non-retinal image.
+
+Expected behavior:
+
+```text
+Non-retinal image
+      ↓
+Retinal suitability gate
+      ↓
+REJECTED
+      ↓
+No DR result
+```
+
+The system must not send a scenery/photo/non-fundus image to the DR model.
+
+---
+
+### Poor-quality image
+
+Provide a severely blurred or otherwise ungradeable retinal image.
+
+Expected behavior:
+
+```text
+Fundus image
+     ↓
+IQA
+     ↓
+FAIL
+     ↓
+Recapture guidance
+     ↓
+No downstream DR result
+```
+
+---
+
+### New image
+
+Uploading a new image clears stale results from the previous analysis.
+
+This prevents an old prediction from being displayed for a new case.
+
+---
+
+# 🧠 Core AI Pipeline
+
+## Five-class DR grading
+
+The model predicts five severity levels:
+
+| Grade | Meaning                 |
 | ----: | ----------------------- |
-|     0 | No Diabetic Retinopathy |
-|     1 | Mild DR                 |
-|     2 | Moderate DR             |
-|     3 | Severe DR               |
-|     4 | Proliferative DR        |
+| **0** | No Diabetic Retinopathy |
+| **1** | Mild DR                 |
+| **2** | Moderate DR             |
+| **3** | Severe DR               |
+| **4** | Proliferative DR        |
 
-The five-class output preserves disease severity information.
+For screening:
 
-For screening, the classes are additionally grouped into:
-
-| Screening Class | DR Grades |
-| --------------- | --------- |
-| Non-referable   | 0, 1      |
-| Referable       | 2, 3, 4   |
+```text
+Grade 0 + Grade 1 → Non-referable
+Grade 2 + Grade 3 + Grade 4 → Referable
+```
 
 Therefore:
 
 ```text
-Referable Probability = P2 + P3 + P4
+P(referable) = P(Grade 2) + P(Grade 3) + P(Grade 4)
 ```
 
-The Grade 2+ definition follows the problem-statement screening requirement used in this prototype.
-
 ---
 
-# 3. Dataset Strategy
+# 🧬 Model
 
-## Primary Dataset — APTOS 2019
+The authoritative five-class model is a **ResNet-50 transfer-learning model** implemented in MATLAB.
 
-APTOS 2019 is the primary labeled dataset used for model development and evaluation.
-
-A fixed split was created:
-
-| Split      | Images |
-| ---------- | -----: |
-| Training   |   2051 |
-| Validation |    440 |
-| Test       |    439 |
-
-The test set contains **439 images** and is kept fixed for authoritative evaluation.
-
-The training data is strongly imbalanced toward Grade 0, making accuracy alone insufficient for model selection.
-
----
-
-## External Dataset — Messidor-2
-
-Messidor-2 is used strictly as an **external evaluation dataset**.
-
-* Images: **1744**
-* Labels: **1744**
-* No APTOS overlap identified
-* Used for external generalization analysis
-* Not used for training
-* Not used for model selection
-* Not used to tune the calibration threshold
-
-This separation preserves the purpose of external validation.
-
----
-
-# 4. Model Architecture
-
-## ResNet-50 Transfer Learning
-
-The final model is based on **ResNet-50** with transfer learning.
-
-The network accepts:
-
-```text
-224 × 224 × 3
-```
-
-and produces five DR class probabilities.
-
-The final model is stored as:
+### Locked model
 
 ```text
 models/baseline_resnet50_smoketest.mat
 ```
 
-with the network stored in the MATLAB variable:
+The MATLAB network is stored as:
 
 ```text
 net
 ```
 
-The network is a MATLAB `dlnetwork`.
+and is a `dlnetwork`.
 
-### Why ResNet-50?
+### Input
 
-ResNet-50 was selected because it provides:
+```text
+224 × 224 × 3
+```
 
-* Mature residual architecture
-* Strong transfer-learning capability
-* Suitable feature extraction for image classification
-* Stable MATLAB Deep Learning Toolbox support
-* Compatibility with Grad-CAM
-* A reproducible implementation within the MATLAB/Simulink ecosystem
+### Training configuration
 
-The project does not claim that ResNet-50 is universally superior to every modern architecture.
+| Parameter     | Value         |
+| ------------- | ------------- |
+| Architecture  | ResNet-50     |
+| Input         | 224 × 224 × 3 |
+| Optimizer     | Adam          |
+| Learning rate | 1e-4          |
+| Batch size    | 16            |
+| Loss          | Cross-Entropy |
+| Epochs        | 5             |
+| Model state   | **LOCKED**    |
 
----
-
-# 5. Training Configuration
-
-The locked baseline configuration uses:
-
-| Parameter             | Value                                     |
-| --------------------- | ----------------------------------------- |
-| Architecture          | ResNet-50                                 |
-| Input                 | 224 × 224 × 3                             |
-| Optimizer             | Adam                                      |
-| Learning Rate         | 1e-4                                      |
-| Batch Size            | 16                                        |
-| Loss                  | Cross-Entropy                             |
-| Maximum Epochs        | 5                                         |
-| Dataset Split         | Fixed APTOS split                         |
-| External Augmentation | None beyond baseline resize preprocessing |
-
-The baseline model uses the same preprocessing convention throughout authoritative evaluation and inference.
+The baseline model remains the authoritative model for the integrated system.
 
 ---
 
-# 6. Model Selection
+# 📊 APTOS 2019 Evaluation
 
-Multiple variants were investigated rather than selecting the first trained model.
+APTOS 2019 is the primary development and evaluation dataset.
 
-Evaluated approaches included:
+The fixed split contains:
 
-* Baseline ResNet-50
-* Mild class-weighted training
-* Medium class-weighted training
-* Strong class-weighted training
-* Offline augmentation
-* Geometry-normalized/cropped training
+| Split      | Images |
+| ---------- | -----: |
+| Training   |  2,051 |
+| Validation |    440 |
+| Test       |    439 |
 
-## Final Selection
-
-**Baseline ResNet-50 was locked as the final five-class model.**
-
-The decision was based primarily on overall classification performance, with particular importance given to:
-
-* Accuracy
-* Macro-F1
-* Quadratic Weighted Kappa (QWK)
-* Per-class performance
-* Consistency with the complete inference pipeline
-
-The baseline achieved the highest overall **accuracy and QWK** among the compared final candidates.
-
-Class weighting improved some minority-class metrics, but the weighted variants did not provide a better overall trade-off for the final system.
+The test set is kept fixed for the authoritative evaluation.
 
 ---
 
-# 7. Final APTOS 5-Class Results
+## Five-Class Results
 
-The authoritative APTOS test-set results for the locked baseline are:
+| Metric       |     Result |
+| ------------ | ---------: |
+| **Accuracy** | **82.92%** |
+| **Macro-F1** | **0.6358** |
+| **QWK**      | **0.8713** |
 
-| Metric   |     Result |
-| -------- | ---------: |
-| Accuracy | **82.92%** |
-| Macro-F1 | **0.6358** |
-| QWK      | **0.8713** |
-
-### Per-Class Metrics
+### Per-class performance
 
 | Grade | Precision |     Recall |     F1 |
 | ----: | --------: | ---------: | -----: |
@@ -261,69 +360,41 @@ The authoritative APTOS test-set results for the locked baseline are:
 |     3 |    0.6667 | **0.2609** | 0.3750 |
 |     4 |    0.7333 | **0.3143** | 0.4400 |
 
-### Important Limitation
+### Important limitation
 
-The model performs substantially better on common classes than on the rarest severe classes.
+The model does **not** perform equally well across all five grades.
 
 In particular:
 
-* Grade 3 recall: **26.09%**
-* Grade 4 recall: **31.43%**
+```text
+Grade 3 Recall = 26.09%
+Grade 4 Recall = 31.43%
+```
 
-This is an important limitation of the current five-class model and is not hidden by the aggregate accuracy.
-
-The strong referable-DR performance should therefore not be interpreted as evidence that all five individual grades are equally reliable.
+This limitation is explicitly reported rather than hidden behind aggregate accuracy.
 
 ---
 
-# 8. Why QWK and Macro-F1?
+# 🎯 Referable-DR Screening
 
-## Quadratic Weighted Kappa
-
-DR grades are **ordinal**.
-
-A prediction of Grade 4 for a true Grade 3 is less severe than predicting Grade 0 for a true Grade 3.
-
-QWK is therefore useful because it accounts for the magnitude of disagreement between ordinal classes.
-
-## Macro-F1
-
-APTOS is heavily class-imbalanced.
-
-Macro-F1 gives each class equal importance rather than allowing the dominant Grade 0 class to dominate the metric.
-
-Therefore, the project reports both:
+For screening, Grades 2–4 are treated as referable:
 
 ```text
-Accuracy + Macro-F1 + QWK + Per-Class Metrics
+0, 1 → Non-referable
+2, 3, 4 → Referable
 ```
 
-rather than relying on accuracy alone.
-
----
-
-# 9. Referable-DR Screening
-
-For practical screening, the five classes are converted into a binary referral decision:
-
-```text
-Grade 0 + Grade 1 → Non-Referable
-Grade 2 + Grade 3 + Grade 4 → Referable
-```
-
-The referable probability is:
+The screening probability is:
 
 ```text
 P(referable) = P2 + P3 + P4
 ```
 
-This allows the system to retain five-level severity information while also producing a screening-oriented referral decision.
-
 ---
 
-# 10. APTOS Referable-DR Results
+## APTOS Referable-DR Results
 
-Using the frozen baseline model:
+Before post-hoc calibration:
 
 | Metric      |     Result |
 | ----------- | ---------: |
@@ -334,34 +405,37 @@ Using the frozen baseline model:
 | F1          | **92.72%** |
 | ROC-AUC     | **0.9816** |
 
-The high sensitivity indicates that the binary referable grouping is effective on the APTOS test set.
+---
 
-However, this does not eliminate the five-class Grade 3/4 limitation described above.
+# 📐 Probability Calibration
+
+Raw neural-network probabilities are not automatically reliable probabilities.
+
+The project therefore uses **Platt scaling** as post-hoc calibration.
+
+### Calibration protocol
+
+```text
+APTOS training
+      ↓
+APTOS validation
+      ↓
+Fit calibration
+      ↓
+Freeze calibration
+      ↓
+APTOS test
+```
+
+The APTOS test set is not used to fit calibration.
+
+Messidor-2 is also not used for calibration or threshold tuning.
 
 ---
 
-# 11. Probability Calibration
+# 🔒 Frozen Referral Threshold
 
-Raw neural-network softmax scores are not automatically reliable probabilities.
-
-The project therefore uses **Platt scaling** as a post-hoc calibration method.
-
-### Calibration methodology
-
-* Calibration fitted using the APTOS validation set
-* No calibration fitting on the APTOS test set
-* No calibration fitting on Messidor-2
-* Calibration parameters frozen before final evaluation
-
-The calibrated referable probability is then used for the screening decision.
-
----
-
-# 12. Frozen Referral Threshold
-
-The referral threshold was selected using the validation set.
-
-Selection criterion:
+The operating threshold was selected on the validation set using:
 
 ```text
 Maximize F1
@@ -377,20 +451,20 @@ The resulting frozen threshold is:
 Therefore:
 
 ```text
-Calibrated Referable Probability >= 0.22
-        → Referable
+Calibrated P(referable) >= 0.22
+        ↓
+     REFERABLE
 
-Calibrated Referable Probability < 0.22
-        → Non-Referable
+Calibrated P(referable) < 0.22
+        ↓
+  NON-REFERABLE
 ```
 
-This threshold is **not claimed to be a clinically optimal threshold**. It is the validated operating point selected for this prototype.
+This is a validated prototype operating point, **not a claim of a clinically optimal threshold**.
 
 ---
 
-# 13. Calibrated Test Results
-
-On the APTOS test set:
+# 📈 Calibrated APTOS Results
 
 | Metric      |     Result |
 | ----------- | ---------: |
@@ -402,102 +476,95 @@ On the APTOS test set:
 | F1          | **92.19%** |
 | ROC-AUC     | **0.9816** |
 
-Calibration metrics also improved on the test set:
+### Calibration metrics
 
 | Metric      |      Raw |   Calibrated |
 | ----------- | -------: | -----------: |
 | Brier Score | 0.049931 | **0.048506** |
 | ECE         | 0.036375 | **0.030670** |
 
-Calibration should therefore be interpreted as improving the behavior of the probability estimates and defining a screening operating point, rather than improving the underlying classifier itself.
+Calibration changes probability behavior and the screening operating point; it does not change the learned feature representation of the ResNet-50.
 
 ---
 
-# 14. Explainability with Grad-CAM
+# 🔥 Explainability — Grad-CAM
 
-Grad-CAM is integrated into the final ML inference pipeline.
+Grad-CAM is integrated into the inference pipeline.
 
-The selected convolutional layer is:
+The selected layer is:
 
 ```text
 res5c_branch2c
 ```
 
-Grad-CAM generates a spatial heatmap representing regions that influenced the model's prediction.
+The output provides a spatial heatmap showing regions that contributed to the model prediction.
 
-The system uses this to provide a visual explanation alongside the predicted grade and confidence.
+### Verification
+
+The complete APTOS test set was checked:
+
+```text
+Test images:       439
+Grad-CAM outputs:  439
+Prediction errors: 0
+Missing outputs:   0
+```
+
+This verifies **pipeline consistency** between the authoritative prediction path and Grad-CAM generation.
+
+It does **not** establish clinical validity of the explanations.
+
+Clinical validation of explanation quality would require independent expert annotation/evaluation.
+
+---
+
+# 🔬 Retinal Morphology Evidence
+
+The integrated pipeline also extracts candidate retinal structure/lesion evidence.
+
+Current components include:
+
+| Component          | Method / Output                                  |
+| ------------------ | ------------------------------------------------ |
+| Optic disc         | Brightness/region-based localization             |
+| Fovea              | Optic-disc-relative heuristic localization       |
+| Vessels            | MATLAB `fibermetric` + cleanup                   |
+| Exudates           | Top-hat + threshold-based candidates             |
+| Microaneurysms     | Dark candidate extraction                        |
+| Hemorrhage         | Dark candidate extraction                        |
+| Neovascularization | Vessel skeleton + branch-point density heuristic |
+
+These outputs are preserved independently from the CNN prediction.
 
 ### Important limitation
 
-Grad-CAM is **not treated as clinical ground truth**.
+The morphology modules provide **candidate evidence for interpretability and system integration**.
 
-It indicates model attention, but it does not prove that the model identified a medically correct lesion.
+They are **not claimed to be independently clinically validated lesion detectors**.
 
-Clinical validation of explanation quality would require expert-annotated lesion localization or equivalent validation.
-
----
-
-# 15. Grad-CAM Pipeline Verification
-
-An initial implementation exposed a preprocessing mismatch between the authoritative baseline evaluation and Grad-CAM generation.
-
-The issue was identified and corrected.
-
-The final Grad-CAM implementation uses the same baseline preprocessing convention:
-
-```text
-imageDatastore
-      ↓
-augmentedImageDatastore([224 224])
-```
-
-The complete APTOS test set was then verified.
-
-### Verification result
-
-```text
-Total test images:       439
-Grad-CAM outputs:        439
-Prediction mismatches:   0
-Missing outputs:         0
-```
-
-This proves **pipeline integrity**.
-
-It does not constitute clinical validation of the Grad-CAM explanations.
+In particular, neovascularization is implemented as a heuristic candidate mechanism rather than a clinically validated detector.
 
 ---
 
-# 16. Grad-CAM Representative Cases
+# 🌍 External Validation — Messidor-2
 
-A representative-case analysis was performed on the 439-image test set.
-
-Results:
+Messidor-2 is used strictly as an external evaluation dataset.
 
 ```text
-Total:          439
-Correct:        364
-Misclassified:   75
+APTOS
+ ├── Training
+ ├── Validation
+ └── Test
+
+Messidor-2
+ └── External evaluation only
 ```
 
-A set of **29 representative cases** was selected for analysis, including examples across grades and both correct and incorrect predictions.
-
-These cases are intended for:
-
-* Explainability
-* Error analysis
-* Demonstration
-* Judge presentation
-
-They are not treated as clinical validation.
+The external dataset is not used for model training, model selection, calibration fitting, or threshold tuning.
 
 ---
 
-# 17. External Generalization — Messidor-2
-
-The frozen APTOS-trained model was evaluated on Messidor-2 without tuning the model to the external dataset.
-
-### Five-Class Results
+## Five-Class Results
 
 | Metric   |     Result |
 | -------- | ---------: |
@@ -505,7 +572,7 @@ The frozen APTOS-trained model was evaluated on Messidor-2 without tuning the mo
 | Macro-F1 | **0.2581** |
 | QWK      | **0.3231** |
 
-### Binary Referable-DR Results
+## Referable-DR Results
 
 | Metric      |       Result |
 | ----------- | -----------: |
@@ -518,416 +585,592 @@ The frozen APTOS-trained model was evaluated on Messidor-2 without tuning the mo
 | Brier Score | **0.193753** |
 | ECE         | **0.182716** |
 
-These results demonstrate a significant **domain-generalization limitation**.
+### What does this tell us?
 
-The model showed a strong tendency toward Grade 0 predictions on Messidor-2.
+The external results demonstrate a significant **domain-generalization limitation**.
 
----
+The model shows a strong tendency toward Grade 0 predictions on Messidor-2.
 
-# 18. Why Messidor-2 Was Not Tuned
-
-Messidor-2 is being used as an external validation dataset.
-
-Therefore:
-
-```text
-APTOS → Training / Validation / Model Selection
-Messidor-2 → External Evaluation
-```
-
-Tuning the model or threshold specifically for Messidor-2 would compromise the independence of the external evaluation.
-
-The poor external performance is therefore retained as an honest limitation rather than hidden through external-dataset tuning.
+This is intentionally reported rather than hidden through external-dataset tuning.
 
 ---
 
-# 19. Domain Representation Analysis
+# 🔎 Domain-Shift Analysis
 
-A representation audit compared APTOS test images with the processed Messidor-2 images.
+An image-representation audit found measurable differences between APTOS and Messidor-2.
 
-Important differences included:
+| Property     |       APTOS |  Messidor-2 |
+| ------------ | ----------: | ----------: |
+| Dimensions   |    Variable |   512 × 512 |
+| Aspect ratio | 1.28 ± 0.19 | 1.00 ± 0.00 |
+| Fill         | 0.90 ± 0.12 | 0.94 ± 0.01 |
+| Dark border  | 0.24 ± 0.12 | 0.26 ± 0.01 |
 
-| Property     |                   APTOS |  Messidor-2 |
-| ------------ | ----------------------: | ----------: |
-| Dimensions   | Variable, high variance |   512 × 512 |
-| Aspect Ratio |             1.28 ± 0.19 | 1.00 ± 0.00 |
-| Fill         |             0.90 ± 0.12 | 0.94 ± 0.01 |
-| Dark Border  |             0.24 ± 0.12 | 0.26 ± 0.01 |
+These observations are consistent with domain differences.
 
-This demonstrates a substantial representation/domain difference.
-
-However, the project does **not** claim that any single preprocessing difference, such as resizing, is solely responsible for the Messidor-2 performance drop.
+They do **not** establish that any single preprocessing difference caused the external performance drop.
 
 ---
 
-# 20. Domain-Shift-Aware Confidence — Future Enhancement
+# 👨‍⚕️ Human-in-the-Loop Workflow
 
-The external evaluation motivates an additional reliability mechanism:
-
-> **Domain-Shift-Aware Confidence**
-
-The idea is to distinguish:
-
-```text
-“How confident is the classifier?”
-```
-
-from:
-
-```text
-“Does this image resemble the distribution on which the classifier was validated?”
-```
-
-A possible implementation is:
-
-1. Extract a late ResNet-50 feature embedding.
-2. Estimate the APTOS training feature distribution.
-3. Calculate Mahalanobis distance for a new image.
-4. Compare the distance against a validated threshold.
-5. Flag substantially unfamiliar images for human review.
-
-Conceptually:
-
-```text
-High classifier confidence
-+
-Low domain distance
-        → Higher reliability
-
-High classifier confidence
-+
-High domain distance
-        → Reliability warning / human review
-```
-
-### Current status
-
-This is an **experimental enhancement**, not a claimed validated production feature.
-
-Before integration, it must be evaluated using:
-
-* APTOS held-out data
-* Messidor-2
-* Threshold analysis
-* Domain-separation metrics
-
-A successful detector would provide an additional safety mechanism against blindly trusting confident predictions on unfamiliar inputs.
-
----
-
-# 21. Inference Interface
-
-The final ML model is exposed through a standardized MATLAB inference interface.
-
-Main components:
-
-```text
-src/runDRInference.m
-src/runDRInferenceBatch.m
-src/testDRInference.m
-```
-
-The interface provides:
-
-* Five-class prediction
-* Class probabilities
-* Referable probability
-* Calibrated probability
-* Referable status
-* Confidence
-* Grad-CAM
-* Model status
-* Error information
-
-The interface uses the frozen:
-
-* ResNet-50 model
-* Preprocessing convention
-* Calibration parameters
-* Referral threshold
-* Grad-CAM configuration
-
-No retraining is performed during inference.
-
----
-
-# 22. ML Integration Contract
-
-The ML component provides a standardized contract for the rest of the system.
-
-Main documentation:
-
-```text
-docs/ml-integration-contract.md
-```
-
-The contract ensures that:
-
-* The UI does not duplicate ML logic.
-* Simulink does not independently reproduce the classifier.
-* The locked model remains authoritative.
-* The same preprocessing is used.
-* The same calibration is used.
-* The same referral threshold is used.
-* Grad-CAM is generated through the established pipeline.
-
-This creates a clean separation between:
-
-```text
-ML Intelligence
-        ↓
-Integration Contract
-        ↓
-UI / Workflow Simulation
-```
-
----
-
-# 23. Verification Status
-
-The complete ML pipeline has been verified.
-
-| Component                | Status |
-| ------------------------ | ------ |
-| Final Model              | ✅ PASS |
-| APTOS Evaluation         | ✅ PASS |
-| Model Comparison         | ✅ PASS |
-| Grad-CAM                 | ✅ PASS |
-| Referable-DR             | ✅ PASS |
-| Calibration              | ✅ PASS |
-| Messidor-2 Evaluation    | ✅ PASS |
-| ML Inference Interface   | ✅ PASS |
-| Integration Contract     | ✅ PASS |
-| Simulink Handoff         | ✅ PASS |
-| Documentation            | ✅ PASS |
-| Machine-Readable Results | ✅ PASS |
-
-### Final ML Decision
-
-> **BASELINE RESNET-50 — LOCKED**
-
-The ML pipeline is currently **frozen and integration-ready**.
-
----
-
-# 24. System Architecture
-
-The complete project is divided into role-based components.
-
-```text
-                         ┌─────────────────────┐
-                         │   Fundus Image      │
-                         └──────────┬──────────┘
-                                    │
-                                    ▼
-                         ┌─────────────────────┐
-                         │ Role 2              │
-                         │ Image Quality / CV  │
-                         └──────────┬──────────┘
-                                    │
-                                    ▼
-                    ┌──────────────────────────────┐
-                    │ Role 1 — ML Architect        │
-                    │                              │
-                    │ Frozen ResNet-50             │
-                    │ 5-Class DR                   │
-                    │ Referable Screening          │
-                    │ Calibration                  │
-                    │ Confidence                   │
-                    │ Grad-CAM                     │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                         ┌─────────────────────┐
-                         │ Integration Layer   │
-                         └─────────┬───────────┘
-                                   │
-                    ┌──────────────┴──────────────┐
-                    ▼                             ▼
-          ┌───────────────────┐         ┌───────────────────┐
-          │ Role 3             │         │ Role 4             │
-          │ Simulink/SimEvents │         │ MATLAB App/UI      │
-          └───────────────────┘         └───────────────────┘
-```
-
----
-
-# 25. Technology Stack
-
-## Machine Learning
-
-* MATLAB
-* Deep Learning Toolbox
-* ResNet-50
-* Transfer Learning
-* Cross-Entropy Loss
-* Class-Weighted Training Experiments
-* Image Augmentation Experiments
-* Platt Scaling
-* Mahalanobis Distance — proposed domain-shift experiment
-
-## Image / Explainability
-
-* MATLAB Image Processing capabilities
-* Grad-CAM
-* `augmentedImageDatastore`
-
-## Evaluation
-
-* Accuracy
-* Precision
-* Recall
-* F1
-* Macro-F1
-* Confusion Matrix
-* QWK
-* ROC-AUC
-* Sensitivity
-* Specificity
-* Brier Score
-* Expected Calibration Error
-
-## System Integration
-
-* MATLAB App Designer
-* Simulink
-* SimEvents
-* MATLAB ML inference interface
-
----
-
-# 26. Project Structure
-
-```text
-SIH-26038/
-│
-├── data/
-│   ├── splits/
-│   │   ├── aptos_train.csv
-│   │   ├── aptos_val.csv
-│   │   └── aptos_test.csv
-│   └── ...
-│
-├── models/
-│   ├── baseline_resnet50_smoketest.mat
-│   └── ...
-│
-├── src/
-│   ├── trainBaselineResNet50.m
-│   ├── runDRInference.m
-│   ├── runDRInferenceBatch.m
-│   ├── testDRInference.m
-│   ├── evaluateReferableDR.m
-│   ├── calibrateReferableDR.m
-│   ├── evaluateMessidor2External.m
-│   ├── gradcamBaselineFull.m
-│   ├── analyzeGradCAMRepresentativeCases.m
-│   └── ...
-│
-├── outputs/
-│   ├── evaluation/
-│   ├── gradcam/
-│   └── ...
-│
-├── docs/
-│   ├── ml-final-results.md
-│   ├── ml-inference-interface.md
-│   ├── ml-integration-contract.md
-│   ├── ml-handoff-contract.md
-│   ├── ml-simulink-handoff.md
-│   ├── referable-dr-evaluation.md
-│   ├── referable-dr-calibration.md
-│   └── ...
-│
-└── README.md
-```
-
-Large datasets, generated images, model artifacts and other large files should remain excluded from version control where appropriate.
-
----
-
-# 27. Reproducibility
-
-The project uses a fixed evaluation methodology.
-
-Important reproducibility principles include:
-
-* Fixed APTOS train/validation/test split
-* Frozen final model
-* Frozen calibration
-* Frozen referral threshold
-* Consistent baseline preprocessing
-* Independent external evaluation
-* Explicit model comparison
-* Machine-readable evaluation outputs
-* Automated verification scripts
-* Integration contract
-
-The project prioritizes **reproducibility and transparent evaluation over unsupported performance claims**.
-
----
-
-# 28. Limitations
-
-The current prototype has several important limitations.
-
-### 1. Five-class minority performance
-
-Grade 3 and Grade 4 recall remain low:
-
-```text
-Grade 3 Recall = 26.09%
-Grade 4 Recall = 31.43%
-```
-
-### 2. External-domain generalization
-
-Messidor-2 performance is significantly lower than APTOS performance.
-
-This demonstrates that performance on one retinal dataset should not automatically be generalized to all real-world retinal images.
-
-### 3. Dataset dependence
-
-The final model was developed around the APTOS training distribution.
-
-### 4. Explainability limitations
-
-Grad-CAM provides model-attention visualization but does not establish clinical correctness.
-
-### 5. No clinical deployment claim
-
-The prototype has not undergone prospective clinical validation, regulatory approval, or deployment-level safety validation.
-
-### 6. Domain-shift detection is not yet validated
-
-The proposed Mahalanobis-based domain-shift mechanism requires further experimental validation before being presented as a finalized safety feature.
-
----
-
-# 29. Safety Positioning
-
-The project deliberately avoids presenting the AI as an autonomous diagnostic authority.
-
-The intended workflow is:
+The project separates AI output from specialist review.
 
 ```text
 AI Screening
      │
-     ├── High-confidence / validated-distribution case
+     ▼
+AI Grade / Probability
      │
-     └── Uncertain / potentially unfamiliar case
-                     │
-                     ▼
-               Human Review
+     ▼
+Explainability + Evidence
+     │
+     ▼
+Specialist Review
+     │
+     ▼
+Specialist Grade
+     │
+     ▼
+Agreement / Referral / Follow-up
 ```
 
-The goal is to support screening and prioritization, particularly in telemedicine settings where specialist resources may be limited.
+The specialist grade is stored separately from the AI grade.
 
-The AI should **assist**, not replace, qualified clinical judgment.
+The AI prediction and probability are not overwritten by specialist review.
 
 ---
 
-# 30. Key Results at a Glance
+# 🗂️ Case Management
+
+The integrated dashboard provides case-level traceability.
+
+Open:
+
+```text
+http://127.0.0.1:5050/cases.html
+```
+
+The Specialist Portal supports:
+
+* Case queue
+* AI grade
+* Referable probability
+* IQA status
+* Grad-CAM
+* Morphology evidence
+* Model version
+* Calibration version
+* Specialist grade
+* AI/specialist agreement
+* Referral state
+* Follow-up state
+* Audit information
+
+The case state machine prevents invalid workflow transitions.
+
+Example:
+
+```text
+NON_REFERABLE
+      ↓
+NOT_REFERRED
+
+REFERABLE
+      ↓
+REFERRED
+      ↓
+SEEN / LOST_TO_FOLLOWUP
+      ↓
+COMPLETED
+```
+
+---
+
+# 📋 Three-Layer Reporting
+
+The project separates information according to its intended audience.
+
+## Layer 1 — Screening Report
+
+Designed for the screening operator.
+
+Contains:
+
+* Case information
+* Screening result
+* DR grade
+* Referable probability
+* Referral recommendation
+* Next action
+* Relevant visual evidence
+
+The report can be printed as a compact PDF.
+
+---
+
+## Layer 2 — Specialist Review
+
+Available through:
+
+```text
+/cases.html
+```
+
+Provides technical information required for specialist review.
+
+---
+
+## Layer 3 — Audit / Traceability
+
+Preserves information such as:
+
+* AI grade
+* AI probability
+* Model version
+* Calibration version
+* IQA status
+* Grad-CAM status/reference
+* Morphology evidence
+* Specialist grade
+* Agreement
+* Referral state
+* Follow-up state
+* Adaptation state
+
+Historical cases without optional information are represented as not recorded rather than fabricated.
+
+---
+
+# 🔄 Controlled Adaptation
+
+The project also contains a separate experimental adaptation workflow.
+
+Open:
+
+```text
+http://127.0.0.1:5050/adaptation.html
+```
+
+The experiment evaluates calibration adaptation using verified IDRiD data while keeping the ResNet-50 weights frozen.
+
+The workflow is:
+
+```text
+Locked Baseline
+      ↓
+Candidate Calibration
+      ↓
+Held-out Evaluation
+      ↓
+Mechanical Decision
+      ↓
+PROMOTE / ROLLBACK
+```
+
+### Final decision
+
+```text
+ROLLBACK
+```
+
+The experimental candidate **was not promoted**.
+
+The production/screening workflow continues to use the locked baseline.
+
+This keeps experimental adaptation evidence separate from actual patient-case inference.
+
+---
+
+# 📊 Simulink / Digital Twin
+
+The project includes a district-scale telemedicine simulation using Simulink/SimEvents.
+
+Main model:
+
+```text
+modules/simulink_telemed/model/DR_DigitalTwin_Day2.slx
+```
+
+The simulation models factors such as:
+
+* Patient arrival rate
+* Image-quality failures
+* Retry behavior
+* AI processing time
+* Network delay
+* Specialist review
+* Reviewer capacity
+* Queue length
+* Workload
+* Utilization
+
+### Scenarios
+
+The saved experiments include:
+
+```text
+30-day AI-assisted scenario
+330-day AI-assisted scenario
+330-day manual-review comparison
+```
+
+Saved results:
+
+```text
+modules/simulink_telemed/results/results_30day.mat
+modules/simulink_telemed/results/results_365day.mat
+modules/simulink_telemed/results/day2_experiment_results.mat
+```
+
+### District-scale design
+
+The simulation uses a nominal design target of:
+
+```text
+100,000 patients/year
+```
+
+The 330-day stochastic simulation produced:
+
+```text
+90,411 realized arrivals
+```
+
+This is **simulation telemetry**, not evidence that 90,411 real patients were screened.
+
+The Digital Twin is a capacity-planning model, not field deployment data.
+
+---
+
+# 🧪 Reproducibility & Testing
+
+The project contains automated tests for the major components.
+
+## MATLAB inference
+
+From the project root:
+
+```bash
+matlab -batch "cd('D:\SIH-26038'); addpath(genpath('D:\SIH-26038\modules')); testMLIntegrationContract; testDRInference;"
+```
+
+This verifies:
+
+* Model loading
+* Input validation
+* Five-class prediction
+* Probability validity
+* Referable probability
+* Calibration
+* Frozen 0.22 threshold
+* Confidence
+* Grad-CAM
+* Baseline prediction consistency
+* Documentation
+* No training/model modification
+
+---
+
+## Morphology integration
+
+```bash
+matlab -batch "cd('D:\SIH-26038'); addpath(genpath('D:\SIH-26038\modules')); run('tests/test_morphology_integration.m');"
+```
+
+---
+
+## Core case-management tests
+
+```bash
+python -m unittest tests.test_case_management
+```
+
+The integrated case-management suite contains:
+
+```text
+20 tests
+```
+
+and has been verified successfully.
+
+---
+
+## Full Python test suite
+
+```bash
+python -m unittest discover tests
+```
+
+The repository contains additional legacy/data-dependent validation scripts.
+
+Some may require optional dependencies such as OpenCV or datasets that are intentionally excluded from the repository.
+
+These environment/data warnings are documented in:
+
+```text
+TEST_REPORT.md
+```
+
+They should not be interpreted as product-logic failures.
+
+---
+
+# 📁 Repository Structure
+
+The current repository is organized around the integrated system:
+
+```text
+SIH-26038_Sweet_Syntax/
+│
+├── README.md
+├── QUICK_START.md
+├── EVALUATOR_GUIDE.md
+├── SYSTEM_ARCHITECTURE.md
+├── VALIDATION_REPORT.md
+├── TEST_REPORT.md
+├── REQUIREMENTS_TRACEABILITY.md
+│
+├── dashboard/
+│   ├── server.py
+│   ├── index.html
+│   ├── cases.html
+│   ├── adaptation.html
+│   ├── requirements.txt
+│   ├── js/
+│   ├── css/
+│   ├── data/
+│   ├── gradcam_output/
+│   └── uploads/
+│
+├── models/
+│   └── baseline_resnet50_smoketest.mat
+│
+├── modules/
+│   ├── dl_pipeline/
+│   ├── image_processing/
+│   └── simulink_telemed/
+│
+├── data/
+│   ├── metadata/
+│   ├── processed/
+│   ├── raw/
+│   └── splits/
+│
+├── outputs/
+│   └── evaluation/
+│       ├── adaptation_handoff_package.json
+│       ├── model_evidence_package.json
+│       ├── benchmark_comparison.csv
+│       └── ...
+│
+├── docs/
+│   ├── architecture/
+│   ├── experiments/
+│   └── research/
+│
+└── tests/
+    ├── test_case_management.py
+    ├── test_api_final.py
+    ├── test_gate_full.py
+    ├── test_pipeline_integration.py
+    ├── test_morphology_integration.m
+    └── ...
+```
+
+Large datasets and generated runtime files are intentionally excluded from version control where appropriate.
+
+---
+
+# 📚 Important Documentation
+
+If you are evaluating or understanding the project, these files are the best starting points.
+
+| Document                                                       | Purpose                                  |
+| -------------------------------------------------------------- | ---------------------------------------- |
+| [`QUICK_START.md`](QUICK_START.md)                             | Start the application quickly            |
+| [`EVALUATOR_GUIDE.md`](EVALUATOR_GUIDE.md)                     | Complete evaluator walkthrough           |
+| [`SYSTEM_ARCHITECTURE.md`](SYSTEM_ARCHITECTURE.md)             | Understand the complete architecture     |
+| [`VALIDATION_REPORT.md`](VALIDATION_REPORT.md)                 | Authoritative validation metrics         |
+| [`TEST_REPORT.md`](TEST_REPORT.md)                             | Regression and verification results      |
+| [`REQUIREMENTS_TRACEABILITY.md`](REQUIREMENTS_TRACEABILITY.md) | PS requirement → implementation/evidence |
+| `outputs/evaluation/`                                          | Machine-readable evidence                |
+| `modules/simulink_telemed/`                                    | Digital Twin implementation              |
+| `tests/`                                                       | Automated verification                   |
+
+---
+
+# 🔐 Safety & Responsible Positioning
+
+This project intentionally avoids presenting the AI as an autonomous diagnostic authority.
+
+The intended concept is:
+
+```text
+Screen
+  ↓
+Explain
+  ↓
+Refer
+  ↓
+Human Review
+  ↓
+Follow-up
+  ↓
+Audit
+```
+
+The system is designed to assist screening and referral prioritization.
+
+It is **not**:
+
+* A clinically validated autonomous diagnostic system
+* FDA/medical-device approved software
+* A replacement for qualified ophthalmologists
+* Evidence of prospective clinical deployment
+* A guarantee of performance across all cameras, populations or clinical environments
+
+---
+
+# ⚠️ Known Limitations
+
+## 1. Severe-grade recall
+
+The five-class model has limited recall for:
+
+```text
+Grade 3 = 26.09%
+Grade 4 = 31.43%
+```
+
+This is an important limitation.
+
+---
+
+## 2. External domain generalization
+
+Messidor-2 performance is substantially lower than APTOS.
+
+This demonstrates that performance on one retinal dataset cannot automatically be generalized to other imaging distributions.
+
+---
+
+## 3. Morphology
+
+Morphology modules are heuristic candidate-evidence mechanisms.
+
+They are not independently clinically validated lesion detectors.
+
+---
+
+## 4. Neovascularization
+
+The current implementation uses vessel skeletonization and branch-point density to generate candidate evidence.
+
+It should not be described as clinically validated neovascularization detection.
+
+---
+
+## 5. Grad-CAM
+
+Grad-CAM demonstrates model attention but does not prove clinical correctness of the highlighted region.
+
+---
+
+## 6. Human-in-the-loop timing
+
+An observed review duration of approximately **8.359 seconds** exists in the engineering evidence.
+
+This was an engineering/familiarization observation, not specialist clinical validation.
+
+---
+
+## 7. Digital Twin
+
+Simulink results are synthetic capacity-planning simulations.
+
+They are not real-world deployment measurements.
+
+---
+
+## 8. Dataset availability
+
+The original retinal datasets are not included in this repository.
+
+They must be obtained separately according to their respective dataset terms if full dataset reproduction is required.
+
+---
+
+# 🧭 Why this project is different
+
+The goal is not simply:
+
+```text
+Image → CNN → Prediction
+```
+
+The project instead builds a complete screening workflow:
+
+```text
+                 ┌───────────────────┐
+                 │   Fundus Image     │
+                 └─────────┬─────────┘
+                           ▼
+                 ┌───────────────────┐
+                 │ Retinal Validation│
+                 └─────────┬─────────┘
+                           ▼
+                 ┌───────────────────┐
+                 │       IQA         │
+                 └─────────┬─────────┘
+                           ▼
+                 ┌───────────────────┐
+                 │ Preprocessing     │
+                 └─────────┬─────────┘
+                           ▼
+                 ┌───────────────────┐
+                 │ ResNet-50         │
+                 │ DR Grade 0–4      │
+                 └─────────┬─────────┘
+                           ▼
+                 ┌───────────────────┐
+                 │ Calibration       │
+                 │ + Referral        │
+                 └─────────┬─────────┘
+                           ▼
+                 ┌───────────────────┐
+                 │ Grad-CAM          │
+                 │ + Evidence        │
+                 └─────────┬─────────┘
+                           ▼
+                 ┌───────────────────┐
+                 │ Screening Report  │
+                 └─────────┬─────────┘
+                           ▼
+                 ┌───────────────────┐
+                 │ Specialist Review │
+                 └─────────┬─────────┘
+                           ▼
+                 ┌───────────────────┐
+                 │ Referral /        │
+                 │ Follow-up / Audit │
+                 └───────────────────┘
+```
+
+This architecture explicitly separates:
+
+* **prediction**
+* **probability**
+* **explanation**
+* **morphology evidence**
+* **human review**
+* **workflow state**
+* **auditability**
+* **experimental adaptation**
+
+---
+
+# 📌 Results at a Glance
 
 ### APTOS — Five-Class
 
@@ -940,8 +1183,8 @@ QWK          = 0.8713
 ### APTOS — Referable DR
 
 ```text
-Sensitivity  = 96.09%
-Specificity  = 92.31%
+Sensitivity  = 98.88%  (calibrated)
+Specificity  = 89.23%  (calibrated)
 ROC-AUC      = 0.9816
 ```
 
@@ -955,87 +1198,178 @@ Threshold    = 0.22
 ### Grad-CAM
 
 ```text
-Test Images  = 439
-Outputs      = 439
-Mismatches   = 0
-Missing      = 0
+Test images       = 439
+Generated outputs = 439
+Mismatches        = 0
+Missing outputs   = 0
 ```
 
-### Messidor-2 External Test
+### Messidor-2
 
 ```text
-5-Class Accuracy = 59.98%
-5-Class Macro-F1 = 0.2581
-5-Class QWK      = 0.3231
+5-Class Accuracy  = 59.98%
+5-Class Macro-F1  = 0.2581
+5-Class QWK       = 0.3231
 
 Referable Sensitivity = 29.32%
+Referable Specificity = 97.05%
 Referable AUC         = 0.7669
 ```
 
-The external results are reported explicitly as evidence of domain-generalization limitations.
+The external results are retained as an explicit demonstration of the system's domain-generalization limitation.
 
 ---
 
-# 31. Core ML Contribution
+# 🏁 Current Project Status
 
-The ML contribution of this project is not a claim of a novel CNN architecture.
+| Component               | Status                 |
+| ----------------------- | ---------------------- |
+| MATLAB ML inference     | ✅ Verified             |
+| Locked ResNet-50        | 🔒 Frozen              |
+| Five-class DR grading   | ✅ Implemented          |
+| Referable-DR screening  | ✅ Verified             |
+| Probability calibration | ✅ Verified             |
+| Grad-CAM                | ✅ Verified             |
+| Retinal validation gate | ✅ Implemented          |
+| IQA fail-safe           | ✅ Verified             |
+| Morphology evidence     | ✅ Integrated           |
+| Case management         | ✅ Verified             |
+| Specialist review       | ✅ Implemented          |
+| Layer 1 report          | ✅ Implemented          |
+| Layer 3 audit           | ✅ Implemented          |
+| Controlled adaptation   | ✅ Evaluated — ROLLBACK |
+| Simulink Digital Twin   | ✅ Verified             |
+| External validation     | ✅ Completed            |
+| Regression testing      | ✅ Completed            |
+| Evaluator documentation | ✅ Completed            |
 
-Instead, it is the construction of an integrated, reproducible ML screening pipeline:
+### Final ML State
 
 ```text
-Fixed Dataset Methodology
-        ↓
-Transfer-Learned ResNet-50
-        ↓
-5-Class DR Grading
-        ↓
-Model Comparison
-        ↓
-Referable-DR Screening
-        ↓
-Probability Calibration
-        ↓
-Confidence
-        ↓
-Grad-CAM Explainability
-        ↓
-External Domain Evaluation
-        ↓
-Standardized Inference Contract
+MODEL       = ResNet-50
+MODEL STATE = LOCKED
+THRESHOLD   = 0.22
+CALIBRATION = Platt Scaling
 ```
 
-The project additionally investigates how the system can become **domain-shift-aware**, so that high classifier confidence is not automatically treated as high reliability on unfamiliar data.
+The final integrated system is **frozen and integration-ready**.
 
 ---
 
-# 32. Responsible Claim
+# 🔬 Reproducibility Philosophy
 
-> **This project is a reproducible research/prototype implementation for diabetic retinopathy screening and decision support. Its reported performance is dataset-specific and should not be interpreted as evidence of clinical diagnostic accuracy across all populations, devices, or imaging conditions. External evaluation demonstrates a significant domain-generalization limitation, which motivates explicit reliability and human-review mechanisms.**
+The project prioritizes:
+
+```text
+Reproducibility
+      +
+Transparent Evaluation
+      +
+Explicit Limitations
+      +
+Human Oversight
+```
+
+over unsupported performance claims.
+
+The system deliberately preserves:
+
+* Fixed evaluation splits
+* Frozen model parameters
+* Frozen calibration
+* Frozen referral threshold
+* External validation
+* Prediction traceability
+* Explainability outputs
+* Case-level audit information
+* Reproducible simulation results
+* Explicit experimental rollback decisions
 
 ---
 
-# 33. Status
+# 📖 For Evaluators
 
-**ML Pipeline: FROZEN**
+If you have only a few minutes:
 
-**Final Model: ResNet-50**
+### 1. Read
 
-**Inference Interface: READY**
+```text
+QUICK_START.md
+```
 
-**Integration Contract: VERIFIED**
+### 2. Run
 
-**External Validation: COMPLETED**
+```bash
+pip install -r dashboard/requirements.txt
+python dashboard/server.py
+```
 
-**Grad-CAM: VERIFIED**
+### 3. Open
 
-**Calibration: VERIFIED**
+```text
+http://127.0.0.1:5050
+```
 
-**Further ML changes should only be introduced if required by system integration or after a clearly defined, independently evaluated experiment.**
+### 4. Demonstrate
+
+```text
+Valid fundus
+    ↓
+IQA
+    ↓
+DR Grade
+    ↓
+Referable decision
+    ↓
+Grad-CAM
+    ↓
+Report
+```
+
+### 5. Test safety
+
+```text
+Non-fundus → Rejected
+Poor-quality fundus → IQA failure
+New image → Previous result cleared
+```
+
+### 6. Inspect the technical evidence
+
+```text
+/cases.html
+```
+
+and:
+
+```text
+/adaptation.html
+```
+
+### 7. Reproduce technical validation
+
+See:
+
+```text
+VALIDATION_REPORT.md
+TEST_REPORT.md
+REQUIREMENTS_TRACEABILITY.md
+```
 
 ---
 
-## Project Goal
+# 🎯 Project Goal
 
-The long-term goal is to develop a **quality-aware, explainable, confidence-aware diabetic-retinopathy screening workflow** that can assist telemedicine-based screening and referral while explicitly communicating the model's limitations and uncertainty.
+The long-term objective is to develop a **quality-aware, explainable and confidence-aware diabetic-retinopathy screening workflow** that can support telemedicine-based screening and referral while explicitly communicating uncertainty and known limitations.
 
-> **The objective is not to make an AI that always says it is right — it is to build a system that measures its performance, exposes its limitations, and avoids blindly trusting predictions outside its validated operating conditions.**
+> **The goal is not to build an AI that always says it is right.**
+>
+> **The goal is to build a system that measures its performance, exposes its limitations, explains its predictions, preserves human oversight, and avoids blindly trusting predictions outside its validated operating conditions.**
+
+---
+
+## Team Sweet Syntax
+
+**SIH 2026 — Problem Statement 26038**
+
+**Explainable AI for Diabetic Retinopathy Screening in Rural India**

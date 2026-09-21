@@ -44,7 +44,7 @@ python -m unittest tests.test_case_management
 python -m unittest discover tests
 ```
 **Results (Core Product Regression):** PASS
-- 35 core regression tests passed.
+- 20/20 core case-management tests passed.
 - **Safety Tests (`test_gate_full.py`, `test_scoring_gate.py`)**: Verified that IQA safely catches blurred images, and the retinal check definitively rejects non-fundus images (with accurate scoring for faces, landscapes, logos, etc.) before reaching ML inference.
 - **Async Safety**: Confirmed stale asynchronous results cannot accidentally overwrite newer cases.
 

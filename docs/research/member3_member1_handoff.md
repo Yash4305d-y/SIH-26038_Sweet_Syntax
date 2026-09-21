@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical Document** — superseded by current integrated implementation. The claims, limitations, and paths below represent historical research/member handoff and do NOT reflect the final integrated product state.
+
 # Member 3 → Member 1 Handoff Contract
 
 **Project**: SIH 2026 Problem Statement 26038 — Explainable AI for Diabetic Retinopathy Screening in Rural India  

@@ -4,8 +4,7 @@
   "type": "object",
   "description": "Authoritative machine-readable interface for the current integrated SIH-26038 retinal quality and structured morphology evidence pipeline. This schema reflects the runtime output of runUnifiedPipeline.m.",
   "required": [
-    "iqa",
-    "morphology"
+    "iqa"
   ],
   "properties": {
     "iqa": {
@@ -111,8 +110,15 @@
           ],
           "properties": {
             "ratio": {
-              "type": "number",
-              "description": "Fraction of image pixels included in the extracted vessel mask."
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              ]
             },
             "status": {
               "type": "string",
@@ -146,12 +152,20 @@
               ]
             },
             "centroid": {
-              "type": "array",
-              "items": {
-                "type": "number"
-              },
-              "minItems": 2,
-              "maxItems": 2
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              ]
             }
           }
         },
@@ -176,12 +190,20 @@
               ]
             },
             "centroid": {
-              "type": "array",
-              "items": {
-                "type": "number"
-              },
-              "minItems": 2,
-              "maxItems": 2
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              ]
             }
           }
         },
@@ -193,8 +215,15 @@
           ],
           "properties": {
             "ratio": {
-              "type": "number",
-              "description": "Fraction of image pixels included in the exudate candidate mask."
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              ]
             },
             "status": {
               "type": "string",
@@ -216,12 +245,27 @@
           ],
           "properties": {
             "ratio": {
-              "type": "number",
-              "description": "Fraction of image pixels included in the microaneurysm candidate mask."
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              ]
             },
             "count": {
-              "type": "integer",
-              "minimum": 0
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              ]
             },
             "status": {
               "type": "string",
@@ -243,12 +287,27 @@
           ],
           "properties": {
             "ratio": {
-              "type": "number",
-              "description": "Fraction of image pixels included in the hemorrhage candidate mask."
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              ]
             },
             "count": {
-              "type": "integer",
-              "minimum": 0
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              ]
             },
             "status": {
               "type": "string",
@@ -271,12 +330,27 @@
           ],
           "properties": {
             "ratio": {
-              "type": "number",
-              "description": "Fraction of image pixels included in the neovascularization candidate mask."
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              ]
             },
             "count": {
-              "type": "integer",
-              "minimum": 0
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              ]
             },
             "method": {
               "type": "string",
@@ -303,5 +377,24 @@
         }
       }
     }
+  },
+  "if": {
+    "properties": {
+      "iqa": {
+        "properties": {
+          "pass": {
+            "const": true
+          }
+        }
+      }
+    },
+    "required": [
+      "iqa"
+    ]
+  },
+  "then": {
+    "required": [
+      "morphology"
+    ]
   }
 }

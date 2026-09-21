@@ -42,8 +42,8 @@ During engineering tests, the system achieved a median evaluation speed of:
 ## 5. Simulink District-Scale Digital Twin
 The system utilizes Simulink to project capacity planning. 
 
-**Saved Telemetry Findings (330-Day AI-Assisted, 100,000 cases):**
-* **Review Entities Processed**: ~100,000 simulated patients.
+**Saved Telemetry Findings (330-Day AI-Assisted, 100,000 patients/year target):**
+* **Review Entities Processed**: 90,411 realized stochastic arrivals (based on the 100,000 patients/year nominal simulation design target).
 * **Review Queue Wait**: Minimized drastically due to AI-filtering of obvious healthy cases.
 * **Reviewer Utilization**: Kept within sustainable boundaries for limited specialist availability.
 

@@ -29,7 +29,8 @@ http://127.0.0.1:5000
 
 ## Run Sample
 1. Click **Upload New Image** on the dashboard.
-2. Select a sample fundus image (e.g., from `data/raw/train_images/1ae8c165fd53.png`).
+2. Select a sample fundus image.
+*(A sample fundus image is not committed because the dataset is excluded from version control. Evaluators should provide any retinal fundus image for the normal screening workflow.)*
 3. Click **Analyze**.
 *(Note: The first inference may take longer as MATLAB initializes and loads the locked ResNet-50 model into memory.)*
 

@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical Document** — superseded by current integrated implementation. The claims, limitations, and paths below represent historical research/member handoff and do NOT reflect the final integrated product state.
+
 # Member 3 Independent Validation Report & Evidence Package
 **Author:** Member 3 — Dataset + Image Processing + Evaluation Lead  
 **Project:** Explainable AI for Diabetic Retinopathy Screening in Rural India (PS 26038)  

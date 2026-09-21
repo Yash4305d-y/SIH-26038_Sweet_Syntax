@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical Document** — superseded by current integrated implementation. The claims, limitations, and paths below represent historical research/member handoff and do NOT reflect the final integrated product state.
+
 # Member 3 Sprint 4 Final Report — Master Model Evidence Package & Handoff Integration
 **Team SweetSyntax — Diabetic Retinopathy Technical Master Plan**
 

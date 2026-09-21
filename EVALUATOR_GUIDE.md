@@ -78,7 +78,7 @@ This starts the Python backend server. You should see Flask output indicating th
 The system is fortified with rigorous safety gates. Test them explicitly:
 
 ### Non-fundus rejection
-- **Input**: `dashboard/img/oculaai_logo.png`
+- **Input**: any clearly available non-retinal image (e.g. any random photo on your machine)
 - **Expected**: The system blocks execution and reports `Rejected / not suitable for retinal screening`.
 
 ### Poor-quality image
@@ -86,7 +86,7 @@ The system is fortified with rigorous safety gates. Test them explicitly:
 - **Expected**: The system reports an `IQA failure` with recapture guidance, blocking any downstream DR result generation.
 
 ### Normal screening
-- **Input**: A valid fundus image (e.g., `data/raw/train_images/1ae8c165fd53.png`).
+- **Input**: A valid fundus image supplied by the evaluator.
 - **Expected**: Full pipeline execution to a successful screening result.
 
 ---

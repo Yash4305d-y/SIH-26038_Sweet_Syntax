@@ -61,7 +61,7 @@ This starts the Python backend server. You should see Flask output indicating th
 **Step-by-step walkthrough:**
 1. **Launch**: Run `python dashboard/server.py`.
 2. **Open dashboard**: Navigate to `http://127.0.0.1:5050`.
-3. **Load sample fundus**: Select a sample image from `data/raw/train_images/` or `messidor-2/preprocess/`.
+3. **Load sample fundus**: Provide any valid retinal/fundus image. (A sample fundus image is not committed because the dataset is excluded from version control.)
 4. **Run screening**: Click to analyze. The first run takes longer as the ResNet-50 model is loaded into memory via the MATLAB subprocess.
 5. **Inspect result**: View the AI Grade and referable probability in the Layer 1 report.
 6. **Open Grad-CAM**: The visual explanation is rendered directly on the report screen.

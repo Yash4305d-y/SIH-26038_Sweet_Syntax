@@ -162,9 +162,10 @@
             "file": "modules/image_processing/code/Morphology/ma_hemorrhage_candidates.m"
         },
         "lesion_neovascularization": {
-            "method": "Dropped from MVP Scope (Master Plan \u00a76.3)",
-            "status": "NOT IMPLEMENTED",
-            "file": "modules/image_processing/code/Morphology/neovascularization_candidates.m"
+            "method": "Vessel skeletonization with branch-point density heuristic",
+            "status": "PARTIALLY VALIDATED",
+            "file": "modules/image_processing/code/Morphology/neovascularization_candidates.m",
+            "limitation": "Heuristic candidate evidence only; not clinically validated neovascularization detection."
         }
     },
     "benchmark_comparison": [

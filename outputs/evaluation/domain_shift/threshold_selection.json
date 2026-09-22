@@ -1,0 +1,12 @@
+{
+  "protocol": "95th and 99th percentile of APTOS VALIDATION distances",
+  "thresholds": {
+    "POTENTIAL_SHIFT": 242.6806640625,
+    "HIGH_MISMATCH": 278.21481018066407
+  },
+  "validation_statistics": {
+    "mean_distance": 165.76516484347258,
+    "percent_flagged": 5
+  },
+  "limitations": "Thresholds are statistically chosen based on distribution quantiles, not clinically validated. They indicate distribution mismatch, not correctness."
+}

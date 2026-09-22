@@ -12,10 +12,12 @@ function jsonStr = runUnifiedPipeline(imagePath, generateGradCAM)
     iqaDir = fullfile(projectDir, 'modules', 'image_processing', 'code', 'IQA');
     morphDir = fullfile(projectDir, 'modules', 'image_processing', 'code', 'Morphology');
     preprocDir = fullfile(projectDir, 'modules', 'image_processing', 'code', 'Preprocessing');
+    domainShiftDir = fullfile(projectDir, 'modules', 'dl_pipeline', 'domain_shift');
     
     addpath(iqaDir);
     addpath(morphDir);
     addpath(preprocDir);
+    addpath(domainShiftDir);
     
     try
         I = imread(imagePath);
@@ -233,11 +235,17 @@ function jsonStr = runUnifiedPipeline(imagePath, generateGradCAM)
     % 3. Run Inference (Role 1)
     mlResult = runDRInference(imagePath, generateGradCAM);
     
-    % 3. Merge results
+    % 4. Run Domain Shift Monitor (Independent observability signal)
+    domainResult = runDomainMonitor(imagePath);
+    
+    % 5. Merge results
     fields = fieldnames(mlResult);
     for i = 1:numel(fields)
         unifiedResult.(fields{i}) = mlResult.(fields{i});
     end
+    
+    % Add domain shift object
+    unifiedResult.domainShift = domainResult;
     
     % Ensure success carries over properly
     unifiedResult.success = mlResult.success;

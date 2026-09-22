@@ -129,6 +129,18 @@ outputs/evaluation/*
 
 !outputs/evaluation/ml_master/
 
+# DOMAIN-SHIFT MONITOR — REQUIRED EVALUATION EVIDENCE
+
+!outputs/evaluation/domain_shift/
+!outputs/evaluation/domain_shift/aptos_reference_profile.mat
+!outputs/evaluation/domain_shift/threshold_selection.json
+!outputs/evaluation/domain_shift/external_domain_evaluation.json
+!outputs/evaluation/domain_shift/domain_shift_report.md
+
+# MASTER MODEL EVIDENCE PACKAGE — REQUIRED
+
+!outputs/evaluation/model_evidence_package.json
+
 # -------------------------
 
 # MATLAB / SIMULINK RESULT FILES
@@ -154,6 +166,18 @@ outputs/**/*.mat
 
 !outputs/evaluation/adaptation_handoff_package.json
 !outputs/evaluation/referable_dr/calibration/calibration_parameters.mat
+
+# Required domain-shift artifacts
+
+!outputs/evaluation/domain_shift/
+!outputs/evaluation/domain_shift/aptos_reference_profile.mat
+!outputs/evaluation/domain_shift/threshold_selection.json
+!outputs/evaluation/domain_shift/external_domain_evaluation.json
+!outputs/evaluation/domain_shift/domain_shift_report.md
+
+# Required master evidence package
+
+!outputs/evaluation/model_evidence_package.json
 
 # -------------------------
 
@@ -204,4 +228,7 @@ logs/
 *.7z
 *.tar
 *.gz
+
+# Required structured retinal schema
+
 !outputs/evaluation/structured_retinal_features_schema.json

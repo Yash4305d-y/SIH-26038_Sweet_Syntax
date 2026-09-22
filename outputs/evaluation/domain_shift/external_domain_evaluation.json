@@ -1,0 +1,119 @@
+{
+  "APTOS_test": {
+    "role": "held-out reference-domain evaluation",
+    "sample_count": 439,
+    "mean_distance": 168.55556727867736,
+    "percent_within_reference": 93.394077448747154,
+    "percent_potential_shift": 4.7835990888382689,
+    "percent_high_mismatch": 1.8223234624145785,
+    "groups": {
+      "WITHIN_REFERENCE": {
+        "sample_count": 410,
+        "five_class_error_rate": 0.18048780487804877,
+        "five_class_accuracy": 0.81951219512195128,
+        "referable_error_rate": 0.073170731707317069,
+        "referable_accuracy": 0.926829268292683,
+        "referable_sensitivity": 0.98870056497175141,
+        "referable_specificity": 0.87982832618025753
+      },
+      "POTENTIAL_SHIFT": {
+        "sample_count": 21,
+        "five_class_error_rate": 0.047619047619047616,
+        "five_class_accuracy": 0.95238095238095233,
+        "referable_error_rate": 0,
+        "referable_accuracy": 1,
+        "referable_sensitivity": 1,
+        "referable_specificity": 1
+      },
+      "HIGH_MISMATCH": {
+        "sample_count": 8,
+        "five_class_error_rate": 0,
+        "five_class_accuracy": 1,
+        "referable_error_rate": 0,
+        "referable_accuracy": 1,
+        "referable_sensitivity": null,
+        "referable_specificity": 1
+      }
+    },
+    "categorical_analysis": {
+      "groups_compared": "WITHIN_REFERENCE vs FLAGGED (POTENTIAL_SHIFT + HIGH_MISMATCH)",
+      "n_within": 410,
+      "n_flagged": 29,
+      "error_rate_within": 0.18048780487804877,
+      "error_rate_flagged": 0.034482758620689655,
+      "p_value": 0.041559826918499736,
+      "odds_ratio": 6.166666666666667,
+      "interpretation": "Evaluates if flagged samples have a statistically different 5-class error rate than within-reference samples using Fisher Exact Test."
+    },
+    "logistic_regression_analysis": {
+      "predictor": "Domain Distance",
+      "outcome": "5-Class Prediction Error (Binary)",
+      "sample_count": 439,
+      "effect_estimate_beta": -0.0099946505043422181,
+      "p_value": 0.00042442037628027382,
+      "odds_ratio": 0.99005513003062084,
+      "interpretation": "Prediction error was associated with representation distance (p < 0.05)."
+    }
+  },
+  "Messidor2": {
+    "role": "external stress-test domain",
+    "sample_count": 1744,
+    "mean_distance": 209.35775627346214,
+    "percent_within_reference": 83.887614678899084,
+    "percent_potential_shift": 11.525229357798166,
+    "percent_high_mismatch": 4.5871559633027523,
+    "groups": {
+      "WITHIN_REFERENCE": {
+        "sample_count": 1463,
+        "five_class_error_rate": 0.41216678058783324,
+        "five_class_accuracy": 0.58783321941216671,
+        "referable_error_rate": 0.215311004784689,
+        "referable_accuracy": 0.784688995215311,
+        "referable_sensitivity": 0.31642512077294688,
+        "referable_specificity": 0.96949475691134412
+      },
+      "POTENTIAL_SHIFT": {
+        "sample_count": 201,
+        "five_class_error_rate": 0.30348258706467662,
+        "five_class_accuracy": 0.69651741293532332,
+        "referable_error_rate": 0.14427860696517414,
+        "referable_accuracy": 0.85572139303482586,
+        "referable_sensitivity": 0.10714285714285714,
+        "referable_specificity": 0.976878612716763
+      },
+      "HIGH_MISMATCH": {
+        "sample_count": 80,
+        "five_class_error_rate": 0.425,
+        "five_class_accuracy": 0.575,
+        "referable_error_rate": 0.2125,
+        "referable_accuracy": 0.7875,
+        "referable_sensitivity": 0,
+        "referable_specificity": 0.96923076923076923
+      }
+    },
+    "categorical_analysis": {
+      "groups_compared": "WITHIN_REFERENCE vs FLAGGED (POTENTIAL_SHIFT + HIGH_MISMATCH)",
+      "n_within": 1463,
+      "n_flagged": 281,
+      "error_rate_within": 0.41216678058783324,
+      "error_rate_flagged": 0.33807829181494664,
+      "p_value": 0.020124075108684476,
+      "odds_ratio": 1.3728029375764996,
+      "interpretation": "Evaluates if flagged samples have a statistically different 5-class error rate than within-reference samples using Fisher Exact Test."
+    },
+    "logistic_regression_analysis": {
+      "predictor": "Domain Distance",
+      "outcome": "5-Class Prediction Error (Binary)",
+      "sample_count": 1744,
+      "effect_estimate_beta": -0.0026291286113601831,
+      "p_value": 0.055332357427344922,
+      "odds_ratio": 0.997374324520362,
+      "interpretation": "No statistically significant association between distance and error was found."
+    }
+  },
+  "IDRiD": {
+    "role": "external stress-test domain",
+    "status": "unavailable",
+    "note": "IDRiD evaluation was not performed because the required images were unavailable in the local workspace."
+  }
+}

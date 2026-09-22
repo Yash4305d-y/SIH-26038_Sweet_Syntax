@@ -173,6 +173,40 @@ async function loadCaseDetails(caseId) {
       elAiDecision.style.fontWeight = 'normal';
     }
 
+    // Populate Domain Shift Monitor
+    const dsStatus = document.getElementById('detail-domain-status');
+    const dsRef = document.getElementById('detail-domain-ref');
+    const dsFeat = document.getElementById('detail-domain-feat');
+    
+    if (c.domainShift) {
+      const s = c.domainShift.status || 'UNAVAILABLE';
+      let displayStatus = 'Unavailable';
+      if (s === 'WITHIN_REFERENCE') displayStatus = 'Within reference';
+      else if (s === 'POTENTIAL_SHIFT') displayStatus = 'Potential shift';
+      else if (s === 'HIGH_MISMATCH') displayStatus = 'High mismatch';
+      
+      dsStatus.textContent = displayStatus;
+      dsRef.textContent = c.domainShift.referenceDataset || 'APTOS train';
+      dsFeat.textContent = (c.domainShift.featureLayer && c.domainShift.featureDimension) 
+                            ? `${c.domainShift.featureLayer} (${c.domainShift.featureDimension}-D)` 
+                            : 'avg_pool (2048-D)';
+      
+      if (s === 'WITHIN_REFERENCE') {
+        dsStatus.style.color = 'var(--color-success)';
+      } else if (s === 'POTENTIAL_SHIFT') {
+        dsStatus.style.color = 'var(--color-warning)';
+      } else if (s === 'HIGH_MISMATCH') {
+        dsStatus.style.color = 'var(--color-danger)';
+      } else {
+        dsStatus.style.color = 'var(--text-muted)';
+      }
+    } else {
+      dsStatus.textContent = 'Not recorded';
+      dsStatus.style.color = 'var(--text-muted)';
+      dsRef.textContent = '—';
+      dsFeat.textContent = '—';
+    }
+
     // Populate Images
     if (c.image_id) {
       imgOrig.src = `/uploads/${c.image_id}`;

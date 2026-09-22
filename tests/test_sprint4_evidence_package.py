@@ -115,17 +115,18 @@ class TestSprint4EvidencePackage(unittest.TestCase):
         validated_list = [c for c, info in role2.items() if info["status"] == "VALIDATED"]
         self.assertEqual(len(validated_list), 8)
 
-        # Verify 3 PARTIALLY VALIDATED
+        # Verify 4 PARTIALLY VALIDATED
         partially_list = [c for c, info in role2.items() if info["status"] == "PARTIALLY VALIDATED"]
-        self.assertEqual(len(partially_list), 3)
+        self.assertEqual(len(partially_list), 4)
         self.assertIn("lesion_exudate_candidates", partially_list)
         self.assertIn("lesion_microaneurysm_candidates", partially_list)
         self.assertIn("lesion_hemorrhage_candidates", partially_list)
+        self.assertIn("lesion_neovascularization", partially_list)
 
-        # Verify 1 NOT IMPLEMENTED
+        # Verify 0 NOT IMPLEMENTED
         not_impl_list = [c for c, info in role2.items() if info["status"] == "NOT IMPLEMENTED"]
-        self.assertEqual(len(not_impl_list), 1)
-        self.assertIn("lesion_neovascularization", not_impl_list)
+        self.assertEqual(len(not_impl_list), 0)
+        self.assertNotIn("lesion_neovascularization", not_impl_list)
 
     def test_validation_types_disclaimer(self):
         """Verify dataset evaluations are not called clinical validation."""

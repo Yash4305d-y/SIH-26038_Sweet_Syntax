@@ -3,7 +3,7 @@
 > **SIH 2026 — Problem Statement 26038 / PS 38**
 > **Team: Sweet Syntax**
 >
-> A MATLAB-based, explainable and confidence-aware diabetic retinopathy screening prototype designed for rural telemedicine and human-in-the-loop referral workflows.
+> A MATLAB-based, explainable and quality-aware diabetic retinopathy screening prototype designed for rural telemedicine and human-in-the-loop referral workflows.
 
 ---
 
@@ -21,6 +21,7 @@ This project develops an **integrated retinal screening prototype** that combine
 * Probability calibration
 * Grad-CAM explainability
 * Retinal morphology candidate evidence
+* Domain-shift monitoring
 * Specialist review and referral workflow
 * Case-level audit and traceability
 * Controlled adaptation experiments
@@ -123,6 +124,9 @@ Retinal Validation
 IQA / Preprocessing
    │
    ▼
+Morphology Evidence
+   │
+   ▼
 MATLAB ML Inference
    │
    ▼
@@ -135,10 +139,15 @@ Locked ResNet-50
    └──► Grad-CAM
    │
    ▼
+Domain-Shift Monitor
+   │
+   ▼
 Case / Report / Specialist Workflow
 ```
 
 The system **fails closed** if the validated MATLAB inference backend is unavailable. Mock inference is not part of the real screening workflow.
+
+The Domain-Shift Monitor is an independent distribution-monitoring signal. It does **not** modify the model prediction, calibrated probability, referral decision, or Grad-CAM.
 
 ---
 
@@ -177,9 +186,11 @@ DR grading
   ↓
 Referable-DR decision
   ↓
-Confidence / calibration
+Calibration / referral decision
   ↓
 Grad-CAM
+  ↓
+Domain-Shift Monitor
   ↓
 Screening report
 ```
@@ -201,6 +212,8 @@ The Layer 1 report provides the screening-oriented information:
 * Retinal image
 * Explainability evidence
 * Referral/follow-up information where available
+
+The Specialist Review portal additionally exposes the Domain-Shift Monitor when available.
 
 ---
 
@@ -612,6 +625,128 @@ They do **not** establish that any single preprocessing difference caused the ex
 
 ---
 
+# 🛰️ Runtime Domain-Shift Monitor
+
+The system includes an independent runtime **domain-shift monitor**.
+
+The monitor compares the image's internal ResNet-50 representation against a frozen **APTOS training-domain reference profile**.
+
+### Feature representation
+
+```text
+Feature layer = avg_pool
+Feature size  = 2048 dimensions
+Reference     = APTOS training set
+```
+
+The monitor uses the same 224 × 224 preprocessing as the locked inference pipeline and performs a read-only feature extraction pass.
+
+The locked ResNet-50 weights are not modified.
+
+### Runtime statuses
+
+```text
+WITHIN_REFERENCE
+POTENTIAL_SHIFT
+HIGH_MISMATCH
+UNAVAILABLE
+```
+
+#### WITHIN_REFERENCE
+
+The input representation is within the APTOS reference distribution.
+
+#### POTENTIAL_SHIFT
+
+The input representation differs from the APTOS reference distribution.
+
+This is a **distribution-monitoring signal** and does not indicate that the prediction is incorrect.
+
+#### HIGH_MISMATCH
+
+The input representation is substantially outside the APTOS reference distribution.
+
+This does not determine prediction correctness. Specialist review should be considered when interpreting such a result.
+
+#### UNAVAILABLE
+
+The monitor could not be executed.
+
+The DR inference result is still preserved, but the domain-shift signal is marked unavailable.
+
+### Threshold selection
+
+The monitor thresholds were selected from the **APTOS validation distribution**:
+
+```text
+95th percentile → POTENTIAL_SHIFT
+99th percentile → HIGH_MISMATCH
+```
+
+The observed thresholds are approximately:
+
+```text
+Potential Shift = 242.68
+High Mismatch   = 278.21
+```
+
+These thresholds are **engineering distribution-monitoring thresholds**, not clinically validated thresholds.
+
+They were not tuned on:
+
+```text
+APTOS test
+Messidor-2
+IDRiD
+```
+
+### Important interpretation
+
+The Domain-Shift Monitor is **not**:
+
+```text
+Prediction confidence
+Probability of correctness
+Probability of domain shift
+Clinical risk score
+```
+
+It does not modify:
+
+```text
+Predicted Grade
+Class Probabilities
+Referable Probability
+Referable Decision
+Calibration
+Grad-CAM
+IQA result
+```
+
+The monitor is intentionally kept separate from the authoritative prediction path.
+
+### Reliability evidence
+
+The current analysis found that representation mismatch is detectable, but the available evidence is **mixed and insufficient to establish that domain distance consistently predicts individual model error across datasets**.
+
+Therefore, the monitor is presented as:
+
+```text
+Distribution monitoring
+        +
+Deployment-awareness evidence
+```
+
+rather than as a prediction-correctness estimator.
+
+APTOS is the current reference domain.
+
+Messidor-2 and IDRiD are external stress-test domains and should not be described as representative Indian deployment data.
+
+Representative Indian field data would be required to characterize actual deployment-domain shift.
+
+---
+
 # 👨‍⚕️ Human-in-the-Loop Workflow
 
 The project separates AI output from specialist review.
@@ -624,6 +759,9 @@ AI Grade / Probability
      │
      ▼
 Explainability + Evidence
+     │
+     ▼
+Domain-Shift Signal
      │
      ▼
 Specialist Review
@@ -659,6 +797,7 @@ The Specialist Portal supports:
 * IQA status
 * Grad-CAM
 * Morphology evidence
+* Domain-Shift Monitor
 * Model version
 * Calibration version
 * Specialist grade
@@ -717,7 +856,7 @@ Available through:
 /cases.html
 ```
 
-Provides technical information required for specialist review.
+Provides technical information required for specialist review, including the Domain-Shift Monitor when available.
 
 ---
 
@@ -732,6 +871,7 @@ Preserves information such as:
 * IQA status
 * Grad-CAM status/reference
 * Morphology evidence
+* Domain-Shift Monitor status
 * Specialist grade
 * Agreement
 * Referral state
@@ -864,11 +1004,29 @@ This verifies:
 * Referable probability
 * Calibration
 * Frozen 0.22 threshold
-* Confidence
 * Grad-CAM
 * Baseline prediction consistency
 * Documentation
 * No training/model modification
+
+---
+
+## Domain-Shift Monitor
+
+The runtime monitor has dedicated verification coverage.
+
+The monitor is tested for:
+
+* Valid runtime execution
+* APTOS reference loading
+* Threshold loading
+* Status classification
+* Contract serialization
+* Failure-safe behavior
+* Independence from DR prediction
+* Preservation of the locked baseline
+
+The monitor is designed so that an unavailable monitoring signal does not block the authoritative DR inference result.
 
 ---
 
@@ -948,34 +1106,23 @@ SIH-26038_Sweet_Syntax/
 │
 ├── modules/
 │   ├── dl_pipeline/
+│   │   ├── inference/
+│   │   ├── domain_shift/
+│   │   └── ...
+│   │
 │   ├── image_processing/
 │   └── simulink_telemed/
 │
-├── data/
-│   ├── metadata/
-│   ├── processed/
-│   ├── raw/
-│   └── splits/
-│
 ├── outputs/
 │   └── evaluation/
-│       ├── adaptation_handoff_package.json
-│       ├── model_evidence_package.json
-│       ├── benchmark_comparison.csv
-│       └── ...
+│       ├── domain_shift/
+│       ├── referable_dr/
+│       ├── ml_master/
+│       └── model_evidence_package.json
 │
-├── docs/
-│   ├── architecture/
-│   ├── experiments/
-│   └── research/
+├── tests/
 │
-└── tests/
-    ├── test_case_management.py
-    ├── test_api_final.py
-    ├── test_gate_full.py
-    ├── test_pipeline_integration.py
-    ├── test_morphology_integration.m
-    └── ...
+└── .gitignore
 ```
 
 Large datasets and generated runtime files are intentionally excluded from version control where appropriate.
@@ -995,6 +1142,7 @@ If you are evaluating or understanding the project, these files are the best sta
 | [`TEST_REPORT.md`](TEST_REPORT.md)                             | Regression and verification results      |
 | [`REQUIREMENTS_TRACEABILITY.md`](REQUIREMENTS_TRACEABILITY.md) | PS requirement → implementation/evidence |
 | `outputs/evaluation/`                                          | Machine-readable evidence                |
+| `outputs/evaluation/domain_shift/`                             | Domain-shift evidence and thresholds     |
 | `modules/simulink_telemed/`                                    | Digital Twin implementation              |
 | `tests/`                                                       | Automated verification                   |
 
@@ -1010,6 +1158,8 @@ The intended concept is:
 Screen
   ↓
 Explain
+  ↓
+Monitor
   ↓
 Refer
   ↓
@@ -1055,7 +1205,17 @@ This demonstrates that performance on one retinal dataset cannot automatically b
 
 ---
 
-## 3. Morphology
+## 3. Runtime domain monitoring
+
+The Domain-Shift Monitor detects representation differences relative to the APTOS reference distribution.
+
+Current evidence does **not** establish that domain distance consistently predicts individual model failure.
+
+The monitor should therefore be interpreted as a **distribution-monitoring signal**, not a prediction-confidence or correctness estimator.
+
+---
+
+## 4. Morphology
 
 Morphology modules are heuristic candidate-evidence mechanisms.
 
@@ -1063,7 +1223,7 @@ They are not independently clinically validated lesion detectors.
 
 ---
 
-## 4. Neovascularization
+## 5. Neovascularization
 
 The current implementation uses vessel skeletonization and branch-point density to generate candidate evidence.
 
@@ -1071,13 +1231,13 @@ It should not be described as clinically validated neovascularization detection.
 
 ---
 
-## 5. Grad-CAM
+## 6. Grad-CAM
 
 Grad-CAM demonstrates model attention but does not prove clinical correctness of the highlighted region.
 
 ---
 
-## 6. Human-in-the-loop timing
+## 7. Human-in-the-loop timing
 
 An observed review duration of approximately **8.359 seconds** exists in the engineering evidence.
 
@@ -1085,7 +1245,7 @@ This was an engineering/familiarization observation, not specialist clinical val
 
 ---
 
-## 7. Digital Twin
+## 8. Digital Twin
 
 Simulink results are synthetic capacity-planning simulations.
 
@@ -1093,7 +1253,7 @@ They are not real-world deployment measurements.
 
 ---
 
-## 8. Dataset availability
+## 9. Dataset availability
 
 The original retinal datasets are not included in this repository.
 
@@ -1144,6 +1304,11 @@ The project instead builds a complete screening workflow:
                  └─────────┬─────────┘
                            ▼
                  ┌───────────────────┐
+                 │ Domain-Shift      │
+                 │ Monitor           │
+                 └─────────┬─────────┘
+                           ▼
+                 ┌───────────────────┐
                  │ Screening Report  │
                  └─────────┬─────────┘
                            ▼
@@ -1163,6 +1328,7 @@ This architecture explicitly separates:
 * **probability**
 * **explanation**
 * **morphology evidence**
+* **domain monitoring**
 * **human review**
 * **workflow state**
 * **auditability**
@@ -1204,6 +1370,22 @@ Mismatches        = 0
 Missing outputs   = 0
 ```
 
+### Domain-Shift Monitor
+
+```text
+Reference       = APTOS train
+Feature layer   = avg_pool
+Feature size    = 2048-D
+
+Statuses:
+WITHIN_REFERENCE
+POTENTIAL_SHIFT
+HIGH_MISMATCH
+UNAVAILABLE
+```
+
+The monitor is an independent distribution signal and does not modify DR predictions or Referable Probability.
+
 ### Messidor-2
 
 ```text
@@ -1233,6 +1415,7 @@ The external results are retained as an explicit demonstration of the system's d
 | Retinal validation gate | ✅ Implemented          |
 | IQA fail-safe           | ✅ Verified             |
 | Morphology evidence     | ✅ Integrated           |
+| Domain-Shift Monitor    | ✅ Integrated           |
 | Case management         | ✅ Verified             |
 | Specialist review       | ✅ Implemented          |
 | Layer 1 report          | ✅ Implemented          |
@@ -1279,6 +1462,7 @@ The system deliberately preserves:
 * Frozen calibration
 * Frozen referral threshold
 * External validation
+* Domain-shift evidence
 * Prediction traceability
 * Explainability outputs
 * Case-level audit information
@@ -1323,6 +1507,8 @@ Referable decision
     ↓
 Grad-CAM
     ↓
+Domain-Shift Monitor
+    ↓
 Report
 ```
 
@@ -1346,7 +1532,15 @@ and:
 /adaptation.html
 ```
 
-### 7. Reproduce technical validation
+### 7. Inspect domain-shift evidence
+
+```text
+outputs/evaluation/domain_shift/
+```
+
+This contains the frozen APTOS reference profile, validation-derived thresholds, external evaluation results, and domain-shift report.
+
+### 8. Reproduce technical validation
 
 See:
 
@@ -1360,11 +1554,11 @@ REQUIREMENTS_TRACEABILITY.md
 
 # 🎯 Project Goal
 
-The long-term objective is to develop a **quality-aware, explainable and confidence-aware diabetic-retinopathy screening workflow** that can support telemedicine-based screening and referral while explicitly communicating uncertainty and known limitations.
+The long-term objective is to develop a **quality-aware, explainable and deployment-aware diabetic-retinopathy screening workflow** that can support telemedicine-based screening and referral while explicitly communicating uncertainty, distribution differences, and known limitations.
 
 > **The goal is not to build an AI that always says it is right.**
 >
-> **The goal is to build a system that measures its performance, exposes its limitations, explains its predictions, preserves human oversight, and avoids blindly trusting predictions outside its validated operating conditions.**
+> **The goal is to build a system that measures its performance, exposes its limitations, explains its predictions, monitors its operating distribution, preserves human oversight, and avoids blindly trusting predictions outside its validated operating conditions.**
 
 ---
 

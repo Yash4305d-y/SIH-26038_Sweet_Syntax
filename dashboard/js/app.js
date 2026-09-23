@@ -426,6 +426,58 @@ function renderMainScreen(result) {
 
   const probPercent = (result.calibratedReferableProbability * 100).toFixed(1);
   calibRefProb.textContent = `${probPercent}%`;
+
+  // Domain Shift Monitor
+  const dsCard = document.getElementById('domain-shift-card');
+  if (dsCard) {
+    const dsStatus = document.getElementById('ds-status');
+    const dsWarning = document.getElementById('ds-warning');
+    const dsDistance = document.getElementById('ds-distance');
+    const dsReference = document.getElementById('ds-reference');
+    const dsFeature = document.getElementById('ds-feature');
+
+    dsCard.style.display = 'block';
+    
+    if (!result.domainShift) {
+      dsStatus.textContent = 'Not recorded';
+      dsStatus.style.color = 'var(--text-muted)';
+      dsWarning.textContent = 'Domain Shift Monitor Not recorded';
+      dsDistance.textContent = '—';
+      dsReference.textContent = '—';
+      dsFeature.textContent = '—';
+    } else if (result.domainShift.available === false || result.domainShift.status === 'UNAVAILABLE') {
+      dsStatus.textContent = 'Monitor unavailable';
+      dsStatus.style.color = 'var(--text-muted)';
+      dsWarning.textContent = result.domainShift.warning || 'Domain monitoring was unavailable.';
+      dsDistance.textContent = '—';
+      dsReference.textContent = '—';
+      dsFeature.textContent = '—';
+    } else {
+      const ds = result.domainShift;
+      let statusText = ds.status;
+      let statusColor = 'var(--text-muted)';
+      
+      if (ds.status === 'WITHIN_REFERENCE') {
+        statusText = 'Within reference';
+        statusColor = 'var(--color-success)';
+      } else if (ds.status === 'POTENTIAL_SHIFT') {
+        statusText = 'Potential shift';
+        statusColor = 'var(--color-warning)';
+      } else if (ds.status === 'HIGH_MISMATCH') {
+        statusText = 'High mismatch';
+        statusColor = 'var(--color-danger)';
+      }
+      
+      dsStatus.textContent = statusText;
+      dsStatus.style.color = statusColor;
+      
+      dsWarning.textContent = ds.warning || 'No warning provided.';
+      
+      dsDistance.textContent = (ds.distance !== undefined && ds.distance !== null && !isNaN(ds.distance)) ? ds.distance.toFixed(4) : 'NaN';
+      dsReference.textContent = ds.referenceDataset || '—';
+      dsFeature.textContent = (ds.featureLayer && ds.featureDimension) ? `${ds.featureLayer} · ${ds.featureDimension}-D` : '—';
+    }
+  }
 }
 
 function populateReport(result) {
@@ -514,6 +566,31 @@ function populateReport(result) {
   if(document.getElementById('sec9-model-version')) {
     document.getElementById('sec9-model-version').textContent = modelVersion;
   }
+  
+  if (document.getElementById('sec9b-status')) {
+    const ds = result.domainShift;
+    if (!ds) {
+      document.getElementById('sec9b-status').textContent = 'Not recorded';
+      document.getElementById('sec9b-dist').textContent = '—';
+      document.getElementById('sec9b-ref').textContent = '—';
+      document.getElementById('sec9b-layer').textContent = '—';
+      document.getElementById('sec9b-dim').textContent = '—';
+      document.getElementById('sec9b-pot').textContent = '—';
+      document.getElementById('sec9b-high').textContent = '—';
+      document.getElementById('sec9b-ver').textContent = '—';
+      document.getElementById('sec9b-warning').textContent = '—';
+    } else {
+      document.getElementById('sec9b-status').textContent = ds.status || 'UNAVAILABLE';
+      document.getElementById('sec9b-dist').textContent = (ds.distance !== undefined && ds.distance !== null && !isNaN(ds.distance)) ? ds.distance.toFixed(4) : 'NaN';
+      document.getElementById('sec9b-ref').textContent = ds.referenceDataset || '—';
+      document.getElementById('sec9b-layer').textContent = ds.featureLayer || '—';
+      document.getElementById('sec9b-dim').textContent = ds.featureDimension || '—';
+      document.getElementById('sec9b-pot').textContent = ds.thresholdPotentialShift || '—';
+      document.getElementById('sec9b-high').textContent = ds.thresholdHighMismatch || '—';
+      document.getElementById('sec9b-ver').textContent = ds.monitorVersion || '—';
+      document.getElementById('sec9b-warning').textContent = ds.warning || '—';
+    }
+  }
 }
 
 
@@ -565,6 +642,9 @@ function resetDashboard() {
     bar.textContent = '';
   });
   
+  if (document.getElementById('domain-shift-card')) document.getElementById('domain-shift-card').style.display = 'none';
+  if (document.getElementById('ds-status')) document.getElementById('ds-status').textContent = '—';
+
   btnReupload.disabled = true;
   btnAnalyze.disabled = true;
 }

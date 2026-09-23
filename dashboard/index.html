@@ -177,6 +177,24 @@
             </div>
           </div>
 
+          <div class="card metric-card" id="domain-shift-card" style="width: 100%; padding: var(--space-lg); display: none;">
+            <div class="card-header" style="border-bottom: 1px solid var(--border-color); margin-bottom: 12px; padding-bottom: 8px;">
+              <span class="card-label" style="font-size: 1.1rem;">Domain Shift Monitor</span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 600; font-size: 1.2rem;" id="ds-status">—</span>
+              </div>
+              <div style="font-size: 14px; color: var(--text-secondary); background: var(--surface-muted); padding: 12px; border-radius: var(--radius-sm);" id="ds-warning">—</div>
+              <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted); flex-wrap: wrap; gap: 8px;">
+                <span>Distance: <strong id="ds-distance">—</strong></span>
+                <span>Reference: <strong id="ds-reference">—</strong></span>
+                <span>Feature: <strong id="ds-feature">—</strong></span>
+              </div>
+            </div>
+          </div>
+
           <!-- Image Viewport (Moved below) -->
           <div class="card" id="main-image-viewport" style="width: 100%; padding: var(--space-lg);">
             <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; justify-content: center;">
@@ -355,6 +373,23 @@
                   <tr><th>Model Version</th><td id="sec9-model-version">1.0</td></tr>
                 </table>
               </div>
+              
+              <!-- 9b. Domain Shift Monitor -->
+              <div class="report-section">
+                <h2>9b. Domain Shift Monitor</h2>
+                <table class="report-table">
+                  <tr><th>Status</th><td id="sec9b-status">—</td></tr>
+                  <tr><th>Distance</th><td id="sec9b-dist">—</td></tr>
+                  <tr><th>Reference dataset</th><td id="sec9b-ref">—</td></tr>
+                  <tr><th>Feature layer</th><td id="sec9b-layer">—</td></tr>
+                  <tr><th>Feature dimension</th><td id="sec9b-dim">—</td></tr>
+                  <tr><th>Potential-shift threshold</th><td id="sec9b-pot">—</td></tr>
+                  <tr><th>High-mismatch threshold</th><td id="sec9b-high">—</td></tr>
+                  <tr><th>Monitor version</th><td id="sec9b-ver">—</td></tr>
+                  <tr><th>Warning</th><td id="sec9b-warning">—</td></tr>
+                </table>
+                <p>Interpretation: Within-reference status indicates representation similarity to the APTOS reference distribution; it does not guarantee prediction correctness. Potential or high mismatch indicates distributional difference, not proof that an individual prediction is incorrect. The monitor is independent of the DR prediction and does not modify prediction probabilities or referral decisions.</p>
+              </div>
 
               <!-- 10. Model Performance -->
               <div class="report-section">
@@ -456,8 +491,10 @@
               <!-- 17. Domain-Shift / Generalization Analysis -->
               <div class="report-section">
                 <h2>17. Domain-Shift / Generalization Analysis</h2>
-                <p>The reduction in performance demonstrates a domain-generalization limitation when moving from APTOS to an independent retinal-image distribution.<br>
-                <strong>Future enhancement: Domain-Shift-Aware Confidence</strong></p>
+                <h4>A. Offline Domain-Generalization Analysis</h4>
+                <p>The reduction in performance on Messidor-2 demonstrates a domain-generalization limitation when evaluating on an independent external dataset offline.</p>
+                <h4>B. Runtime Domain-Shift Monitor</h4>
+                <p>The Runtime Domain-Shift Monitor performs a per-input representation comparison against the APTOS training reference distribution and reports WITHIN_REFERENCE, POTENTIAL_SHIFT, or HIGH_MISMATCH. This is a distribution-monitoring signal and does not alter the DR prediction or referral decision.</p>
               </div>
 
               <!-- 18. Grad-CAM Pipeline Validation -->

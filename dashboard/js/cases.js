@@ -175,8 +175,21 @@ async function loadCaseDetails(caseId) {
 
     // Populate Domain Shift Monitor
     const dsStatus = document.getElementById('detail-domain-status');
+    const dsMsg = document.getElementById('detail-domain-msg');
+    const dsDist = document.getElementById('detail-domain-dist');
     const dsRef = document.getElementById('detail-domain-ref');
-    const dsFeat = document.getElementById('detail-domain-feat');
+    const dsWarning = document.getElementById('detail-domain-warning');
+    
+    // Layer 3 trace elements
+    const auditDsStatus = document.getElementById('audit-domain-status');
+    const auditDsDist = document.getElementById('audit-domain-dist');
+    const auditDsRef = document.getElementById('audit-domain-ref');
+    const auditDsLayer = document.getElementById('audit-domain-layer');
+    const auditDsDim = document.getElementById('audit-domain-dim');
+    const auditDsPot = document.getElementById('audit-domain-pot');
+    const auditDsHigh = document.getElementById('audit-domain-high');
+    const auditDsVer = document.getElementById('audit-domain-ver');
+    const auditDsWarning = document.getElementById('audit-domain-warning');
     
     if (c.domainShift) {
       const s = c.domainShift.status || 'UNAVAILABLE';
@@ -186,25 +199,54 @@ async function loadCaseDetails(caseId) {
       else if (s === 'HIGH_MISMATCH') displayStatus = 'High mismatch';
       
       dsStatus.textContent = displayStatus;
-      dsRef.textContent = c.domainShift.referenceDataset || 'APTOS train';
-      dsFeat.textContent = (c.domainShift.featureLayer && c.domainShift.featureDimension) 
-                            ? `${c.domainShift.featureLayer} (${c.domainShift.featureDimension}-D)` 
-                            : 'avg_pool (2048-D)';
+      dsDist.textContent = (c.domainShift.distance !== undefined && c.domainShift.distance !== null && !isNaN(c.domainShift.distance)) ? c.domainShift.distance.toFixed(4) : 'NaN';
+      dsRef.textContent = c.domainShift.referenceDataset || '—';
+      dsWarning.textContent = c.domainShift.warning || '—';
       
       if (s === 'WITHIN_REFERENCE') {
         dsStatus.style.color = 'var(--color-success)';
-      } else if (s === 'POTENTIAL_SHIFT') {
-        dsStatus.style.color = 'var(--color-warning)';
-      } else if (s === 'HIGH_MISMATCH') {
-        dsStatus.style.color = 'var(--color-danger)';
+        dsMsg.textContent = 'Input representation is within the APTOS reference distribution.';
+      } else if (s === 'POTENTIAL_SHIFT' || s === 'HIGH_MISMATCH') {
+        if (s === 'POTENTIAL_SHIFT') dsStatus.style.color = 'var(--color-warning)';
+        if (s === 'HIGH_MISMATCH') dsStatus.style.color = 'var(--color-danger)';
+        dsMsg.textContent = 'Input representation differs from the APTOS reference distribution. This is a distribution-monitoring signal and does not indicate that the prediction is incorrect.';
       } else {
         dsStatus.style.color = 'var(--text-muted)';
+        dsMsg.textContent = 'Domain-shift monitoring was unavailable for this inference.';
       }
+      
+      if (c.domainShift.available === false) {
+        dsMsg.textContent = 'Domain-shift monitoring was unavailable for this inference.';
+      }
+      
+      // Populate Layer 3 audit
+      auditDsStatus.textContent = s;
+      auditDsDist.textContent = dsDist.textContent;
+      auditDsRef.textContent = dsRef.textContent;
+      auditDsLayer.textContent = c.domainShift.featureLayer || '—';
+      auditDsDim.textContent = c.domainShift.featureDimension || '—';
+      auditDsPot.textContent = c.domainShift.thresholdPotentialShift || '—';
+      auditDsHigh.textContent = c.domainShift.thresholdHighMismatch || '—';
+      auditDsVer.textContent = c.domainShift.monitorVersion || '—';
+      auditDsWarning.textContent = c.domainShift.warning || '—';
+      
     } else {
       dsStatus.textContent = 'Not recorded';
       dsStatus.style.color = 'var(--text-muted)';
+      dsMsg.textContent = 'Not recorded';
+      dsDist.textContent = '—';
       dsRef.textContent = '—';
-      dsFeat.textContent = '—';
+      dsWarning.textContent = '—';
+      
+      auditDsStatus.textContent = 'Not recorded';
+      auditDsDist.textContent = '—';
+      auditDsRef.textContent = '—';
+      auditDsLayer.textContent = '—';
+      auditDsDim.textContent = '—';
+      auditDsPot.textContent = '—';
+      auditDsHigh.textContent = '—';
+      auditDsVer.textContent = '—';
+      auditDsWarning.textContent = '—';
     }
 
     // Populate Images
